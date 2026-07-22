@@ -49,8 +49,8 @@ export interface Item {
 /** Filters + pagination accepted by `GET /items`. */
 export interface ItemQuery {
   type?: ItemType;
-  status?: ItemStatus;
   category_id?: string;
+  wilaya?: string;
   q?: string;
   date_from?: string;
   date_to?: string;

@@ -16,18 +16,18 @@ import {
   flattenCategories,
   useCategories,
 } from "@/features/categories/hooks/use-categories";
-import type { ItemQuery, ItemStatus } from "@/types/item";
+import { ALGERIA_WILAYAS } from "@/lib/algeria-wilayas";
+import type { ItemQuery } from "@/types/item";
 
 const ALL = "all";
-const STATUSES: ItemStatus[] = ["open", "matched", "claimed", "closed"];
 
 export type BrowseFilters = Pick<
   ItemQuery,
-  "status" | "category_id" | "date_from" | "date_to"
+  "category_id" | "date_from" | "date_to" | "wilaya"
 >;
 
 export function countActiveFilters(filters: BrowseFilters): number {
-  return [filters.status, filters.category_id, filters.date_from, filters.date_to]
+  return [filters.category_id, filters.date_from, filters.date_to, filters.wilaya]
     .filter(Boolean).length;
 }
 
@@ -66,21 +66,19 @@ export function ItemFilters({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="filter-status">Status</Label>
+        <Label htmlFor="filter-wilaya">Wilaya</Label>
         <Select
-          value={value.status ?? ALL}
-          onValueChange={(v) =>
-            onChange({ status: v === ALL ? undefined : (v as ItemStatus) })
-          }
+          value={value.wilaya ?? ALL}
+          onValueChange={(v) => onChange({ wilaya: v === ALL ? undefined : v })}
         >
-          <SelectTrigger id="filter-status">
-            <SelectValue placeholder="Any status" />
+          <SelectTrigger id="filter-wilaya">
+            <SelectValue placeholder="All wilayas" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Any status</SelectItem>
-            {STATUSES.map((status) => (
-              <SelectItem key={status} value={status} className="capitalize">
-                {status}
+            <SelectItem value={ALL}>All wilayas</SelectItem>
+            {ALGERIA_WILAYAS.map((wilaya) => (
+              <SelectItem key={wilaya} value={wilaya}>
+                {wilaya}
               </SelectItem>
             ))}
           </SelectContent>
@@ -114,8 +112,8 @@ export function ItemFilters({
           className="w-full"
           onClick={() =>
             onChange({
-              status: undefined,
               category_id: undefined,
+              wilaya: undefined,
               date_from: undefined,
               date_to: undefined,
             })

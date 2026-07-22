@@ -101,8 +101,11 @@ export const mockApi: Api = {
       if (query.type) rows = rows.filter((i) => i.type === query.type);
       if (query.category_id) rows = rows.filter((i) => i.category_id === query.category_id);
       if (query.user_id) rows = rows.filter((i) => i.user_id === query.user_id);
-      if (query.status) rows = rows.filter((i) => i.status === query.status);
-      else rows = rows.filter((i) => i.status !== "closed");
+      if (query.wilaya) {
+        const wilaya = query.wilaya.toLowerCase();
+        rows = rows.filter((i) => (i.location_text ?? "").toLowerCase().includes(wilaya));
+      }
+      rows = rows.filter((i) => i.status !== "closed");
       if (query.q) {
         const q = query.q.toLowerCase();
         rows = rows.filter(

@@ -1,9 +1,17 @@
 import Link from "next/link";
-import { FileText, Sparkles, Handshake, Search } from "lucide-react";
+import { FileText, Sparkles, Handshake, Search, MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ALGERIA_WILAYAS } from "@/lib/algeria-wilayas";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 
 const steps = [
@@ -42,21 +50,41 @@ export default function LandingPage() {
           Report it in minutes. Our matching engine compares every lost and
           found report and tells you when there&apos;s a likely reunion.
         </p>
-        <div className="w-full max-w-2xl space-y-3">
-          <form action={ROUTES.search} className="flex flex-col gap-3 rounded-2xl border bg-background/80 p-2 shadow-sm sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-              <Input
-                type="search"
-                name="q"
-                placeholder="Search for something you lost"
-                className="h-12 border-0 bg-transparent pl-9 text-base shadow-none focus-visible:ring-0"
-                aria-label="Search for a lost item"
-              />
+        <div className="w-full max-w-5xl space-y-3">
+          <form
+            action={ROUTES.search}
+            className="overflow-hidden rounded-[28px] border bg-card/95 shadow-[0_12px_40px_-20px_rgba(0,0,0,0.45)] backdrop-blur md:p-2"
+          >
+            <div className="flex flex-col gap-2 md:flex-row md:items-center">
+              <div className="relative flex-1 md:border-r md:border-border/70">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                <Input
+                  type="search"
+                  name="q"
+                  placeholder="Search for something you lost"
+                  className="h-14 border-0 bg-transparent pl-11 text-base shadow-none focus-visible:ring-0"
+                  aria-label="Search for a lost item"
+                />
+              </div>
+              <div className="relative md:w-[280px]">
+                <MapPin className="pointer-events-none absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                <Select name="wilaya" defaultValue="">
+                  <SelectTrigger className="h-14 border-0 bg-transparent pl-10 text-base shadow-none focus:ring-0">
+                    <SelectValue placeholder="Choose a wilaya" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ALGERIA_WILAYAS.map((wilaya) => (
+                      <SelectItem key={wilaya} value={wilaya}>
+                        {wilaya}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" size="lg" className="m-2 h-12 rounded-2xl md:m-0 md:mr-2 md:min-w-[150px]">
+                Search
+              </Button>
             </div>
-            <Button type="submit" size="lg" className="sm:min-w-[140px]">
-              Search
-            </Button>
           </form>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button size="lg" asChild>
