@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { FileText, Sparkles, Handshake, Search, MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +37,15 @@ const steps = [
 ];
 
 export default function LandingPage() {
+  const [wilaya, setWilaya] = useState("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    if (!wilaya.trim()) {
+      event.preventDefault();
+      return;
+    }
+  };
+
   return (
     <>
       {/* Hero */}
@@ -53,8 +65,10 @@ export default function LandingPage() {
         <div className="w-full max-w-5xl space-y-3">
           <form
             action={ROUTES.search}
+            onSubmit={handleSubmit}
             className="overflow-hidden rounded-[28px] border bg-card/95 shadow-[0_12px_40px_-20px_rgba(0,0,0,0.45)] backdrop-blur md:p-2"
           >
+            <input type="hidden" name="wilaya" value={wilaya} required />
             <div className="flex flex-col gap-2 md:flex-row md:items-center">
               <div className="relative flex-1 md:border-r md:border-border/70">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -68,20 +82,25 @@ export default function LandingPage() {
               </div>
               <div className="relative md:w-[280px]">
                 <MapPin className="pointer-events-none absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-                <Select name="wilaya" defaultValue="">
+                <Select name="wilaya" value={wilaya} onValueChange={setWilaya}>
                   <SelectTrigger className="h-14 border-0 bg-transparent pl-10 text-base shadow-none focus:ring-0">
                     <SelectValue placeholder="Choose a wilaya" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ALGERIA_WILAYAS.map((wilaya) => (
-                      <SelectItem key={wilaya} value={wilaya}>
-                        {wilaya}
+                    {ALGERIA_WILAYAS.map((wilayaOption) => (
+                      <SelectItem key={wilayaOption} value={wilayaOption}>
+                        {wilayaOption}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" size="lg" className="m-2 h-12 rounded-2xl md:m-0 md:mr-2 md:min-w-[150px]">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={!wilaya}
+                className="m-2 h-12 rounded-2xl md:m-0 md:mr-2 md:min-w-[150px]"
+              >
                 Search
               </Button>
             </div>
