@@ -16,7 +16,7 @@
     --card-foreground: 98 16% 14%;
     --popover: 0 0% 100%;
     --popover-foreground: 98 16% 14%;
-    --primary: 92 18% 30%;             /* muted olive-700 */
+    --primary: 133 34% 24%;            /* dark forest green */
     --primary-foreground: 0 0% 100%;
     --secondary: 78 12% 92%;
     --secondary-foreground: 98 16% 14%;
@@ -34,7 +34,7 @@
     /* semantic */
     --lost: 347 77% 50%;
     --lost-foreground: 0 0% 100%;
-    --found: 126 36% 32%;              /* moss */
+    --found: 132 31% 26%;              /* forest moss */
     --found-foreground: 0 0% 100%;
     --processing: 43 74% 42%;          /* amber */
     --processing-foreground: 26 83% 14%;
@@ -51,7 +51,7 @@
     --card-foreground: 78 16% 95%;
     --popover: 94 12% 11%;
     --popover-foreground: 78 16% 95%;
-    --primary: 88 21% 48%;              /* brighter olive for dark UI */
+    --primary: 132 28% 38%;             /* richer forest green for dark UI */
     --primary-foreground: 0 0% 100%;
     --secondary: 96 10% 14%;
     --secondary-foreground: 78 16% 95%;
@@ -67,7 +67,7 @@
 
     --lost: 347 77% 60%;
     --lost-foreground: 0 0% 100%;
-    --found: 126 34% 44%;
+    --found: 132 28% 36%;
     --found-foreground: 0 0% 100%;
     --processing: 43 74% 50%;
     --processing-foreground: 26 83% 14%;
