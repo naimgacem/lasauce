@@ -1,0 +1,3 @@
+"""AI-Powered Lost & Found Platform — backend application package."""
+
+__version__ = "0.1.0"

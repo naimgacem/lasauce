@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design tokens — “calm utility, with a spark” ───────────────────────
+   Warm stone canvas, single indigo accent. Semantic colors carry meaning:
+   lost = rose · found = emerald · processing = amber.
+   The AI gradient (--ai-from → --ai-to) is reserved EXCLUSIVELY for AI
+   surfaces (match confidence, processing states, suggestions).            */
+
+@layer base {
+  :root {
+    --background: 60 9% 98%;          /* warm near-white (stone-50) */
+    --foreground: 24 10% 10%;
+    --card: 0 0% 100%;                /* card-on-canvas elevation */
+    --card-foreground: 24 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 10% 10%;
+    --primary: 243 75% 59%;           /* indigo-600 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 60 5% 94%;
+    --secondary-foreground: 24 10% 10%;
+    --muted: 60 5% 94%;
+    --muted-foreground: 25 5% 45%;
+    --accent: 60 5% 92%;
+    --accent-foreground: 24 10% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 6% 88%;
+    --input: 20 6% 88%;
+    --ring: 243 75% 59%;
+    --radius: 0.75rem;
+
+    /* semantic */
+    --lost: 347 77% 50%;              /* rose */
+    --lost-foreground: 0 0% 100%;
+    --found: 161 94% 24%;             /* emerald */
+    --found-foreground: 0 0% 100%;
+    --processing: 38 92% 50%;         /* amber */
+    --processing-foreground: 26 83% 14%;
+
+    /* AI signature gradient */
+    --ai-from: 239 84% 67%;           /* indigo */
+    --ai-to: 271 91% 65%;             /* violet */
+  }
+
+  .dark {
+    --background: 20 14% 4%;          /* rich near-black (stone-950) */
+    --foreground: 60 9% 96%;
+    --card: 24 10% 8%;
+    --card-foreground: 60 9% 96%;
+    --popover: 24 10% 8%;
+    --popover-foreground: 60 9% 96%;
+    --primary: 234 89% 74%;           /* indigo-400 for dark contrast */
+    --primary-foreground: 244 47% 20%;
+    --secondary: 24 6% 12%;
+    --secondary-foreground: 60 9% 96%;
+    --muted: 24 6% 12%;
+    --muted-foreground: 24 5% 63%;
+    --accent: 24 6% 14%;
+    --accent-foreground: 60 9% 96%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 24 6% 16%;
+    --input: 24 6% 16%;
+    --ring: 234 89% 74%;
+
+    --lost: 347 77% 60%;
+    --lost-foreground: 0 0% 100%;
+    --found: 158 64% 42%;
+    --found-foreground: 0 0% 100%;
+    --processing: 38 92% 55%;
+    --processing-foreground: 26 83% 14%;
+
+    --ai-from: 234 89% 74%;
+    --ai-to: 270 95% 75%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  /* AI-only surfaces. Do not use outside AI features. */
+  .bg-ai-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--ai-from)),
+      hsl(var(--ai-to))
+    );
+  }
+  .text-ai-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--ai-from)),
+      hsl(var(--ai-to))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
