@@ -197,30 +197,16 @@ export function BrowseView({
           ) : items.length === 0 ? (
             <EmptyState
               icon={hasQuery ? Search : PackageOpen}
-              title={hasQuery ? "No items match" : "Nothing here yet"}
+              title={hasQuery ? "Nothing matched your search" : "Nothing here yet"}
               description={
                 hasQuery
-                  ? "Try a broader search or clear some filters — new reports arrive all the time."
+                  ? "Can’t find it? Report your lost item and our matching engine will keep looking as new reports arrive."
                   : "Be the first to post. Reports take about two minutes, and our matching engine does the searching."
               }
               action={
                 <Button asChild>
-                  <Link href={ROUTES.report}>Report an item</Link>
+                  <Link href={ROUTES.report}>Report your lost item</Link>
                 </Button>
-              }
-              secondaryAction={
-                hasQuery ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearch("");
-                      setFilters({});
-                      setPage(1);
-                    }}
-                  >
-                    Clear search & filters
-                  </Button>
-                ) : undefined
               }
             />
           ) : view === "grid" ? (
