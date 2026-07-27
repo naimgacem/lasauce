@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DemoSignIn } from "@/features/auth/components/demo-sign-in";
+import { AuthForm } from "@/features/auth/components/auth-form";
 import { ROUTES } from "@/lib/routes";
 
 export const metadata: Metadata = { title: "Create account" };
@@ -20,11 +20,11 @@ export default function RegisterPage() {
       <CardHeader className="text-center">
         <CardTitle className="text-xl">Create your account</CardTitle>
         <CardDescription>
-          The full registration form ships with the next build step.
+          Create an account to post and search reports.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <DemoSignIn />
+        <AuthForm mode="register" />
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">

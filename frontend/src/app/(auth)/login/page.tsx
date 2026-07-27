@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DemoSignIn } from "@/features/auth/components/demo-sign-in";
+import { AuthForm } from "@/features/auth/components/auth-form";
 import { ROUTES } from "@/lib/routes";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -20,11 +20,11 @@ export default function LoginPage() {
       <CardHeader className="text-center">
         <CardTitle className="text-xl">Welcome back</CardTitle>
         <CardDescription>
-          The full sign-in form ships with the next build step.
+          Sign in with your email and password.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <DemoSignIn />
+        <AuthForm mode="login" />
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
