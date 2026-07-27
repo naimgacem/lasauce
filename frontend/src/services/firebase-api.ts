@@ -1,4 +1,4 @@
-import { addDoc, collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { addDoc, collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
 
 import { firebaseDb } from "@/lib/firebase";
 import { ApiError, type Paginated } from "@/types/api";
@@ -21,6 +21,15 @@ function paginate<T>(rows: T[], page = 1, pageSize = 20): Paginated<T> {
     page_size: pageSize,
     total_pages: Math.max(1, Math.ceil(rows.length / pageSize)),
   };
+}
+
+async function runWithTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), 10_000);
+    }),
+  ]);
 }
 
 function toItem(doc: any): Item {
@@ -82,36 +91,70 @@ export const firebaseApi: Api = {
       if (query.type) constraints.push(where("type", "==", query.type));
       if (query.category_id) constraints.push(where("category_id", "==", query.category_id));
       if (query.user_id) constraints.push(where("user_id", "==", query.user_id));
-      if (query.q) constraints.push(where("title", ">=", query.q));
       constraints.push(orderBy("created_at", "desc"));
+      const pageSize = query.page_size ?? 20;
+      constraints.push(limit(pageSize));
       const q = query(collection(firebaseDb, ITEMS_COLLECTION), ...constraints);
       const snapshot = await getDocs(q);
       const rows = snapshot.docs.map(toItem);
-      return paginate(rows, query.page, query.page_size);
+      return paginate(rows, query.page, pageSize);
     },
     async get(id) {
-      const snapshot = await getDocs(query(collection(firebaseDb, ITEMS_COLLECTION), where("id", "==", id)));
+      const snapshot = await getDocs(query(collection(firebaseDb, ITEMS_COLLECTION), where("__name__", "==", id)));
       if (snapshot.empty) throw notFound("Item");
       return toItem(snapshot.docs[0]);
     },
     async create(payload: CreateItemPayload) {
       const now = new Date().toISOString();
-      const ref = await addDoc(collection(firebaseDb, ITEMS_COLLECTION), {
-        ...payload,
-        status: "open",
-        processing_status: "pending",
-        category_id: payload.category_id ?? null,
-        color: payload.color ?? null,
-        brand: payload.brand ?? null,
-        location_text: payload.location_text ?? null,
-        latitude: payload.latitude ?? null,
-        longitude: payload.longitude ?? null,
-        images: [],
-        created_at: now,
-        updated_at: now,
-      });
+      try {
+          const ref = await runWithTimeout(
+          addDoc(collection(firebaseDb, ITEMS_COLLECTION), {
+            ...payload,
+            user_id: "firebase-user",
+            status: "open",
+            processing_status: "pending",
+            category_id: payload.category_id ?? null,
+            color: payload.color ?? null,
+            brand: payload.brand ?? null,
+            location_text: payload.location_text ?? null,
+            latitude: payload.latitude ?? null,
+            longitude: payload.longitude ?? null,
+            images: [],
+            created_at: now,
+            updated_at: now,
+          }),
+          "Firebase is taking too long. Check that Firestore is enabled and your rules allow writes.",
+        );
+        return {
+          id: ref.id,
+          user_id: "firebase-user",
+          type: payload.type,
+          status: "open",
+          processing_status: "pending",
+          title: payload.title,
+          description: payload.description,
+          category_id: payload.category_id ?? null,
+          category: null,
+          color: payload.color ?? null,
+          brand: payload.brand ?? null,
+          location_text: payload.location_text ?? null,
+          latitude: payload.latitude ?? null,
+          longitude: payload.longitude ?? null,
+          lost_or_found_at: payload.lost_or_found_at,
+          closed_reason: null,
+          closed_at: null,
+          images: [],
+          created_at: now,
+          updated_at: now,
+        };
+      } catch (error: any) {
+        const message =
+          error?.message ||
+          "Could not publish report. Check Firebase Firestore setup and permissions.";
+        throw new Error(message);
+      }
       return {
-        id: ref.id,
+        id: "",
         user_id: "firebase-user",
         type: payload.type,
         status: "open",
