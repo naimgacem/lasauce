@@ -84,7 +84,7 @@ export function ItemDetail({ item }: { item: Item }) {
           <Button variant="ghost" size="sm" asChild>
             <Link href={item.type === "lost" ? ROUTES.lost : ROUTES.found}>
               <ArrowLeft className="h-4 w-4" />
-              Back to browse
+              Back to search
             </Link>
           </Button>
 

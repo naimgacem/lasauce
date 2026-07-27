@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const tabs = [
   { href: ROUTES.dashboard, label: "Home", icon: Home },
-  { href: ROUTES.search, label: "Browse", icon: Search },
+  { href: ROUTES.search, label: "Search", icon: Search },
   // center slot is the raised Report button
   { href: ROUTES.notifications, label: "Alerts", icon: Bell },
   { href: ROUTES.profile, label: "You", icon: User },

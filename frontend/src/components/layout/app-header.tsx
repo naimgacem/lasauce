@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: ROUTES.dashboard, label: "Dashboard" },
-  { href: ROUTES.search, label: "Browse" },
+  { href: ROUTES.search, label: "Search" },
   { href: ROUTES.myItems, label: "My items" },
 ];
 

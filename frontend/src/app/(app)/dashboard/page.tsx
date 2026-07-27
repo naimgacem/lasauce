@@ -144,7 +144,7 @@ export default function DashboardPage() {
               {recent.length > 0 ? (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={ROUTES.search}>
-                    Browse all
+                    Search all
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
