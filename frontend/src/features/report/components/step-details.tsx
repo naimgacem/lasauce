@@ -14,8 +14,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { detailsSchema, type DetailsValues } from "@/features/report/schemas";
+import { ALGERIA_WILAYAS } from "@/lib/algeria-wilayas";
 import type { ReportDraft } from "@/store/draft.store";
 import type { ItemType } from "@/types/item";
 
@@ -140,9 +148,20 @@ export function StepDetails({
                     (optional)
                   </span>
                 </FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. Central Library, Main St" {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a wilaya" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ALGERIA_WILAYAS.map((wilaya) => (
+                      <SelectItem key={wilaya} value={wilaya}>
+                        {wilaya}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
