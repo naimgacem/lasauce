@@ -61,9 +61,6 @@ export function SiteHeader() {
               <Button variant="ghost" size="sm" asChild>
                 <Link href={ROUTES.login}>Sign in</Link>
               </Button>
-              <Button size="sm" asChild className="hidden sm:inline-flex">
-                <Link href={loginWithNext(ROUTES.reportLost)}>Report item</Link>
-              </Button>
             </>
           )}
         </div>
