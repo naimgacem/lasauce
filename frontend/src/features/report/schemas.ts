@@ -17,7 +17,10 @@ export const detailsSchema = z.object({
       (value) => new Date(value) <= new Date(),
       "The date can't be in the future",
     ),
-  location_text: z.string().max(500, "Location is too long").optional(),
+  location_text: z
+    .string({ required_error: "Select a wilaya" })
+    .min(1, "Select a wilaya")
+    .max(500, "Location is too long"),
   color: z.string().max(80).optional(),
   brand: z.string().max(120).optional(),
 });
