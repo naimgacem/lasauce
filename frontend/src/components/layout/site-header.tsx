@@ -21,28 +21,31 @@ const links = [
 export function SiteHeader() {
   const pathname = usePathname();
   const { isAuthed } = useSession();
+  const isHomePage = pathname === "/";
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center gap-6">
         <Logo />
 
-        <nav className="flex items-center gap-1">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                pathname === link.href
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        {!isHomePage && (
+          <nav className="flex items-center gap-1">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  pathname === link.href
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
