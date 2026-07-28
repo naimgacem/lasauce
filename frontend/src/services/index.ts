@@ -5,15 +5,20 @@
  */
 import { env } from "@/lib/env";
 
+import { authClient } from "./auth.client";
+import { categoriesClient } from "./categories.client";
 import type { Api } from "./contracts";
-import { firebaseApi } from "./firebase-api";
+import { itemsClient } from "./items.client";
+import { matchesClient } from "./matches.client";
+import { mockApi } from "./mock/api";
+import { notificationsClient } from "./notifications.client";
 
 const realApi: Api = {
-  auth: firebaseApi.auth,
-  items: firebaseApi.items,
-  categories: firebaseApi.categories,
-  notifications: firebaseApi.notifications,
-  matches: firebaseApi.matches,
+  auth: authClient,
+  items: itemsClient,
+  categories: categoriesClient,
+  notifications: notificationsClient,
+  matches: matchesClient,
 };
 
-export const api: Api = env.useMocks ? firebaseApi : realApi;
+export const api: Api = env.useMocks ? mockApi : realApi;

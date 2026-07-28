@@ -22,8 +22,9 @@ async function doRefresh(): Promise<boolean> {
   if (!store.refreshToken) return false;
 
   if (env.useMocks) {
-    // Mock mode: mint a fresh fake pair; the persisted user snapshot stands in
-    // for the server-side session.
+    // No REST backend to rotate against: mint a fresh fake pair; the persisted
+    // user snapshot stands in for the server-side session. Hitting `apiUrl`
+    // here would fail and wrongly clear the session on every reload.
     store.setTokens({
       access: `mock-access-${Date.now()}`,
       refresh: `mock-refresh-${Date.now()}`,

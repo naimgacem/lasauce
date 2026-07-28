@@ -14,6 +14,9 @@ export function makeQueryClient() {
           if (error instanceof ApiError && [401, 403, 404].includes(error.status)) {
             return false;
           }
+          // Programming errors won't fix themselves either: retrying just
+          // multiplies the backoff before the user sees anything.
+          if (error instanceof TypeError) return false;
           return failureCount < 2;
         },
       },

@@ -46,15 +46,39 @@ import type { ItemType } from "@/types/item";
 const PAGE_SIZE = 12;
 type ViewMode = "grid" | "list";
 
-export function BrowseView({
-  presetType,
-  title,
-  description,
-}: {
+interface BrowseViewProps {
   presetType?: ItemType;
   title: string;
   description: string;
-}) {
+}
+
+/**
+ * `useSearchParams` opts the subtree into client-side rendering, which Next
+ * refuses to prerender without a Suspense boundary — so the boundary lives
+ * here rather than being duplicated across every browse route.
+ */
+export function BrowseView(props: BrowseViewProps) {
+  return (
+    <React.Suspense fallback={<BrowseFallback title={props.title} description={props.description} />}>
+      <BrowseViewInner {...props} />
+    </React.Suspense>
+  );
+}
+
+function BrowseFallback({ title, description }: Omit<BrowseViewProps, "presetType">) {
+  return (
+    <div className="container py-8">
+      <PageHeader title={title} description={description} />
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <ItemCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
   const searchParams = useSearchParams();
   const [search, setSearch] = React.useState(searchParams.get("q") ?? "");
   const [filters, setFilters] = React.useState<BrowseFilters>({});

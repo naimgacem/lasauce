@@ -1,19 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/features/auth/hooks/use-session";
-import { loginWithNext, ROUTES } from "@/lib/routes";
-import { cn } from "@/lib/utils";
+import { ROUTES } from "@/lib/routes";
 
 /** Public shell header — marketing nav, auth-aware right side. */
 export function SiteHeader() {
-  const pathname = usePathname();
   const { isAuthed } = useSession();
 
   return (
