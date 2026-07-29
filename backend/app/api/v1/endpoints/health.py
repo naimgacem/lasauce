@@ -47,16 +47,20 @@ async def readiness(request: Request, db: AsyncSession = Depends(get_db)) -> JSO
         ok = False
         checks["database"] = {"status": "error", "detail": str(exc)}
 
-    # Redis
-    redis = getattr(request.app.state, "redis", None)
-    try:
-        if redis is None:
-            raise RuntimeError("redis connection not initialised")
-        await redis.ping()
-        checks["redis"] = {"status": "ok"}
-    except Exception as exc:  # noqa: BLE001
-        ok = False
-        checks["redis"] = {"status": "error", "detail": str(exc)}
+    # Redis — optional. Only the arq worker needs it, so a blank REDIS_URL is a
+    # supported configuration and must not fail readiness.
+    if not get_settings().redis_enabled:
+        checks["redis"] = {"status": "skipped", "detail": "REDIS_URL not configured"}
+    else:
+        redis = getattr(request.app.state, "redis", None)
+        try:
+            if redis is None:
+                raise RuntimeError("redis connection not initialised")
+            await redis.ping()
+            checks["redis"] = {"status": "ok"}
+        except Exception as exc:  # noqa: BLE001
+            ok = False
+            checks["redis"] = {"status": "error", "detail": str(exc)}
 
     if not ok:
         logger.warning("readiness_check_failed", extra={"checks": checks})

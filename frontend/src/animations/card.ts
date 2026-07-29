@@ -1,18 +1,23 @@
 import type { Transition } from "framer-motion";
 
+import { DURATION, EASE_OUT } from "./easing";
+
 /**
- * Card hover: 3px lift, ≤1.01 scale. Shadow transitions via the CSS class
- * (`transition-shadow`) so the GPU only animates transform here.
+ * Card hover: small lift, ≤1.01 scale. Shadow and border transition via CSS
+ * (`transition-shadow`) so the GPU only ever animates transform here.
  */
 export const cardHoverTransition: Transition = {
-  duration: 0.18,
-  ease: "easeOut",
+  duration: DURATION.fast,
+  ease: EASE_OUT,
 };
 
 export const cardHover = {
-  y: -3,
-  scale: 1.005,
+  y: -4,
+  scale: 1.006,
   transition: cardHoverTransition,
 } as const;
 
-export const cardTap = { scale: 0.995 } as const;
+export const cardTap = {
+  scale: 0.994,
+  transition: { duration: DURATION.instant },
+} as const;

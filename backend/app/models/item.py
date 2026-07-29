@@ -20,11 +20,12 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Index,
+    SmallInteger,
     String,
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -97,9 +98,18 @@ class Item(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     color: Mapped[str | None] = mapped_column(String(80), nullable=True)
     brand: Mapped[str | None] = mapped_column(String(120), nullable=True)
     location_text: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Administrative wilaya code (1–58). Stored as a code rather than a name so
+    # the label can be localised (ar/fr/en) without migrating data.
+    wilaya_code: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     lost_or_found_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    #  Up to 2 verification questions the reporter asks before revealing contact
+    #  details. Empty list = anyone may claim with just a message.
+    claim_questions: Mapped[list[str]] = mapped_column(
+        JSONB, default=list, server_default=text("'[]'::jsonb"), nullable=False
+    )
 
     closed_reason: Mapped[ItemClosedReason | None] = mapped_column(
         Enum(ItemClosedReason, name="item_closed_reason"), nullable=True
@@ -128,6 +138,7 @@ class Item(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Index("ix_items_user_id", "user_id"),
         Index("ix_items_category_id", "category_id"),
         Index("ix_items_lost_or_found_at", "lost_or_found_at"),
+        Index("ix_items_wilaya_code", "wilaya_code"),
     )
 
     def __repr__(self) -> str:  # pragma: no cover

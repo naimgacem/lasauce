@@ -257,7 +257,7 @@ export default function DashboardPage() {
                     <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                       {n.body}
                     </p>
-                    <p className="mt-1 text-[11px] text-muted-foreground/70">
+                    <p className="mt-1 text-caption text-muted-foreground/80">
                       {formatRelative(n.created_at)}
                     </p>
                   </Link>

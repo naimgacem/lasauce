@@ -7,8 +7,11 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.core.wilayas import WILAYA_CODE_MAX, WILAYA_CODE_MIN
 from app.models.item import ItemClosedReason, ItemStatus, ItemType, ProcessingStatus
 from app.schemas.category import CategorySummary
+
+WilayaCode = Field(default=None, ge=WILAYA_CODE_MIN, le=WILAYA_CODE_MAX)
 
 
 class ItemImageRead(BaseModel):
@@ -27,9 +30,13 @@ class ItemBase(BaseModel):
     color: str | None = Field(default=None, max_length=80)
     brand: str | None = Field(default=None, max_length=120)
     location_text: str | None = Field(default=None, max_length=500)
+    wilaya_code: int | None = WilayaCode
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     lost_or_found_at: dt.datetime
+    #  Verification questions a claimant must answer. Public — a claimant has to
+    #  read them to answer — so they must not themselves give the answer away.
+    claim_questions: list[str] = Field(default_factory=list, max_length=2)
 
 
 class ItemCreate(ItemBase):
@@ -45,9 +52,11 @@ class ItemUpdate(BaseModel):
     color: str | None = Field(default=None, max_length=80)
     brand: str | None = Field(default=None, max_length=120)
     location_text: str | None = Field(default=None, max_length=500)
+    wilaya_code: int | None = WilayaCode
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     lost_or_found_at: dt.datetime | None = None
+    claim_questions: list[str] | None = Field(default=None, max_length=2)
 
 
 class ItemRead(BaseModel):
@@ -65,9 +74,11 @@ class ItemRead(BaseModel):
     color: str | None
     brand: str | None
     location_text: str | None
+    wilaya_code: int | None
     latitude: float | None
     longitude: float | None
     lost_or_found_at: dt.datetime
+    claim_questions: list[str]
     closed_reason: ItemClosedReason | None
     closed_at: dt.datetime | None
     images: list[ItemImageRead] = []

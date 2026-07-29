@@ -51,7 +51,7 @@ export function WizardProgress({ step }: { step: number }) {
               </span>
               <span
                 className={cn(
-                  "hidden text-[11px] sm:block",
+                  "hidden text-caption sm:block",
                   current ? "font-medium text-foreground" : "text-muted-foreground",
                 )}
               >

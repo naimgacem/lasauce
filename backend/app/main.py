@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.api import media
 from app.api.v1.endpoints import health
 from app.api.v1.router import api_router
 from app.core.config import get_settings
@@ -77,19 +78,25 @@ async def lifespan(app: FastAPI):
 
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
 
-    app.state.redis = aioredis.from_url(
-        settings.REDIS_URL, encoding="utf-8", decode_responses=True
-    )
-    try:
-        await app.state.redis.ping()
-        logger.info("redis_connected")
-    except Exception as exc:  # noqa: BLE001 - non-fatal; surfaced via /health/ready
-        logger.warning("redis_unavailable", extra={"error": str(exc)})
+    if settings.redis_enabled:
+        app.state.redis = aioredis.from_url(
+            settings.REDIS_URL, encoding="utf-8", decode_responses=True
+        )
+        try:
+            await app.state.redis.ping()
+            logger.info("redis_connected")
+        except Exception as exc:  # noqa: BLE001 - non-fatal; surfaced via /health/ready
+            logger.warning("redis_unavailable", extra={"error": str(exc)})
+    else:
+        # Queue-free mode: nothing enqueues work until the ML worker ships.
+        app.state.redis = None
+        logger.info("redis_disabled")
 
     yield
 
     logger.info("application_shutdown")
-    await app.state.redis.aclose()
+    if app.state.redis is not None:
+        await app.state.redis.aclose()
     await dispose_engine()
 
 
@@ -174,8 +181,9 @@ def create_app() -> FastAPI:
 
     _register_exception_handlers(app)
 
-    # Health probes at the root; versioned API under the configured prefix.
+    # Health probes and media at the root; versioned API under the prefix.
     app.include_router(health.router)
+    app.include_router(media.router)
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
     @app.get("/", tags=["meta"], summary="Service metadata")

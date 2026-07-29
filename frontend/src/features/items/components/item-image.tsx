@@ -3,13 +3,19 @@
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 
+import { env } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import type { Item } from "@/types/item";
 
-/** Resolve a displayable URL (mock mode stores URLs directly). */
-export function imageUrl(path: string | undefined): string | null {
+/**
+ * Resolve a displayable URL. Mock data stores absolute URLs directly; the
+ * backend stores opaque storage keys, which resolve against the media host.
+ */
+export function imageUrl(path: string | null | undefined): string | null {
   if (!path) return null;
-  return path.startsWith("http") ? path : null;
+  // Already absolute (http:, https:, blob:, data:) — mock mode and object URLs.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(path)) return path;
+  return `${env.mediaUrl.replace(/\/+$/, "")}/media/${path.replace(/^\/+/, "")}`;
 }
 
 /** Item photo with a designed placeholder when no image exists. */
@@ -34,8 +40,8 @@ export function ItemImage({
         role="img"
         aria-label={`No photo yet for ${item.title}`}
       >
-        <div className="absolute inset-0 opacity-[0.04] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:14px_14px]" />
-        <ImageIcon className="h-8 w-8 text-muted-foreground/60" />
+        <div className="bg-dotted absolute inset-0 opacity-40" />
+        <ImageIcon className="relative h-8 w-8 text-muted-foreground/50" aria-hidden />
       </div>
     );
   }

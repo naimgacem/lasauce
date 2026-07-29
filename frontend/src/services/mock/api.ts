@@ -6,7 +6,8 @@
 import { useAuthStore } from "@/store/auth.store";
 import { ApiError, type Paginated } from "@/types/api";
 import type { AuthResponse, User } from "@/types/auth";
-import type { Item } from "@/types/item";
+import type { Claim } from "@/types/claim";
+import type { Item, ItemImage } from "@/types/item";
 import type { AppNotification } from "@/types/notification";
 
 import type { Api } from "@/services/contracts";
@@ -49,6 +50,7 @@ function currentUser(): User {
 
 let items: Item[] = [...MOCK_ITEMS];
 let notifications: AppNotification[] = [...MOCK_NOTIFICATIONS];
+let claims: Claim[] = [];
 
 export const mockApi: Api = {
   auth: {
@@ -101,11 +103,14 @@ export const mockApi: Api = {
       if (query.type) rows = rows.filter((i) => i.type === query.type);
       if (query.category_id) rows = rows.filter((i) => i.category_id === query.category_id);
       if (query.user_id) rows = rows.filter((i) => i.user_id === query.user_id);
-      if (query.wilaya) {
-        const wilaya = query.wilaya.toLowerCase();
-        rows = rows.filter((i) => (i.location_text ?? "").toLowerCase().includes(wilaya));
+      if (query.wilaya_code != null) {
+        rows = rows.filter((i) => i.wilaya_code === query.wilaya_code);
       }
-      rows = rows.filter((i) => i.status !== "closed");
+      if (query.status) {
+        rows = rows.filter((i) => i.status === query.status);
+      } else {
+        rows = rows.filter((i) => i.status !== "closed");
+      }
       if (query.q) {
         const q = query.q.toLowerCase();
         rows = rows.filter(
@@ -143,6 +148,8 @@ export const mockApi: Api = {
         color: payload.color ?? null,
         brand: payload.brand ?? null,
         location_text: payload.location_text ?? null,
+        wilaya_code: payload.wilaya_code ?? null,
+        claim_questions: payload.claim_questions ?? [],
         latitude: payload.latitude ?? null,
         longitude: payload.longitude ?? null,
         lost_or_found_at: payload.lost_or_found_at,
@@ -190,6 +197,28 @@ export const mockApi: Api = {
       });
       return target;
     },
+
+    async uploadImages(id, files) {
+      await delay(600);
+      const target = items.find((i) => i.id === id);
+      if (!target) throw notFound("Item");
+      // Object URLs stand in for stored keys so mock mode renders real previews.
+      const created: ItemImage[] = files.map((file) => ({
+        id: crypto.randomUUID(),
+        item_id: id,
+        image_path: URL.createObjectURL(file),
+        created_at: new Date().toISOString(),
+      }));
+      target.images = [...target.images, ...created];
+      return created;
+    },
+
+    async deleteImage(id, imageId) {
+      await delay(200);
+      const target = items.find((i) => i.id === id);
+      if (!target) throw notFound("Item");
+      target.images = target.images.filter((img) => img.id !== imageId);
+    },
   },
 
   categories: {
@@ -220,6 +249,88 @@ export const mockApi: Api = {
     async markAllRead() {
       await delay(120);
       notifications = notifications.map((n) => ({ ...n, is_read: true }));
+    },
+  },
+
+  claims: {
+    async submit(itemId, payload) {
+      await delay();
+      const item = items.find((i) => i.id === itemId);
+      if (!item) throw notFound("Item");
+      const me = currentUser();
+      const claim: Claim = {
+        id: crypto.randomUUID(),
+        item_id: itemId,
+        status: "pending",
+        message: payload.message ?? null,
+        answers: payload.answers,
+        claimant: { id: me.id, full_name: me.full_name },
+        created_at: new Date().toISOString(),
+        resolved_at: null,
+        contact: null,
+      };
+      claims = [claim, ...claims];
+      return claim;
+    },
+    async forItem(itemId) {
+      await delay(150);
+      return claims.filter((c) => c.item_id === itemId);
+    },
+    async mine() {
+      await delay(150);
+      const me = currentUser();
+      return claims.filter((c) => c.claimant.id === me.id);
+    },
+    async get(id) {
+      await delay(120);
+      const claim = claims.find((c) => c.id === id);
+      if (!claim) throw notFound("Claim");
+      return claim;
+    },
+    async approve(id) {
+      await delay();
+      const claim = claims.find((c) => c.id === id);
+      if (!claim) throw notFound("Claim");
+      const now = new Date().toISOString();
+      // Mirrors the server: approving settles every other open claim, flips the
+      // item to `claimed`, and releases contact details.
+      claims = claims.map((c) =>
+        c.item_id === claim.item_id && c.id !== id && c.status === "pending"
+          ? { ...c, status: "rejected", resolved_at: now }
+          : c,
+      );
+      Object.assign(claim, {
+        status: "approved",
+        resolved_at: now,
+        contact: {
+          full_name: "Demo Reporter",
+          email: "reporter@lostfound.app",
+          phone: "0555 12 34 56",
+        },
+      });
+      const item = items.find((i) => i.id === claim.item_id);
+      if (item) item.status = "claimed";
+      return claim;
+    },
+    async reject(id) {
+      await delay();
+      const claim = claims.find((c) => c.id === id);
+      if (!claim) throw notFound("Claim");
+      Object.assign(claim, {
+        status: "rejected",
+        resolved_at: new Date().toISOString(),
+      });
+      return claim;
+    },
+    async withdraw(id) {
+      await delay();
+      const claim = claims.find((c) => c.id === id);
+      if (!claim) throw notFound("Claim");
+      Object.assign(claim, {
+        status: "withdrawn",
+        resolved_at: new Date().toISOString(),
+      });
+      return claim;
     },
   },
 

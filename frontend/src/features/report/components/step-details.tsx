@@ -51,7 +51,9 @@ export function StepDetails({
       title: draft.title ?? "",
       description: draft.description ?? "",
       lost_or_found_at: draft.lost_or_found_at ?? today(),
+      wilaya_code: draft.wilaya_code,
       location_text: draft.location_text ?? "",
+      claim_question: draft.claim_question ?? "",
       color: draft.color ?? "",
       brand: draft.brand ?? "",
     },
@@ -139,16 +141,14 @@ export function StepDetails({
           />
           <FormField
             control={form.control}
-            name="location_text"
+            name="wilaya_code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Location{" "}
-                  <span className="font-normal text-muted-foreground">
-                    (optional)
-                  </span>
-                </FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || ""}>
+                <FormLabel>Wilaya</FormLabel>
+                <Select
+                  onValueChange={(v) => field.onChange(Number(v))}
+                  value={field.value ? String(field.value) : ""}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a wilaya" />
@@ -156,12 +156,36 @@ export function StepDetails({
                   </FormControl>
                   <SelectContent>
                     {ALGERIA_WILAYAS.map((wilaya) => (
-                      <SelectItem key={wilaya} value={wilaya}>
-                        {wilaya}
+                      <SelectItem key={wilaya.code} value={String(wilaya.code)}>
+                        {wilaya.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="location_text"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>
+                  Where exactly{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g. near the university main gate, bus 12"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  A landmark helps the owner recognise the spot.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -198,6 +222,37 @@ export function StepDetails({
                 <FormControl>
                   <Input placeholder="e.g. Fossil" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="claim_question"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>
+                  Verification question{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (optional)
+                  </span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={
+                      type === "found"
+                        ? "e.g. What's inside the card slot?"
+                        : "e.g. What's on the lock screen?"
+                    }
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Anyone claiming this must answer before you share contact
+                  details. Everyone can read the question — so don&apos;t put the
+                  answer in it.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -13,9 +13,8 @@ export interface LocalImage {
 }
 
 /**
- * Step 4 — Photos. Local previews only: upload to storage ships with the
- * image-pipeline milestone (M4); the report is fully functional without
- * photos, and we say so honestly.
+ * Step 4 — Photos. Files are held locally and uploaded by the wizard once the
+ * report is created (an item id is needed to attach them to).
  */
 export function StepImages({
   images,
@@ -107,12 +106,12 @@ export function StepImages({
         </ul>
       ) : null}
 
-      <div className="flex items-start gap-2.5 rounded-xl border bg-muted/40 p-3.5 text-xs text-muted-foreground">
+      <div className="flex items-start gap-2.5 rounded-xl border bg-muted/40 p-3.5 text-caption text-muted-foreground">
         <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
         <p>
-          Photo upload ships with the image-matching milestone. Your selection
-          is previewed here, and your report works perfectly without photos —
-          you can also add them later from the item page. This step is optional.
+          Photos are optional, but they make a match far more likely. We resize
+          them and strip location data from the file before storing — so a photo
+          never reveals where you took it.
         </p>
       </div>
     </div>

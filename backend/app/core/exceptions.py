@@ -40,3 +40,15 @@ class AuthenticationError(AppError):
 class PermissionDeniedError(AppError):
     status_code = 403
     code = "PERMISSION_DENIED"
+
+
+class ValidationError(AppError):
+    """Input that parsed as the right shape but failed a domain rule.
+
+    Distinct from FastAPI's `RequestValidationError` (malformed request) — this
+    covers things only the service can judge, e.g. "those bytes aren't a
+    readable image" or "that would exceed the per-item photo limit".
+    """
+
+    status_code = 422
+    code = "VALIDATION_ERROR"

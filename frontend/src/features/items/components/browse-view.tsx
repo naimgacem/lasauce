@@ -78,16 +78,32 @@ function BrowseFallback({ title, description }: Omit<BrowseViewProps, "presetTyp
   );
 }
 
+/** Seed filters from the URL so a shared/deep link lands pre-filtered. */
+function filtersFromParams(params: URLSearchParams): BrowseFilters {
+  const wilaya = Number(params.get("wilaya_code"));
+  return {
+    wilaya_code: Number.isInteger(wilaya) && wilaya > 0 ? wilaya : undefined,
+    category_id: params.get("category_id") ?? undefined,
+    date_from: params.get("date_from") ?? undefined,
+    date_to: params.get("date_to") ?? undefined,
+  };
+}
+
 function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
   const searchParams = useSearchParams();
   const [search, setSearch] = React.useState(searchParams.get("q") ?? "");
-  const [filters, setFilters] = React.useState<BrowseFilters>({});
+  const [filters, setFilters] = React.useState<BrowseFilters>(() =>
+    filtersFromParams(searchParams),
+  );
   const [page, setPage] = React.useState(1);
   const [view, setView] = React.useState<ViewMode>("grid");
   const debouncedSearch = useDebounce(search, 300);
 
+  // Keep in sync when the URL changes (e.g. arriving from the landing hero).
   React.useEffect(() => {
     setSearch(searchParams.get("q") ?? "");
+    setFilters(filtersFromParams(searchParams));
+    setPage(1);
   }, [searchParams]);
 
   const query = {

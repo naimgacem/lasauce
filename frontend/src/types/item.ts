@@ -36,9 +36,14 @@ export interface Item {
   color: string | null;
   brand: string | null;
   location_text: string | null;
+  /** Algerian wilaya code (1–58); the label is resolved client-side. */
+  wilaya_code: number | null;
   latitude: number | null;
   longitude: number | null;
   lost_or_found_at: string;
+  /** Verification questions a claimant must answer. Public — a claimant has to
+   *  read them — so they must not give the answer away. */
+  claim_questions: string[];
   closed_reason: ItemClosedReason | null;
   closed_at: string | null;
   images: ItemImage[];
@@ -49,8 +54,9 @@ export interface Item {
 /** Filters + pagination accepted by `GET /items`. */
 export interface ItemQuery {
   type?: ItemType;
+  status?: ItemStatus;
   category_id?: string;
-  wilaya?: string;
+  wilaya_code?: number;
   q?: string;
   date_from?: string;
   date_to?: string;
@@ -67,9 +73,11 @@ export interface CreateItemPayload {
   color?: string | null;
   brand?: string | null;
   location_text?: string | null;
+  wilaya_code?: number | null;
   latitude?: number | null;
   longitude?: number | null;
   lost_or_found_at: string;
+  claim_questions?: string[];
 }
 
 export type UpdateItemPayload = Partial<Omit<CreateItemPayload, "type">>;

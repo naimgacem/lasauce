@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 
 import { authClient } from "./auth.client";
 import { categoriesClient } from "./categories.client";
+import { claimsClient } from "./claims.client";
 import type { Api } from "./contracts";
 import { itemsClient } from "./items.client";
 import { matchesClient } from "./matches.client";
@@ -19,6 +20,7 @@ const realApi: Api = {
   categories: categoriesClient,
   notifications: notificationsClient,
   matches: matchesClient,
+  claims: claimsClient,
 };
 
 export const api: Api = env.useMocks ? mockApi : realApi;

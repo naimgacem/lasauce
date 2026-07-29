@@ -12,8 +12,12 @@ export interface ReportDraft {
   category_id?: string;
   color?: string;
   brand?: string;
+  /** Algerian wilaya code (1–58). */
+  wilaya_code?: number;
   location_text?: string;
   lost_or_found_at?: string;
+  /** Verification question asked before contact details are exchanged. */
+  claim_question?: string;
 }
 
 interface DraftState {

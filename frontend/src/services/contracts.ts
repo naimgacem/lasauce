@@ -12,9 +12,11 @@ import type {
   User,
 } from "@/types/auth";
 import type { Category } from "@/types/category";
+import type { Claim, CreateClaimPayload } from "@/types/claim";
 import type {
   CreateItemPayload,
   Item,
+  ItemImage,
   ItemQuery,
   UpdateItemPayload,
 } from "@/types/item";
@@ -45,6 +47,9 @@ export interface ItemsApi {
   withdraw(id: string): Promise<void>;
   /** Close as recovered. */
   resolve(id: string): Promise<Item>;
+  /** Upload photos. Server validates, strips EXIF and re-encodes to WebP. */
+  uploadImages(id: string, files: File[]): Promise<ItemImage[]>;
+  deleteImage(id: string, imageId: string): Promise<void>;
 }
 
 export interface CategoriesApi {
@@ -66,10 +71,26 @@ export interface MatchesApi {
   feedback(id: string, payload: MatchFeedbackPayload): Promise<void>;
 }
 
+export interface ClaimsApi {
+  /** Submit a claim on someone else's item, answering their questions. */
+  submit(itemId: string, payload: CreateClaimPayload): Promise<Claim>;
+  /** Claims on MY item — reporter only. */
+  forItem(itemId: string): Promise<Claim[]>;
+  /** Claims I have submitted. */
+  mine(): Promise<Claim[]>;
+  get(id: string): Promise<Claim>;
+  /** Owner-only. Releases contact details to both parties. */
+  approve(id: string): Promise<Claim>;
+  reject(id: string): Promise<Claim>;
+  /** Claimant-only. */
+  withdraw(id: string): Promise<Claim>;
+}
+
 export interface Api {
   auth: AuthApi;
   items: ItemsApi;
   categories: CategoriesApi;
   notifications: NotificationsApi;
   matches: MatchesApi;
+  claims: ClaimsApi;
 }

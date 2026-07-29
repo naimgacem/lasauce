@@ -26,6 +26,13 @@ export const notificationKeys = {
   unreadCount: () => [...notificationKeys.all, "unread-count"] as const,
 };
 
+export const claimKeys = {
+  all: ["claims"] as const,
+  forItem: (itemId: string) => [...claimKeys.all, "item", itemId] as const,
+  mine: () => [...claimKeys.all, "mine"] as const,
+  detail: (id: string) => [...claimKeys.all, "detail", id] as const,
+};
+
 export const matchKeys = {
   all: ["matches"] as const,
   forItem: (itemId: string) => [...matchKeys.all, "item", itemId] as const,

@@ -31,18 +31,18 @@ export function EmptyState({
       )}
     >
       {/* Illustration placeholder area */}
-      <div className="relative mb-6" aria-hidden>
-        <div className="absolute -inset-4 rounded-full bg-primary/5 blur-xl" />
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border bg-card shadow-sm">
+      <div className="relative mb-6 animate-scale-in" aria-hidden>
+        <div className="absolute -inset-5 rounded-full bg-primary/[0.07] blur-2xl" />
+        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border bg-card shadow-md">
           <div className="absolute -right-2 -top-2 h-4 w-4 rounded-full bg-secondary" />
-          <div className="absolute -bottom-1.5 -left-2.5 h-3 w-3 rounded-full bg-primary/20" />
+          <div className="absolute -bottom-1.5 -left-2.5 h-3 w-3 rounded-full bg-primary/25" />
           {Icon ? <Icon className="h-9 w-9 text-muted-foreground" /> : null}
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold">{title}</h3>
+      <h3 className="text-heading-3">{title}</h3>
       {description ? (
-        <p className="mt-1.5 max-w-sm text-balance text-sm text-muted-foreground">
+        <p className="mt-2 max-w-sm text-balance text-body-sm text-muted-foreground">
           {description}
         </p>
       ) : null}

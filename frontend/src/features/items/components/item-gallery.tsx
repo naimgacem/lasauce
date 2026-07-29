@@ -22,10 +22,10 @@ export function ItemGallery({ item }: { item: Item }) {
         role="img"
         aria-label="No photos for this item yet"
       >
-        <div className="absolute inset-0 opacity-[0.04] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:14px_14px]" />
-        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+        <div className="bg-dotted absolute inset-0 opacity-40" />
+        <div className="relative flex flex-col items-center gap-2 text-muted-foreground">
           <ImageIcon className="h-10 w-10" aria-hidden />
-          <p className="text-sm">No photos yet</p>
+          <p className="text-body-sm">No photos yet</p>
         </div>
       </div>
     );

@@ -12,6 +12,11 @@ const STATUS_VARIANT: Record<
   closed: "outline",
 };
 
+/**
+ * Lost ↔ Found is the product's core binary, so it gets the loudest treatment:
+ * a solid rose or teal chip, readable at a glance and safe for red-green
+ * colour blindness.
+ */
 export function ItemTypeBadge({ type }: { type: ItemType }) {
   return (
     <Badge variant={type === "lost" ? "lost" : "found"}>
@@ -24,19 +29,21 @@ export function ItemStatusBadge({ status }: { status: ItemStatus }) {
   return <Badge variant={STATUS_VARIANT[status]}>{titleCase(status)}</Badge>;
 }
 
-/** Amber pulse while the ML pipeline works; quiet otherwise. */
+/** Amber pulse while the ML pipeline works; silent once ready. */
 export function ProcessingBadge({ status }: { status: ProcessingStatus }) {
   if (status === "ready") return null;
+
   if (status === "failed") {
     return <Badge variant="outline">Processing failed</Badge>;
   }
+
   return (
-    <Badge variant="processing">
-      <span className="relative flex h-2 w-2" aria-hidden>
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-processing-foreground/60 motion-reduce:animate-none" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-processing-foreground" />
+    <Badge variant="processing-soft">
+      <span className="relative flex h-1.5 w-1.5" aria-hidden>
+        <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-processing" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-processing" />
       </span>
-      Matching…
+      Matching
     </Badge>
   );
 }

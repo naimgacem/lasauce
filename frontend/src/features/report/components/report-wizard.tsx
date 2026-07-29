@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { m } from "framer-motion";
 import { ArrowLeft, ArrowRight, History, Send } from "lucide-react";
+import { toast } from "sonner";
 
 import { pageVariants } from "@/animations";
 import { Spinner } from "@/components/feedback/loading";
@@ -21,16 +22,22 @@ import {
   WizardProgress,
 } from "@/features/report/components/wizard-progress";
 import type { DetailsValues } from "@/features/report/schemas";
-import { useCreateItem } from "@/features/items/hooks/use-items";
+import {
+  useCreateItem,
+  useUploadItemImages,
+} from "@/features/items/hooks/use-items";
+import { ROUTES } from "@/lib/routes";
 import { useDraftStore } from "@/store/draft.store";
 import type { ItemType } from "@/types/item";
 
 const DETAILS_FORM_ID = "report-details-form";
 
 export function ReportWizard() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { draft, saveDraft, clearDraft } = useDraftStore();
   const create = useCreateItem();
+  const upload = useUploadItemImages();
 
   const [images, setImages] = React.useState<LocalImage[]>([]);
   const [resumed, setResumed] = React.useState(false);
@@ -51,6 +58,8 @@ export function ReportWizard() {
 
   const step = draft?.step ?? 0;
   const type: ItemType = draft?.type ?? "lost";
+  /** Publishing spans two requests — lock navigation across both. */
+  const busy = create.isPending || upload.isPending;
 
   function go(next: number) {
     saveDraft({ ...(draft ?? { type }), type, step: next });
@@ -70,23 +79,62 @@ export function ReportWizard() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  /**
+   * Publish, then attach photos, then navigate.
+   *
+   * The order matters: once `create` resolves the report exists and is public.
+   * A photo failure after that point must never look like the report was lost,
+   * so it degrades to a warning and the user still lands on their live item.
+   */
   async function publish() {
     if (!draft?.title || !draft.description || !draft.lost_or_found_at) {
       go(2); // shouldn't happen — details are validated before review
       return;
     }
-    await create.mutateAsync({
+
+    const item = await create.mutateAsync({
       type,
       title: draft.title,
       description: draft.description,
       category_id: draft.category_id || null,
       color: draft.color || null,
       brand: draft.brand || null,
+      wilaya_code: draft.wilaya_code ?? null,
+      claim_questions: draft.claim_question?.trim()
+        ? [draft.claim_question.trim()]
+        : [],
       location_text: draft.location_text || null,
       lost_or_found_at: new Date(draft.lost_or_found_at).toISOString(),
     });
+
+    let photosFailed = false;
+    if (images.length > 0) {
+      try {
+        await upload.mutateAsync({
+          itemId: item.id,
+          files: images.map((img) => img.file),
+        });
+      } catch (error) {
+        photosFailed = true;
+        toast.warning("Report published, but the photos didn't upload", {
+          description:
+            error instanceof Error
+              ? `${error.message} You can add them from the item page.`
+              : "You can add them from the item page.",
+          duration: 8000,
+        });
+      }
+    }
+
+    if (!photosFailed) {
+      toast.success("Report published", {
+        description: "We'll start looking for matches right away.",
+      });
+    }
+
     images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     clearDraft();
+    router.push(ROUTES.item(item.id));
   }
 
   function startOver() {
@@ -162,7 +210,7 @@ export function ReportWizard() {
       {/* Navigation */}
       <div className="flex items-center justify-between border-t pt-5">
         {step > 0 ? (
-          <Button variant="ghost" onClick={() => go(step - 1)} disabled={create.isPending}>
+          <Button variant="ghost" onClick={() => go(step - 1)} disabled={busy}>
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -176,9 +224,13 @@ export function ReportWizard() {
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : step === 4 ? (
-          <Button onClick={publish} disabled={create.isPending}>
-            {create.isPending ? <Spinner /> : <Send className="h-4 w-4" />}
-            Publish report
+          <Button onClick={publish} disabled={busy}>
+            {busy ? <Spinner /> : <Send className="h-4 w-4" />}
+            {upload.isPending
+              ? `Uploading ${images.length} photo${images.length === 1 ? "" : "s"}…`
+              : create.isPending
+                ? "Publishing…"
+                : "Publish report"}
           </Button>
         ) : step > 0 ? (
           <Button onClick={() => go(step + 1)}>

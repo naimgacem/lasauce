@@ -1,9 +1,11 @@
 import type { Transition, Variants } from "framer-motion";
 
-/** Page entry: fade + slight upward motion. 300ms ease-out, no exit drama. */
+import { DURATION, EASE_OUT } from "./easing";
+
+/** Page entry: fade + slight upward motion, no exit drama. */
 export const pageTransition: Transition = {
-  duration: 0.3,
-  ease: [0.25, 0.1, 0.25, 1],
+  duration: DURATION.slow,
+  ease: EASE_OUT,
 };
 
 export const pageVariants: Variants = {

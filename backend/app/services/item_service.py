@@ -61,9 +61,11 @@ class ItemService:
             color=data.color,
             brand=data.brand,
             location_text=data.location_text,
+            wilaya_code=data.wilaya_code,
             latitude=data.latitude,
             longitude=data.longitude,
             lost_or_found_at=data.lost_or_found_at,
+            claim_questions=data.claim_questions,
         )
         await self.session.commit()
         # TODO(M4): enqueue embed_item(item.id) once the worker pipeline exists.
@@ -99,6 +101,23 @@ class ItemService:
             await self.session.commit()
             logger.info("item_withdrawn", extra={"item_id": str(item.id)})
 
+    async def resolve_item(self, user: User, item_id: uuid.UUID) -> Item:
+        """Close the item as `recovered` — the happy ending of the lifecycle."""
+        item = await self._get_or_404(item_id)
+        self._assert_can_manage(item, user)
+        if item.status == ItemStatus.closed:
+            raise ConflictError("This item is already closed")
+
+        await self.items.update(
+            item,
+            status=ItemStatus.closed,
+            closed_reason=ItemClosedReason.recovered,
+            closed_at=_now(),
+        )
+        await self.session.commit()
+        logger.info("item_resolved", extra={"item_id": str(item.id)})
+        return await self._get_or_404(item.id)
+
     # --- Queries -----------------------------------------------------------
 
     async def get_item(self, item_id: uuid.UUID) -> Item:
@@ -110,6 +129,9 @@ class ItemService:
         item_type: ItemType | None,
         category_id: uuid.UUID | None,
         status: ItemStatus | None,
+        wilaya_code: int | None = None,
+        user_id: uuid.UUID | None = None,
+        q: str | None = None,
         date_from: dt.datetime | None,
         date_to: dt.datetime | None,
         page: int,
@@ -119,6 +141,9 @@ class ItemService:
             item_type=item_type,
             category_id=category_id,
             status=status,
+            wilaya_code=wilaya_code,
+            user_id=user_id,
+            q=q,
             date_from=date_from,
             date_to=date_to,
             limit=page_size,

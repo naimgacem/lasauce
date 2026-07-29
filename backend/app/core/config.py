@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     DB_ECHO: bool = False
 
     # --- Redis / queue ---
+    # Only the arq worker (embedding/matching) needs Redis. Set REDIS_URL to an
+    # empty string to run the API without it — readiness then reports "skipped"
+    # instead of failing, which keeps free-tier deploys to a single service.
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # --- Auth / JWT ---
@@ -64,10 +67,34 @@ class Settings(BaseSettings):
     # --- Storage ---
     STORAGE_PROVIDER: str = "local"  # local | s3
     MEDIA_ROOT: str = "/app/media"
+    #  Public path prefix the API serves stored objects under (dev backend).
+    MEDIA_URL_PREFIX: str = "/media"
+
+    # --- Uploads ---
+    MAX_UPLOAD_MB: int = 10
+    MAX_IMAGES_PER_ITEM: int = 5
+    ALLOWED_IMAGE_TYPES: str = "image/jpeg,image/png,image/webp"
+    #  Longest edge after re-encoding. 1600px covers every display size we
+    #  render while cutting a typical phone photo by ~95%.
+    IMAGE_MAX_DIMENSION: int = 1600
+    IMAGE_WEBP_QUALITY: int = 82
 
     @property
     def is_email_verification_required(self) -> bool:
         return self.REQUIRE_EMAIL_VERIFICATION
+
+    @property
+    def redis_enabled(self) -> bool:
+        """False when REDIS_URL is blank — the API then runs queue-free."""
+        return bool(self.REDIS_URL.strip())
+
+    @property
+    def allowed_image_types(self) -> set[str]:
+        return {t.strip().lower() for t in self.ALLOWED_IMAGE_TYPES.split(",") if t.strip()}
+
+    @property
+    def max_upload_bytes(self) -> int:
+        return self.MAX_UPLOAD_MB * 1024 * 1024
 
     @property
     def cors_origins(self) -> list[str]:

@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+coverage
+
+# env — NEXT_PUBLIC_* values are injected as build args by compose
+.env
+.env.*.local
+.env.local
+
+.git
+.gitignore
+*.tsbuildinfo
+npm-debug.log*
+Dockerfile
+.dockerignore
+README.md

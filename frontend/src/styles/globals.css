@@ -2,78 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design tokens — calm olive utility, clean and professional ────────
-   Soft olive and warm stone palette for a trustworthy lost/found product.
-   Semantic colors carry meaning: lost = rose · found = moss · processing = amber.
-   The AI gradient (--ai-from → --ai-to) is reserved EXCLUSIVELY for AI
-   surfaces (match confidence, processing states, suggestions).            */
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — "calm utility, with a spark"
+
+   Three independent colour axes, deliberately kept apart:
+
+   1. BRAND     deep forest green. Chrome, actions, focus. Calm and dark.
+   2. SEMANTIC  meaning only, never decoration:
+                  lost = rose · found = emerald · processing = amber
+   3. AI        an indigo→violet gradient used EXCLUSIVELY on AI surfaces.
+
+   The AI gradient is the only gradient in the product. That is what makes it
+   read as "intelligence" rather than decoration — so it must never be
+   borrowed for ordinary UI, and no other token may drift toward it.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
   :root {
-    --background: 72 18% 97%;          /* warm stone/olive canvas */
-    --foreground: 98 16% 14%;
+    /* — Canvas ————————————————————————————————————————————— */
+    --background: 60 20% 98%;          /* warm paper */
+    --foreground: 150 22% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 98 16% 14%;
+    --card-foreground: 150 22% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 98 16% 14%;
-    --primary: 133 34% 24%;            /* dark forest green */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 78 12% 92%;
-    --secondary-foreground: 98 16% 14%;
-    --muted: 78 12% 92%;
-    --muted-foreground: 98 10% 38%;
-    --accent: 72 10% 90%;
-    --accent-foreground: 98 16% 14%;
-    --destructive: 0 84% 60%;
+    --popover-foreground: 150 22% 10%;
+
+    /* — Brand ————————————————————————————————————————————— */
+    --primary: 150 42% 21%;            /* deep forest */
+    --primary-foreground: 60 30% 98%;
+
+    --secondary: 60 14% 94%;
+    --secondary-foreground: 150 22% 14%;
+    --muted: 60 14% 95%;
+    --muted-foreground: 150 8% 38%;    /* 7.2:1 on canvas */
+    --accent: 152 22% 93%;             /* faint green wash for hovers */
+    --accent-foreground: 150 30% 16%;
+
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 80 10% 86%;
-    --input: 80 10% 86%;
-    --ring: 92 18% 30%;
+
+    --border: 60 10% 89%;
+    --input: 60 10% 86%;
+    --ring: 150 45% 30%;
     --radius: 0.75rem;
 
-    /* semantic */
-    --lost: 347 77% 50%;
+    /* — Semantic (meaning only) ——————————————————————————— */
+    /* Lost ↔ Found is the product's core binary, so the pair is rose ↔ teal:
+       maximally separable from each other AND from the forest-green brand, and
+       safe for red-green colour blindness (the most common form) — which a
+       red/green pair would not be. */
+    --lost: 352 74% 45%;               /* rose */
     --lost-foreground: 0 0% 100%;
-    --found: 132 31% 26%;              /* forest moss */
+    --lost-muted: 352 80% 96%;         /* tint for soft badges */
+    --found: 185 72% 28%;              /* deep teal */
     --found-foreground: 0 0% 100%;
-    --processing: 43 74% 42%;          /* amber */
-    --processing-foreground: 26 83% 14%;
+    --found-muted: 185 60% 94%;
+    /* Amber carries DARK text — white on amber can't reach 4.5:1 without
+       muddying the colour into brown. */
+    --processing: 38 92% 48%;
+    --processing-foreground: 30 85% 12%;
+    --processing-muted: 40 90% 95%;
 
-    /* AI signature gradient */
-    --ai-from: 92 18% 30%;
-    --ai-to: 144 22% 42%;
+    /* — AI signature ——————————————————————————————————————— */
+    --ai-from: 250 74% 55%;            /* indigo */
+    --ai-to: 288 66% 50%;              /* violet */
+    --ai-foreground: 0 0% 100%;
+    --ai-muted: 258 100% 97%;
+
+    /* — Elevation (warm-tinted, never pure black) ——————————— */
+    --shadow-color: 150 20% 20%;
   }
 
   .dark {
-    --background: 98 13% 8%;           /* deep olive near-black */
-    --foreground: 78 16% 95%;
-    --card: 94 12% 11%;
-    --card-foreground: 78 16% 95%;
-    --popover: 94 12% 11%;
-    --popover-foreground: 78 16% 95%;
-    --primary: 132 28% 38%;             /* richer forest green for dark UI */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 96 10% 14%;
-    --secondary-foreground: 78 16% 95%;
-    --muted: 96 10% 14%;
-    --muted-foreground: 98 8% 68%;
-    --accent: 94 10% 16%;
-    --accent-foreground: 78 16% 95%;
-    --destructive: 0 62% 50%;
+    --background: 155 16% 6%;
+    --foreground: 60 16% 95%;
+    --card: 155 13% 9%;
+    --card-foreground: 60 16% 95%;
+    --popover: 155 14% 10%;
+    --popover-foreground: 60 16% 95%;
+
+    --primary: 152 48% 44%;            /* lifted so it carries on dark */
+    --primary-foreground: 155 30% 6%;
+
+    --secondary: 155 10% 14%;
+    --secondary-foreground: 60 16% 95%;
+    --muted: 155 10% 14%;
+    --muted-foreground: 150 7% 64%;    /* 6.8:1 on dark canvas */
+    --accent: 155 12% 17%;
+    --accent-foreground: 60 16% 95%;
+
+    --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
-    --border: 96 10% 18%;
-    --input: 96 10% 18%;
-    --ring: 88 21% 48%;
 
-    --lost: 347 77% 60%;
-    --lost-foreground: 0 0% 100%;
-    --found: 132 28% 36%;
-    --found-foreground: 0 0% 100%;
-    --processing: 43 74% 50%;
-    --processing-foreground: 26 83% 14%;
+    --border: 155 9% 18%;
+    --input: 155 9% 22%;
+    --ring: 152 45% 48%;
 
-    --ai-from: 88 21% 48%;
-    --ai-to: 132 20% 46%;
+    --lost: 352 78% 62%;
+    --lost-foreground: 352 60% 8%;
+    --lost-muted: 352 40% 16%;
+    --found: 185 70% 50%;
+    --found-foreground: 187 70% 7%;
+    --found-muted: 185 40% 15%;
+    --processing: 38 90% 55%;
+    --processing-foreground: 35 70% 8%;
+    --processing-muted: 38 40% 15%;
+
+    --ai-from: 248 84% 68%;
+    --ai-to: 286 78% 68%;
+    --ai-foreground: 250 50% 8%;
+    --ai-muted: 252 30% 18%;
+
+    --shadow-color: 155 40% 2%;
   }
 }
 
@@ -81,14 +121,66 @@
   * {
     @apply border-border;
   }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Stops layout shift when a dialog locks scrolling. */
+    scrollbar-gutter: stable;
+  }
+
+  /* Consistent, always-visible focus. Never remove without a replacement. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.18);
+  }
+
+  /* Headings read tighter than body copy at every size. */
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+    letter-spacing: -0.018em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Subtle, themed scrollbars — Firefox + WebKit. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.45);
+    border: 3px solid transparent;
+    background-clip: content-box;
   }
 }
 
 @layer utilities {
-  /* AI-only surfaces. Do not use outside AI features. */
+  /* ── AI-ONLY SURFACES ─────────────────────────────────────────────────
+     Reserved for match confidence, suggestions and processing states.
+     Using these anywhere else dilutes the one signal that says "AI". */
   .bg-ai-gradient {
     background-image: linear-gradient(
       135deg,
@@ -96,6 +188,7 @@
       hsl(var(--ai-to))
     );
   }
+
   .text-ai-gradient {
     background-image: linear-gradient(
       135deg,
@@ -105,5 +198,79 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* Hairline gradient frame: 1px border effect that a plain border can't do. */
+  .ring-ai-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--ai-from)),
+      hsl(var(--ai-to))
+    );
+    padding: 1px;
+  }
+
+  /* Soft aura behind AI elements — very low opacity, never competes with text. */
+  .glow-ai {
+    box-shadow:
+      0 0 0 1px hsl(var(--ai-from) / 0.18),
+      0 8px 30px -12px hsl(var(--ai-from) / 0.4);
+  }
+
+  /* ── SURFACE TREATMENTS ──────────────────────────────────────────────── */
+
+  /* Faint dotted texture for empty media slots. */
+  .bg-dotted {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      hsl(var(--foreground) / 0.14) 1px,
+      transparent 0
+    );
+    background-size: 14px 14px;
+  }
+
+  /* Sticky translucent bars. */
+  .surface-blur {
+    @apply bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/65;
+  }
+
+  /* Horizontal scrollers that shouldn't show a scrollbar. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Edge fade for horizontal strips. */
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 24px,
+      black calc(100% - 24px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 24px,
+      black calc(100% - 24px),
+      transparent
+    );
+  }
+}
+
+/* Global motion guard — belt and braces alongside <MotionConfig reducedMotion="user">.
+   Covers CSS animations that Framer Motion never sees. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

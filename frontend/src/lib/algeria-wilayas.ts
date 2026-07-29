@@ -1,53 +1,102 @@
-export const ALGERIA_WILAYAS = [
-  "Adrar",
-  "Aïn Defla",
-  "Aïn Témouchent",
-  "Algiers",
-  "Batna",
-  "Béchar",
-  "Béjaïa",
-  "Biskra",
-  "Blida",
-  "Bordj Bou Arréridj",
-  "Bouira",
-  "Boumerdès",
-  "Chlef",
-  "Constantine",
-  "Djelfa",
-  "El Bayadh",
-  "El Oued",
-  "El Tarf",
-  "Ghardaïa",
-  "Guelma",
-  "Illizi",
-  "Jijel",
-  "Khenchela",
-  "Laghouat",
-  "Mascara",
-  "Médéa",
-  "Mila",
-  "Mostaganem",
-  "Msila",
-  "Naâma",
-  "Oran",
-  "Ouargla",
-  "Oum El Bouaghi",
-  "Relizane",
-  "Saïda",
-  "Sétif",
-  "Sidi Bel Abbès",
-  "Skikda",
-  "Souk Ahras",
-  "Tamanghasset",
-  "Tébessa",
-  "Tiaret",
-  "Timimoun",
-  "Tindouf",
-  "Tipaza",
-  "Tissemsilt",
-  "Tizi Ouzou",
-  "Tlemcen",
-  "Touggourt",
+/**
+ * Algeria's 58 wilayas, keyed by official administrative code.
+ *
+ * Items store the CODE, never the name, so a wilaya can be rendered in Arabic,
+ * French or English without migrating data (see Phase 7 i18n).
+ *
+ * Mirrors `backend/app/core/wilayas.py` — static reference data is duplicated on
+ * purpose so selects render with no round-trip; the API still validates codes.
+ */
+
+export interface Wilaya {
+  /** Official administrative number, 1–58. */
+  code: number;
+  name: string;
+}
+
+export const ALGERIA_WILAYAS: readonly Wilaya[] = [
+  { code: 1, name: "Adrar" },
+  { code: 2, name: "Chlef" },
+  { code: 3, name: "Laghouat" },
+  { code: 4, name: "Oum El Bouaghi" },
+  { code: 5, name: "Batna" },
+  { code: 6, name: "Béjaïa" },
+  { code: 7, name: "Biskra" },
+  { code: 8, name: "Béchar" },
+  { code: 9, name: "Blida" },
+  { code: 10, name: "Bouira" },
+  { code: 11, name: "Tamanrasset" },
+  { code: 12, name: "Tébessa" },
+  { code: 13, name: "Tlemcen" },
+  { code: 14, name: "Tiaret" },
+  { code: 15, name: "Tizi Ouzou" },
+  { code: 16, name: "Alger" },
+  { code: 17, name: "Djelfa" },
+  { code: 18, name: "Jijel" },
+  { code: 19, name: "Sétif" },
+  { code: 20, name: "Saïda" },
+  { code: 21, name: "Skikda" },
+  { code: 22, name: "Sidi Bel Abbès" },
+  { code: 23, name: "Annaba" },
+  { code: 24, name: "Guelma" },
+  { code: 25, name: "Constantine" },
+  { code: 26, name: "Médéa" },
+  { code: 27, name: "Mostaganem" },
+  { code: 28, name: "M'Sila" },
+  { code: 29, name: "Mascara" },
+  { code: 30, name: "Ouargla" },
+  { code: 31, name: "Oran" },
+  { code: 32, name: "El Bayadh" },
+  { code: 33, name: "Illizi" },
+  { code: 34, name: "Bordj Bou Arréridj" },
+  { code: 35, name: "Boumerdès" },
+  { code: 36, name: "El Tarf" },
+  { code: 37, name: "Tindouf" },
+  { code: 38, name: "Tissemsilt" },
+  { code: 39, name: "El Oued" },
+  { code: 40, name: "Khenchela" },
+  { code: 41, name: "Souk Ahras" },
+  { code: 42, name: "Tipaza" },
+  { code: 43, name: "Mila" },
+  { code: 44, name: "Aïn Defla" },
+  { code: 45, name: "Naâma" },
+  { code: 46, name: "Aïn Témouchent" },
+  { code: 47, name: "Ghardaïa" },
+  { code: 48, name: "Relizane" },
+  // --- created by the 2019 administrative reform ---
+  { code: 49, name: "Timimoun" },
+  { code: 50, name: "Bordj Badji Mokhtar" },
+  { code: 51, name: "Ouled Djellal" },
+  { code: 52, name: "Béni Abbès" },
+  { code: 53, name: "In Salah" },
+  { code: 54, name: "In Guezzam" },
+  { code: 55, name: "Touggourt" },
+  { code: 56, name: "Djanet" },
+  { code: 57, name: "El M'Ghair" },
+  { code: 58, name: "El Meniaa" },
 ] as const;
 
-export type Wilaya = (typeof ALGERIA_WILAYAS)[number];
+export const WILAYA_CODE_MIN = 1;
+export const WILAYA_CODE_MAX = 58;
+
+const BY_CODE = new Map(ALGERIA_WILAYAS.map((w) => [w.code, w.name]));
+
+/** Display name for a stored wilaya code, or null when unset/unknown. */
+export function wilayaName(code: number | null | undefined): string | null {
+  if (code == null) return null;
+  return BY_CODE.get(code) ?? null;
+}
+
+/**
+ * Compact one-line location for cards and rows — "Oran — near the main gate",
+ * degrading to whichever part exists.
+ */
+export function formatLocation(
+  code: number | null | undefined,
+  locationText: string | null | undefined,
+): string | null {
+  const wilaya = wilayaName(code);
+  const detail = locationText?.trim() || null;
+  if (wilaya && detail) return `${wilaya} — ${detail}`;
+  return wilaya ?? detail;
+}

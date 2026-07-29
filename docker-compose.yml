@@ -51,7 +51,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    # Migrate, then seed default categories (idempotent — matches on slug), then serve.
+    command: sh -c "alembic upgrade head && python -m app.db.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment: *backend-env
     depends_on:
       postgres:
@@ -86,6 +87,41 @@ services:
         condition: service_healthy
     volumes:
       - media:/app/media
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # NEXT_PUBLIC_* is inlined at build time. These are the URLs the BROWSER
+      # uses, so they must be host-reachable (`localhost`), never compose service
+      # names (`api`) — the request originates outside the compose network.
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+        # Blank: photos resolve same-origin via the /media/* rewrite.
+        NEXT_PUBLIC_MEDIA_URL: ${NEXT_PUBLIC_MEDIA_URL:-}
+        NEXT_PUBLIC_USE_MOCKS: ${NEXT_PUBLIC_USE_MOCKS:-false}
+        # Where the Next server proxies /media/* to. Must be the compose service
+        # name — `localhost` inside this container is the container itself,
+        # which is why direct API image URLs failed with ECONNREFUSED.
+        # Build-time: Next bakes rewrites into its routes manifest.
+        MEDIA_ORIGIN: ${MEDIA_ORIGIN:-http://api:8000}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      # Override with FRONTEND_PORT when 3000 is already taken (e.g. a local
+      # `npm run dev`). Remember to add the new origin to CORS_ORIGINS.
+      - "${FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode===200?0:1))
+          .on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
 volumes:
   pgdata:

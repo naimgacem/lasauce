@@ -64,7 +64,7 @@ export function PotentialMatchCard({
   return (
     <m.div variants={listItem} whileHover={preview ? undefined : cardHover}>
       {/* AI-gradient hairline frame — reserved exclusively for AI surfaces */}
-      <div className="rounded-2xl bg-ai-gradient p-px">
+      <div className="ring-ai-gradient rounded-2xl shadow-md transition-shadow duration-200 hover:shadow-lg">
         <Card className="rounded-[calc(1rem-1px)] border-0">
           <CardContent className="p-5">
             <div className="flex items-start justify-between gap-4">
@@ -110,7 +110,7 @@ export function PotentialMatchCard({
                       className="flex items-start gap-1.5 text-xs text-foreground/80"
                     >
                       <Sparkles
-                        className="mt-0.5 h-3 w-3 shrink-0 text-primary"
+                        className="mt-0.5 h-3 w-3 shrink-0 text-ai-from"
                         aria-hidden
                       />
                       {reason}
@@ -143,7 +143,7 @@ export function PotentialMatchCard({
                     Not mine
                   </Button>
                 ) : null}
-                <span className="ml-auto text-[11px] text-muted-foreground">
+                <span className="ml-auto text-caption text-muted-foreground">
                   Your answer improves future matching
                 </span>
               </div>

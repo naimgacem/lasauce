@@ -23,12 +23,16 @@ const ALL = "all";
 
 export type BrowseFilters = Pick<
   ItemQuery,
-  "category_id" | "date_from" | "date_to" | "wilaya"
+  "category_id" | "date_from" | "date_to" | "wilaya_code"
 >;
 
 export function countActiveFilters(filters: BrowseFilters): number {
-  return [filters.category_id, filters.date_from, filters.date_to, filters.wilaya]
-    .filter(Boolean).length;
+  return [
+    filters.category_id,
+    filters.date_from,
+    filters.date_to,
+    filters.wilaya_code,
+  ].filter((v) => v !== undefined && v !== "").length;
 }
 
 /** Filter panel — rendered in the desktop sticky sidebar AND the mobile sheet. */
@@ -68,8 +72,10 @@ export function ItemFilters({
       <div className="space-y-1.5">
         <Label htmlFor="filter-wilaya">Wilaya</Label>
         <Select
-          value={value.wilaya ?? ALL}
-          onValueChange={(v) => onChange({ wilaya: v === ALL ? undefined : v })}
+          value={value.wilaya_code != null ? String(value.wilaya_code) : ALL}
+          onValueChange={(v) =>
+            onChange({ wilaya_code: v === ALL ? undefined : Number(v) })
+          }
         >
           <SelectTrigger id="filter-wilaya">
             <SelectValue placeholder="All wilayas" />
@@ -77,8 +83,8 @@ export function ItemFilters({
           <SelectContent>
             <SelectItem value={ALL}>All wilayas</SelectItem>
             {ALGERIA_WILAYAS.map((wilaya) => (
-              <SelectItem key={wilaya} value={wilaya}>
-                {wilaya}
+              <SelectItem key={wilaya.code} value={String(wilaya.code)}>
+                {wilaya.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -113,7 +119,7 @@ export function ItemFilters({
           onClick={() =>
             onChange({
               category_id: undefined,
-              wilaya: undefined,
+              wilaya_code: undefined,
               date_from: undefined,
               date_to: undefined,
             })

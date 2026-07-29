@@ -10,6 +10,7 @@ import {
 } from "@/features/categories/hooks/use-categories";
 import { ItemTypeBadge } from "@/features/items/components/item-badges";
 import type { LocalImage } from "@/features/report/components/step-images";
+import { wilayaName } from "@/lib/algeria-wilayas";
 import { formatDate } from "@/lib/format";
 import type { ReportDraft } from "@/store/draft.store";
 import type { ItemType } from "@/types/item";
@@ -67,8 +68,15 @@ export function StepReview({
               value={formatDate(draft.lost_or_found_at)}
             />
             <Row icon={Tag} label="Category" value={categoryName ?? "Uncategorised"} />
+            {draft.wilaya_code ? (
+              <Row
+                icon={MapPin}
+                label="Wilaya"
+                value={wilayaName(draft.wilaya_code) ?? "—"}
+              />
+            ) : null}
             {draft.location_text ? (
-              <Row icon={MapPin} label="Location" value={draft.location_text} />
+              <Row icon={MapPin} label="Where exactly" value={draft.location_text} />
             ) : null}
             {draft.color ? (
               <Row icon={Palette} label="Color" value={draft.color} />

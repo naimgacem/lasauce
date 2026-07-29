@@ -30,8 +30,12 @@ export function useItem(id: string) {
   });
 }
 
+/**
+ * Create a report. Deliberately does NOT navigate — the report wizard owns the
+ * sequence (create → upload photos → navigate) so a photo upload can't race the
+ * route change.
+ */
 export function useCreateItem() {
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -39,10 +43,35 @@ export function useCreateItem() {
     onSuccess: (item) => {
       queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
       queryClient.setQueryData(itemKeys.detail(item.id), item);
-      toast.success("Report published", {
-        description: "Our matching engine will start looking right away.",
-      });
-      router.push(ROUTES.item(item.id));
+    },
+    onError: (error) => toast.error(error.message),
+  });
+}
+
+/** Attach photos to an existing item. */
+export function useUploadItemImages() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, files }: { itemId: string; files: File[] }) =>
+      api.items.uploadImages(itemId, files),
+    onSuccess: (_images, { itemId }) => {
+      queryClient.invalidateQueries({ queryKey: itemKeys.detail(itemId) });
+      queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
+    },
+  });
+}
+
+/** Remove a photo from an item. */
+export function useDeleteItemImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, imageId }: { itemId: string; imageId: string }) =>
+      api.items.deleteImage(itemId, imageId),
+    onSuccess: (_void, { itemId }) => {
+      queryClient.invalidateQueries({ queryKey: itemKeys.detail(itemId) });
+      toast.success("Photo removed.");
     },
     onError: (error) => toast.error(error.message),
   });

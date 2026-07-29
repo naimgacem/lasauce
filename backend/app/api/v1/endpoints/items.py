@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user, get_db
+from app.core.wilayas import WILAYA_CODE_MAX, WILAYA_CODE_MIN
 from app.models.item import ItemStatus, ItemType
 from app.models.user import User
 from app.schemas.item import ItemCreate, ItemListResponse, ItemRead, ItemUpdate
@@ -36,6 +37,16 @@ async def list_items(
     item_type: ItemType | None = Query(default=None, alias="type"),
     category_id: uuid.UUID | None = Query(default=None),
     item_status: ItemStatus | None = Query(default=None, alias="status"),
+    wilaya_code: int | None = Query(
+        default=None,
+        ge=WILAYA_CODE_MIN,
+        le=WILAYA_CODE_MAX,
+        description="Algerian wilaya code (1–58)",
+    ),
+    user_id: uuid.UUID | None = Query(default=None, description="Only this reporter's items"),
+    q: str | None = Query(
+        default=None, max_length=200, description="Keyword search over title + description"
+    ),
     date_from: dt.datetime | None = Query(default=None, description="Filter lost_or_found_at >="),
     date_to: dt.datetime | None = Query(default=None, description="Filter lost_or_found_at <="),
     page: int = Query(default=1, ge=1),
@@ -46,6 +57,9 @@ async def list_items(
         item_type=item_type,
         category_id=category_id,
         status=item_status,
+        wilaya_code=wilaya_code,
+        user_id=user_id,
+        q=q,
         date_from=date_from,
         date_to=date_to,
         page=page,
@@ -75,6 +89,16 @@ async def update_item(
     db: AsyncSession = Depends(get_db),
 ) -> ItemRead:
     item = await ItemService(db).update_item(user, item_id, data)
+    return ItemRead.model_validate(item)
+
+
+@router.post("/{item_id}/resolve", response_model=ItemRead, summary="Mark as recovered")
+async def resolve_item(
+    item_id: uuid.UUID,
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> ItemRead:
+    item = await ItemService(db).resolve_item(user, item_id)
     return ItemRead.model_validate(item)
 
 

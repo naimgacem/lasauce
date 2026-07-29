@@ -32,12 +32,20 @@ export function MobileTabBar() {
       <Link
         key={tab.href}
         href={tab.href}
+        aria-current={active ? "page" : undefined}
         className={cn(
-          "relative flex min-w-[44px] flex-1 flex-col items-center gap-1 rounded-md py-1.5 text-[11px] font-medium",
+          "relative flex min-w-touch flex-1 flex-col items-center gap-1 rounded-md py-1.5 text-caption",
+          "transition-colors duration-200 active:scale-95 motion-reduce:active:scale-100",
           active ? "text-primary" : "text-muted-foreground",
         )}
       >
-        <tab.icon className="h-5 w-5" />
+        <tab.icon
+          className={cn(
+            "h-5 w-5 transition-transform duration-200",
+            active && "scale-110",
+          )}
+          aria-hidden
+        />
         {isAlerts && unread > 0 ? (
           <span className="absolute right-1/2 top-0 h-2 w-2 translate-x-3 rounded-full bg-primary" />
         ) : null}

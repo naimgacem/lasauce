@@ -8,6 +8,7 @@ type Primitive = string | number | boolean;
 
 export interface RequestOptions {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+  /** JSON-serialised, unless it's a FormData (sent as multipart). */
   body?: unknown;
   params?: Record<string, Primitive | undefined>;
   timeoutMs?: number;
@@ -36,15 +37,26 @@ export async function request<T>(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+  // FormData must go over the wire untouched: the browser generates the
+  // multipart boundary, so setting Content-Type ourselves would corrupt it.
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+
   let res: Response;
   try {
     res = await fetch(url, {
       method,
       headers: {
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(body !== undefined && !isFormData
+          ? { "Content-Type": "application/json" }
+          : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? (body as FormData)
+            : JSON.stringify(body),
       signal: controller.signal,
     });
   } catch {
