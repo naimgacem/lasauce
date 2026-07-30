@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useForm, type UseFormReturn } from "react-hook-form";
@@ -20,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/features/auth/hooks/use-login";
 import { useRegister } from "@/features/auth/hooks/use-register";
+import { ROUTES } from "@/lib/routes";
 import { ApiError } from "@/types/api";
 
 /** Mirrors the backend contract in `app/schemas/user.py` (password min 8). */
@@ -163,7 +165,15 @@ function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <div className="flex items-center justify-between gap-2">
+                <FormLabel>Password</FormLabel>
+                <Link
+                  href={ROUTES.forgotPassword}
+                  className="text-caption text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <FormControl>
                 <PasswordInput autoComplete="current-password" {...field} />
               </FormControl>

@@ -14,6 +14,15 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (patch: ProfilePatch) => api.auth.updateMe(patch),
     onSuccess: (user) => {
+      // Regression guard. A previous adapter returned the PATCH body cast as a
+      // User, so saving a name wiped id/email/role from the session and broke
+      // ownership checks everywhere. Only a response that actually looks like a
+      // full user is allowed to replace the snapshot.
+      if (!user?.id || !user.email) {
+        queryClient.invalidateQueries({ queryKey: authKeys.me() });
+        toast.success("Profile updated.");
+        return;
+      }
       useAuthStore.getState().setUser(user); // keep the session snapshot fresh
       queryClient.setQueryData(authKeys.me(), user);
       toast.success("Profile updated.");

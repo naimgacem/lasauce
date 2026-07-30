@@ -24,6 +24,7 @@ from app.core.security import (
     generate_refresh_token,
     hash_password,
     hash_refresh_token,
+    password_fingerprint,
     verify_password,
 )
 from app.models.refresh_token import RefreshToken
@@ -156,6 +157,8 @@ class AuthService:
             user.id,
             TOKEN_TYPE_RESET,
             dt.timedelta(minutes=settings.PASSWORD_RESET_EXPIRE_MINUTES),
+            # Binds the link to the CURRENT password, making it single-use.
+            claims={"pv": password_fingerprint(user.password_hash)},
         )
         link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
         send_email(
@@ -166,6 +169,14 @@ class AuthService:
 
     async def reset_password(self, token: str, new_password: str) -> None:
         user = await self._user_from_token(token, TOKEN_TYPE_RESET)
+
+        # Single-use enforcement: the token carries a fingerprint of the password
+        # it was issued against. Once the password changes the fingerprint no
+        # longer matches, so a replayed link is refused for the rest of its TTL.
+        payload = decode_token(token)
+        if payload.get("pv") != password_fingerprint(user.password_hash):
+            raise AuthenticationError("This reset link has already been used")
+
         await self.users.update(user, password_hash=hash_password(new_password))
         # Invalidate all sessions after a password change.
         await self.refresh_tokens.revoke_all_for_user(user.id)

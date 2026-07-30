@@ -35,7 +35,8 @@ export interface AuthApi {
   updateMe(patch: ProfilePatch): Promise<User>;
   forgotPassword(email: string): Promise<void>;
   resetPassword(token: string, newPassword: string): Promise<void>;
-  verifyEmail(token: string): Promise<void>;
+  /** Returns the freshly-verified user (backend: response_model=UserRead). */
+  verifyEmail(token: string): Promise<User>;
 }
 
 export interface ItemsApi {

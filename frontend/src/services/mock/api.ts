@@ -93,6 +93,7 @@ export const mockApi: Api = {
     },
     async verifyEmail() {
       await delay();
+      return { ...currentUser(), is_verified: true };
     },
   },
 

@@ -9,12 +9,15 @@ venv/
 .ruff_cache/
 .mypy_cache/
 
-# Env / secrets
+# Env / secrets — ignore real env files, keep every *.example template.
+# `.env.*` also matches `.env.local.example`, so the negations must cover the
+# `*.example` suffix generally, not just the literal `.env.example`.
 .env
 .env.*
-!.env.example
 **/.env
-!**/.env.example
+**/.env.*
+!*.example
+!**/*.example
 
 # Media / uploads (local storage backend)
 backend/media/

@@ -14,7 +14,10 @@ export const ROUTES = {
   login: "/login",
   register: "/register",
   forgotPassword: "/forgot-password",
+  // Reached from an emailed link, so these must work whether or not the visitor
+  // happens to be signed in — they live OUTSIDE the guest-guarded (auth) group.
   resetPassword: "/reset-password",
+  verifyEmail: "/verify-email",
 
   // authenticated
   dashboard: "/dashboard",

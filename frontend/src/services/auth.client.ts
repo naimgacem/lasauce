@@ -22,5 +22,5 @@ export const authClient: AuthApi = {
       body: { token, new_password: newPassword },
     }),
   verifyEmail: (token) =>
-    request<void>("/auth/verify-email", { method: "POST", body: { token } }),
+    request<User>("/auth/verify-email", { method: "POST", body: { token } }),
 };

@@ -49,7 +49,12 @@ def password_needs_rehash(password_hash: str) -> bool:
 
 # --- JWTs ------------------------------------------------------------------
 
-def create_token(subject: str | Any, token_type: str, expires_delta: dt.timedelta) -> str:
+def create_token(
+    subject: str | Any,
+    token_type: str,
+    expires_delta: dt.timedelta,
+    claims: dict[str, Any] | None = None,
+) -> str:
     now = dt.datetime.now(dt.timezone.utc)
     payload: dict[str, Any] = {
         "sub": str(subject),
@@ -57,7 +62,21 @@ def create_token(subject: str | Any, token_type: str, expires_delta: dt.timedelt
         "iat": int(now.timestamp()),
         "exp": int((now + expires_delta).timestamp()),
     }
+    if claims:
+        payload.update(claims)
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def password_fingerprint(password_hash: str) -> str:
+    """Short digest of a password hash, embedded in reset tokens.
+
+    Makes a reset link SINGLE-USE without any server-side state: resetting
+    changes `password_hash`, so the fingerprint in any outstanding token stops
+    matching and every previously-issued link dies immediately. Without this a
+    leaked link stays live for its whole TTL, even after the legitimate owner
+    has already used it.
+    """
+    return hashlib.sha256(password_hash.encode("utf-8")).hexdigest()[:16]
 
 
 def create_access_token(subject: str | Any) -> str:

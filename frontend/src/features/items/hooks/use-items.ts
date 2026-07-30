@@ -77,6 +77,23 @@ export function useDeleteItemImage() {
   });
 }
 
+/** Close an item as recovered — the happy ending. */
+export function useResolveItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.items.resolve(id),
+    onSuccess: (item) => {
+      queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
+      queryClient.setQueryData(itemKeys.detail(item.id), item);
+      toast.success("Marked as recovered", {
+        description: "Glad it found its way back.",
+      });
+    },
+    onError: (error) => toast.error(error.message),
+  });
+}
+
 export function useWithdrawItem() {
   const router = useRouter();
   const queryClient = useQueryClient();
