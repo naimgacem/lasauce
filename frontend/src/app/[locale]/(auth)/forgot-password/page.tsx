@@ -4,6 +4,7 @@ import * as React from "react";
 import { Link } from "@/i18n/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, MailCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -29,15 +30,16 @@ import { Input } from "@/components/ui/input";
 import { useForgotPassword } from "@/features/auth/hooks/use-password";
 import { ROUTES } from "@/lib/routes";
 
-const schema = z.object({
-  email: z.string().min(1, "Enter your email").email("Enter a valid email address"),
-});
-
-type Values = z.infer<typeof schema>;
-
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth");
   const [sentTo, setSentTo] = React.useState<string | null>(null);
   const forgot = useForgotPassword();
+
+  const schema = z.object({
+    email: z.string().min(1, t("emailRequired")).email(t("emailInvalid")),
+  });
+  type Values = z.infer<typeof schema>;
+
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { email: "" },
@@ -58,17 +60,19 @@ export default function ForgotPasswordPage() {
           >
             <MailCheck className="h-6 w-6" />
           </span>
-          <CardTitle className="text-heading-3">Check your inbox</CardTitle>
+          <CardTitle className="text-heading-3">{t("checkInboxTitle")}</CardTitle>
           <CardDescription>
-            If an account exists for <strong>{sentTo}</strong>, we&apos;ve sent a
-            link to reset your password. It expires in 30 minutes.
+            {t.rich("checkInboxBody", {
+              email: sentTo,
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </CardDescription>
         </CardHeader>
         <CardFooter className="justify-center">
           <Button variant="ghost" asChild>
             <Link href={ROUTES.login}>
               <ArrowLeft className="h-4 w-4" />
-              Back to sign in
+              {t("backToLogin")}
             </Link>
           </Button>
         </CardFooter>
@@ -79,9 +83,9 @@ export default function ForgotPasswordPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-heading-3">Forgot your password?</CardTitle>
+        <CardTitle className="text-heading-3">{t("forgotTitle")}</CardTitle>
         <CardDescription>
-          Enter your email and we&apos;ll send you a link to set a new one.
+          {t("forgotSubtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -92,12 +96,12 @@ export default function ForgotPasswordPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
-                      placeholder="you@example.com"
+                      placeholder={t("emailPlaceholder")}
                       autoFocus
                       {...field}
                     />
@@ -108,7 +112,7 @@ export default function ForgotPasswordPage() {
             />
             <Button type="submit" className="w-full" disabled={forgot.isPending}>
               {forgot.isPending ? <Spinner /> : null}
-              Send reset link
+              {t("sendLink")}
             </Button>
           </form>
         </Form>
@@ -117,7 +121,7 @@ export default function ForgotPasswordPage() {
         <Button variant="ghost" size="sm" asChild>
           <Link href={ROUTES.login}>
             <ArrowLeft className="h-4 w-4" />
-            Back to sign in
+            {t("backToLogin")}
           </Link>
         </Button>
       </CardFooter>

@@ -1,6 +1,7 @@
 "use client";
 
 import { m } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 import { listContainer, listItem } from "@/animations";
 import { FullPageLoader } from "@/components/feedback/loading";
@@ -11,6 +12,7 @@ import { ProfileForm } from "@/features/profile/components/profile-form";
 import { SecurityCard } from "@/features/profile/components/security-card";
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
   const { user } = useSession();
 
   if (!user) return <FullPageLoader />;
@@ -18,8 +20,8 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader
-        title="Profile"
-        description="Your account, security and preferences."
+        title={t("title")}
+        description={t("description")}
       />
       <m.div
         variants={listContainer}

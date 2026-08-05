@@ -2,18 +2,20 @@
 
 import { Link } from "@/i18n/navigation";
 import { Bell } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { useUnreadCount } from "@/features/notifications/hooks/use-unread-count";
 import { ROUTES } from "@/lib/routes";
 
 export function NotificationBell() {
+  const t = useTranslations("notifications");
   const { data } = useUnreadCount();
   const count = data?.count ?? 0;
 
   return (
     <Button variant="ghost" size="icon" asChild className="relative">
-      <Link href={ROUTES.notifications} aria-label={`Notifications${count ? ` (${count} unread)` : ""}`}>
+      <Link href={ROUTES.notifications} aria-label={t("bellLabel", { count })}>
         <Bell className="h-5 w-5" />
         {count > 0 ? (
           <span className="absolute end-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground">

@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { PackageSearch } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,8 @@ export function Logo({
   withWordmark?: boolean;
   className?: string;
 }) {
+  const t = useTranslations("common");
+
   return (
     <Link
       href={href}
@@ -19,9 +22,9 @@ export function Logo({
     >
       <PackageSearch className="h-5 w-5 text-primary" aria-hidden />
       {withWordmark ? (
-        <span className="hidden sm:inline">Lost &amp; Found</span>
+        <span className="hidden sm:inline">{t("appName")}</span>
       ) : null}
-      <span className="sr-only">Lost &amp; Found — home</span>
+      <span className="sr-only">{t("appName")}</span>
     </Link>
   );
 }

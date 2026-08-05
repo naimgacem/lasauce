@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { m } from "framer-motion";
 import {
   Bell,
@@ -38,6 +38,7 @@ export function NotificationItem({
 }) {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("notifications");
   const meta = TYPE_META[notification.type];
   const Icon = meta.icon;
 
@@ -55,7 +56,11 @@ export function NotificationItem({
           "flex w-full items-start gap-3 rounded-xl border p-4 text-start transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           !notification.is_read && "border-primary/20 bg-primary/[0.03]",
         )}
-        aria-label={`${notification.is_read ? "" : "Unread: "}${notification.title}`}
+        aria-label={
+          notification.is_read
+            ? notification.title
+            : t("unreadItemAria", { title: notification.title })
+        }
       >
         <span
           className={cn(

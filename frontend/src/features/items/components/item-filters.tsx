@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ export function ItemFilters({
   value: BrowseFilters;
   onChange: (next: Partial<BrowseFilters>) => void;
 }) {
+  const t = useTranslations("filters");
   const locale = useLocale();
   const { data: categories } = useCategories();
   const flat = flattenCategories(categories);
@@ -52,16 +53,16 @@ export function ItemFilters({
   return (
     <div className="space-y-5">
       <div className="space-y-1.5">
-        <Label htmlFor="filter-category">Category</Label>
+        <Label htmlFor="filter-category">{t("category")}</Label>
         <Select
           value={value.category_id ?? ALL}
           onValueChange={(v) => onChange({ category_id: v === ALL ? undefined : v })}
         >
           <SelectTrigger id="filter-category">
-            <SelectValue placeholder="All categories" />
+            <SelectValue placeholder={t("allCategories")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>All categories</SelectItem>
+            <SelectItem value={ALL}>{t("allCategories")}</SelectItem>
             {flat.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {`${"  ".repeat(category.depth)}${category.name}`}
@@ -72,7 +73,7 @@ export function ItemFilters({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="filter-wilaya">Wilaya</Label>
+        <Label htmlFor="filter-wilaya">{t("wilaya")}</Label>
         <Select
           value={value.wilaya_code != null ? String(value.wilaya_code) : ALL}
           onValueChange={(v) =>
@@ -80,10 +81,10 @@ export function ItemFilters({
           }
         >
           <SelectTrigger id="filter-wilaya">
-            <SelectValue placeholder="All wilayas" />
+            <SelectValue placeholder={t("allWilayas")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>All wilayas</SelectItem>
+            <SelectItem value={ALL}>{t("allWilayas")}</SelectItem>
             {wilayasFor(locale).map((wilaya) => (
               <SelectItem key={wilaya.code} value={String(wilaya.code)}>
                 {wilaya.name}
@@ -94,7 +95,7 @@ export function ItemFilters({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="filter-from">From</Label>
+        <Label htmlFor="filter-from">{t("dateFrom")}</Label>
         <Input
           id="filter-from"
           type="date"
@@ -104,7 +105,7 @@ export function ItemFilters({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="filter-to">To</Label>
+        <Label htmlFor="filter-to">{t("dateTo")}</Label>
         <Input
           id="filter-to"
           type="date"
@@ -128,7 +129,7 @@ export function ItemFilters({
           }
         >
           <X className="h-4 w-4" />
-          Clear {active} filter{active === 1 ? "" : "s"}
+          {t("clearCount", { count: active })}
         </Button>
       ) : null}
     </div>

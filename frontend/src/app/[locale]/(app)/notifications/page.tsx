@@ -65,12 +65,8 @@ export default function NotificationsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader
-        title="Notifications"
-        description={
-          unread > 0
-            ? `${unread} unread notification${unread === 1 ? "" : "s"}`
-            : "You're all caught up."
-        }
+        title={t("title")}
+        description={unread > 0 ? t("unreadCount", { count: unread }) : t("caughtUp")}
       >
         {unread > 0 ? (
           <Button
@@ -80,7 +76,7 @@ export default function NotificationsPage() {
             disabled={markAllRead.isPending}
           >
             {markAllRead.isPending ? <Spinner /> : <CheckCheck className="h-4 w-4" />}
-            Mark all read
+            {t("markAllRead")}
           </Button>
         ) : null}
       </PageHeader>
@@ -93,15 +89,15 @@ export default function NotificationsPage() {
         </div>
       ) : isError ? (
         <ErrorState
-          title="Couldn't load notifications"
+          title={t("loadError")}
           message={error instanceof Error ? error.message : undefined}
           onRetry={() => refetch()}
         />
       ) : items.length === 0 ? (
         <EmptyState
           icon={BellOff}
-          title="No notifications yet"
-          description="When the matching engine finds something — or someone interacts with your reports — it shows up here."
+          title={t("emptyTitle")}
+          description={t("emptyBody")}
         />
       ) : (
         <div className="space-y-6">

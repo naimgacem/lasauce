@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { CheckCircle2, Clock, KeyRound, Lock, XCircle } from "lucide-react";
 
 import { Spinner } from "@/components/feedback/loading";
@@ -23,6 +23,8 @@ import type { Item } from "@/types/item";
  * Renders nothing for the item's owner — they get `IncomingClaims` instead.
  */
 export function ClaimPanel({ item }: { item: Item }) {
+  const t = useTranslations("claims");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const { user, isAuthed } = useSession();
   const isOwner = user?.id === item.user_id;
@@ -41,11 +43,10 @@ export function ClaimPanel({ item }: { item: Item }) {
         <CardContent className="flex flex-col items-center gap-3 p-6 text-center sm:flex-row sm:text-start">
           <Lock className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
           <p className="flex-1 text-body-sm text-muted-foreground">
-            Sign in to claim this item. You&apos;ll answer the reporter&apos;s
-            questions — contact details are shared only once they approve.
+            {t("guestBody")}
           </p>
           <Button asChild size="sm">
-            <Link href={loginWithNext(ROUTES.item(item.id))}>Sign in</Link>
+            <Link href={loginWithNext(ROUTES.item(item.id))}>{tc("signIn")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -57,8 +58,8 @@ export function ClaimPanel({ item }: { item: Item }) {
     return (
       <ContactReveal
         contact={mine.contact}
-        heading="Your claim was approved"
-        note="Here's how to reach the reporter. Agree a public place and a time that suits you both."
+        heading={t("approvedHeading")}
+        note={t("approvedNote")}
       />
     );
   }
@@ -70,9 +71,9 @@ export function ClaimPanel({ item }: { item: Item }) {
         <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
           <Clock className="h-5 w-5 shrink-0 text-processing" aria-hidden />
           <div className="min-w-0 flex-1">
-            <p className="font-medium">Waiting for the reporter to review</p>
+            <p className="font-medium">{t("pendingTitle")}</p>
             <p className="text-body-sm text-muted-foreground">
-              Sent {formatRelative(mine.created_at, locale)}. We&apos;ll notify you either way.
+              {t("pendingBody", { relative: formatRelative(mine.created_at, locale) })}
             </p>
           </div>
           <Button
@@ -82,7 +83,7 @@ export function ClaimPanel({ item }: { item: Item }) {
             disabled={withdraw.isPending}
           >
             {withdraw.isPending ? <Spinner /> : null}
-            Withdraw
+            {t("withdrawAction")}
           </Button>
         </CardContent>
       </Card>
@@ -98,12 +99,12 @@ export function ClaimPanel({ item }: { item: Item }) {
           <XCircle className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="font-medium">
-              {rejected ? "Your claim wasn't approved" : "You withdrew your claim"}
+              {rejected ? t("notApprovedTitle") : t("withdrewTitle")}
             </p>
             <p className="text-body-sm text-muted-foreground">
               {rejected
-                ? "The reporter didn't recognise your answers."
-                : "You can send a new claim if you'd like."}
+                ? t("rejectedBody")
+                : t("newClaimBody")}
             </p>
           </div>
           {!rejected && !isClosed && item.status !== "claimed" ? (
@@ -121,7 +122,7 @@ export function ClaimPanel({ item }: { item: Item }) {
         <CardContent className="flex items-center gap-3 p-5">
           <CheckCircle2 className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
           <p className="text-body-sm text-muted-foreground">
-            This item has already been claimed.
+            {t("alreadyClaimed")}
           </p>
         </CardContent>
       </Card>
@@ -140,17 +141,12 @@ export function ClaimPanel({ item }: { item: Item }) {
         </span>
         <div className="min-w-0 flex-1">
           <h3 className="text-heading-4">
-            {item.type === "found" ? "Think this is yours?" : "Did you find this?"}
+            {item.type === "found" ? t("panelTitle") : t("didYouFind")}
           </h3>
           <p className="mt-0.5 text-body-sm text-muted-foreground">
-            {item.claim_questions.length > 0 ? (
-              <>
-                Answer {item.claim_questions.length} quick question
-                {item.claim_questions.length === 1 ? "" : "s"} to prove it.
-              </>
-            ) : (
-              "Tell the reporter something only the right person would know."
-            )}
+            {item.claim_questions.length > 0
+              ? t("answerCount", { count: item.claim_questions.length })
+              : t("tellRightPerson")}
           </p>
         </div>
         <ClaimDialog item={item} />
@@ -161,8 +157,9 @@ export function ClaimPanel({ item }: { item: Item }) {
 
 /** Small status chip reused by the owner-side list. */
 export function ClaimStatusBadge({ status }: { status: string }) {
-  if (status === "approved") return <Badge variant="found-soft">Approved</Badge>;
-  if (status === "rejected") return <Badge variant="outline">Rejected</Badge>;
-  if (status === "withdrawn") return <Badge variant="outline">Withdrawn</Badge>;
-  return <Badge variant="processing-soft">Pending</Badge>;
+  const t = useTranslations("claims");
+  if (status === "approved") return <Badge variant="found-soft">{t("approved")}</Badge>;
+  if (status === "rejected") return <Badge variant="outline">{t("rejected")}</Badge>;
+  if (status === "withdrawn") return <Badge variant="outline">{t("withdrawn")}</Badge>;
+  return <Badge variant="processing-soft">{t("pending")}</Badge>;
 }

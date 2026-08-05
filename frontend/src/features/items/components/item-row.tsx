@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { m } from "framer-motion";
 import { ChevronRight, MapPin } from "lucide-react";
 
@@ -19,15 +19,17 @@ import type { Item } from "@/types/item";
 
 /** Compact list row — scannable alternative to the photo grid. */
 export function ItemRow({ item }: { item: Item }) {
+  const t = useTranslations("item");
   const locale = useLocale();
   const location = formatLocation(item.wilaya_code, item.location_text, locale);
+  const typeLabel = item.type === "lost" ? t("lostBadge") : t("foundBadge");
 
   return (
     <m.div variants={listItem}>
       <Link
         href={ROUTES.item(item.id)}
         className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        aria-label={`${item.type === "lost" ? "Lost" : "Found"}: ${item.title}`}
+        aria-label={t("typeTitleAria", { type: typeLabel, title: item.title })}
       >
         <Card interactive>
           <CardContent className="flex items-center gap-4 p-4">
@@ -47,7 +49,7 @@ export function ItemRow({ item }: { item: Item }) {
               </div>
               <div className="flex items-center gap-3 text-caption text-muted-foreground">
                 <span>
-                  {item.type === "lost" ? "Lost" : "Found"}{" "}
+                  {typeLabel}{" "}
                   {formatDate(item.lost_or_found_at, locale)}
                 </span>
                 {location ? (

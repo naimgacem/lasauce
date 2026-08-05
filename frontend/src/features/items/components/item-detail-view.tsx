@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { ErrorState } from "@/components/feedback/error-state";
 import { DetailSkeleton } from "@/components/feedback/skeletons";
 import { ItemDetail } from "@/features/items/components/item-detail";
@@ -26,6 +28,7 @@ export function ItemDetailView({
   itemId: string;
   initialItem?: Item;
 }) {
+  const t = useTranslations("item");
   const { data, error, isPending, refetch } = useItem(itemId, {
     initialData: initialItem,
   });
@@ -44,13 +47,13 @@ export function ItemDetailView({
     return (
       <div className="container max-w-xl py-12">
         <ErrorState
-          title={initialItem ? "Couldn't refresh this item" : "Item not found"}
+          title={initialItem ? t("refreshError") : t("notFoundTitle")}
           message={
             initialItem
               ? error instanceof Error
                 ? error.message
                 : undefined
-              : "This report may have been removed, or the link is incorrect."
+              : t("notFoundBody")
           }
           onRetry={() => refetch()}
         />

@@ -1,6 +1,7 @@
 "use client";
 
 import { BadgeCheck, KeyRound, MailWarning } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Spinner } from "@/components/feedback/loading";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +17,15 @@ import { useSendPasswordReset } from "@/features/profile/hooks/use-update-profil
 import type { User } from "@/types/auth";
 
 export function SecurityCard({ user }: { user: User }) {
+  const t = useTranslations("profile");
+  const ta = useTranslations("auth");
   const sendReset = useSendPasswordReset();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Security</CardTitle>
-        <CardDescription>Sign-in and account protection.</CardDescription>
+        <CardTitle className="text-base">{t("security")}</CardTitle>
+        <CardDescription>{t("securityDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
@@ -34,11 +37,11 @@ export function SecurityCard({ user }: { user: User }) {
             )}
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{user.email}</p>
-              <p className="text-xs text-muted-foreground">Sign-in email</p>
+              <p className="text-xs text-muted-foreground">{t("signInEmail")}</p>
             </div>
           </div>
           <Badge variant={user.is_verified ? "found" : "processing"}>
-            {user.is_verified ? "Verified" : "Unverified"}
+            {user.is_verified ? t("verified") : t("unverified")}
           </Badge>
         </div>
 
@@ -46,10 +49,9 @@ export function SecurityCard({ user }: { user: User }) {
           <div className="flex items-center gap-3">
             <KeyRound className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
             <div>
-              <p className="text-sm font-medium">Password</p>
+              <p className="text-sm font-medium">{ta("password")}</p>
               <p className="text-xs text-muted-foreground">
-                We&apos;ll email you a secure reset link. Changing your password
-                signs out all other sessions.
+                {t("passwordHint")}
               </p>
             </div>
           </div>
@@ -60,7 +62,7 @@ export function SecurityCard({ user }: { user: User }) {
             disabled={sendReset.isPending}
           >
             {sendReset.isPending ? <Spinner /> : null}
-            Send reset link
+            {t("sendResetLink")}
           </Button>
         </div>
       </CardContent>

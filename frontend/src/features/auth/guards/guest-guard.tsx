@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { FullPageLoader } from "@/components/feedback/loading";
 import { useSession } from "@/features/auth/hooks/use-session";
@@ -9,6 +10,7 @@ import { DEFAULT_AUTHED_ROUTE } from "@/lib/routes";
 
 /** Keeps authenticated users out of the (auth) group; honours ?next=. */
 export function GuestGuard({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { status } = useSession();
@@ -22,7 +24,7 @@ export function GuestGuard({ children }: { children: React.ReactNode }) {
   }, [status, searchParams, router]);
 
   if (status === "loading") return <FullPageLoader />;
-  if (status === "authed") return <FullPageLoader label="Redirecting…" />;
+  if (status === "authed") return <FullPageLoader label={t("redirecting")} />;
 
   return <>{children}</>;
 }

@@ -33,6 +33,7 @@ const links = [
  */
 export function AppHeader() {
   const t = useTranslations("nav");
+  const tr = useTranslations("report");
   const pathname = usePathname();
 
   return (
@@ -61,19 +62,19 @@ export function AppHeader() {
             <DropdownMenuTrigger asChild>
               <Button size="sm" className="ms-2">
                 <Plus className="h-4 w-4" />
-                Report
+                {t("report")}
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem asChild>
                 <Link href={ROUTES.reportLost} className="cursor-pointer">
-                  Something I lost
+                  {tr("iLost")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={ROUTES.reportFound} className="cursor-pointer">
-                  Something I found
+                  {tr("iFound")}
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

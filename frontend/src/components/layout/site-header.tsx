@@ -46,7 +46,7 @@ export function SiteHeader() {
         <Logo />
 
         {/* Desktop nav — an animated underline marks the active section. */}
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-1 md:flex" aria-label={t("mainNav")}>
           {NAV.map((link) => (
             <Link
               key={link.href}
@@ -97,7 +97,7 @@ export function SiteHeader() {
               <Button size="sm" asChild className="hidden sm:inline-flex">
                 <Link href={reportHref}>
                   <Plus className="h-4 w-4" />
-                  Report an item
+                  {tc("reportItem")}
                 </Link>
               </Button>
             </>
@@ -117,10 +117,10 @@ export function SiteHeader() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px]">
               <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
+                <SheetTitle>{t("menuTitle")}</SheetTitle>
               </SheetHeader>
 
-              <nav className="mt-8 flex flex-col gap-1" aria-label="Mobile">
+              <nav className="mt-8 flex flex-col gap-1" aria-label={t("mobileNav")}>
                 {NAV.map((link) => (
                   <Link
                     key={link.href}
@@ -143,7 +143,7 @@ export function SiteHeader() {
                 <Button asChild onClick={() => setMenuOpen(false)}>
                   <Link href={reportHref}>
                     <Plus className="h-4 w-4" />
-                    Report an item
+                    {tc("reportItem")}
                   </Link>
                 </Button>
                 {!isAuthed ? (
@@ -152,7 +152,7 @@ export function SiteHeader() {
                     asChild
                     onClick={() => setMenuOpen(false)}
                   >
-                    <Link href={ROUTES.login}>Sign in</Link>
+                    <Link href={ROUTES.login}>{tc("signIn")}</Link>
                   </Button>
                 ) : (
                   <Button
@@ -160,7 +160,7 @@ export function SiteHeader() {
                     asChild
                     onClick={() => setMenuOpen(false)}
                   >
-                    <Link href={ROUTES.dashboard}>Dashboard</Link>
+                    <Link href={ROUTES.dashboard}>{t("dashboard")}</Link>
                   </Button>
                 )}
               </div>

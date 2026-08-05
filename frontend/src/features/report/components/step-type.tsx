@@ -2,30 +2,16 @@
 
 import { m } from "framer-motion";
 import { PackageSearch, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { listContainer, listItem } from "@/animations";
 import { cn } from "@/lib/utils";
 import type { ItemType } from "@/types/item";
 
-const options: {
-  value: ItemType;
-  icon: typeof Search;
-  title: string;
-  body: string;
-}[] = [
-  {
-    value: "lost",
-    icon: Search,
-    title: "I lost something",
-    body: "Describe it and we'll scan every found report — now and as new ones arrive.",
-  },
-  {
-    value: "found",
-    icon: PackageSearch,
-    title: "I found something",
-    body: "Post it so the owner can find it. We'll look for matching lost reports.",
-  },
-];
+const ICONS: Record<ItemType, typeof Search> = {
+  lost: Search,
+  found: PackageSearch,
+};
 
 export function StepType({
   value,
@@ -34,6 +20,13 @@ export function StepType({
   value?: ItemType;
   onSelect: (type: ItemType) => void;
 }) {
+  const t = useTranslations("report");
+
+  const options: { value: ItemType; icon: typeof Search; title: string; body: string }[] = [
+    { value: "lost", icon: ICONS.lost, title: t("iLost"), body: t("iLostBody") },
+    { value: "found", icon: ICONS.found, title: t("iFound"), body: t("iFoundBody") },
+  ];
+
   return (
     <m.div
       variants={listContainer}
@@ -41,7 +34,7 @@ export function StepType({
       animate="enter"
       className="grid gap-4 sm:grid-cols-2"
       role="radiogroup"
-      aria-label="What are you reporting?"
+      aria-label={t("stepType")}
     >
       {options.map((option) => {
         const selected = value === option.value;

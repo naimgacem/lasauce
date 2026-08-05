@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { env } from "@/lib/env";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function ItemImage({
   className?: string;
   sizes?: string;
 }) {
+  const t = useTranslations("item");
   const url = imageUrl(item.images[0]?.image_path);
 
   if (!url) {
@@ -38,7 +40,7 @@ export function ItemImage({
           className,
         )}
         role="img"
-        aria-label={`No photo yet for ${item.title}`}
+        aria-label={t("noPhoto")}
       >
         <div className="bg-dotted absolute inset-0 opacity-40" />
         <ImageIcon className="relative h-8 w-8 text-muted-foreground/50" aria-hidden />

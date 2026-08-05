@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { detailsSchema, type DetailsValues } from "@/features/report/schemas";
+import { useDetailsSchema, type DetailsValues } from "@/features/report/schemas";
 import { wilayasFor } from "@/lib/algeria-wilayas";
 import type { ReportDraft } from "@/store/draft.store";
 import type { ItemType } from "@/types/item";
@@ -46,7 +46,10 @@ export function StepDetails({
   /** External submit: the wizard's Continue button targets this form. */
   formId: string;
 }) {
+  const t = useTranslations("report");
+  const tc = useTranslations("common");
   const locale = useLocale();
+  const detailsSchema = useDetailsSchema();
   const form = useForm<DetailsValues>({
     resolver: zodResolver(detailsSchema),
     defaultValues: {
@@ -87,13 +90,13 @@ export function StepDetails({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>{t("titleLabel")}</FormLabel>
               <FormControl>
                 <Input
                   placeholder={
                     type === "lost"
-                      ? "e.g. Black leather wallet"
-                      : "e.g. iPhone found on bus 12"
+                      ? t("titlePlaceholder")
+                      : t("titlePlaceholderFound")
                   }
                   autoFocus
                   {...field}
@@ -109,16 +112,16 @@ export function StepDetails({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t("descriptionLabel")}</FormLabel>
               <FormControl>
                 <Textarea
                   rows={5}
-                  placeholder="Distinctive marks, contents, stickers, where exactly it was…"
+                  placeholder={t("descriptionPlaceholder")}
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                The matching engine reads this — every detail raises your odds.
+                {t("descriptionHint")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -132,7 +135,7 @@ export function StepDetails({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {type === "lost" ? "Date lost" : "Date found"}
+                  {type === "lost" ? t("dateLostLabel") : t("dateFoundLabel")}
                 </FormLabel>
                 <FormControl>
                   <Input type="date" max={today()} {...field} />
@@ -146,14 +149,14 @@ export function StepDetails({
             name="wilaya_code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Wilaya</FormLabel>
+                <FormLabel>{t("wilayaLabel")}</FormLabel>
                 <Select
                   onValueChange={(v) => field.onChange(Number(v))}
                   value={field.value ? String(field.value) : ""}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a wilaya" />
+                      <SelectValue placeholder={t("wilayaPlaceholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -174,19 +177,19 @@ export function StepDetails({
             render={({ field }) => (
               <FormItem className="sm:col-span-2">
                 <FormLabel>
-                  Where exactly{" "}
+                  {t("locationLabel")}{" "}
                   <span className="font-normal text-muted-foreground">
-                    (optional)
+                    ({tc("optional")})
                   </span>
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="e.g. near the university main gate, bus 12"
+                    placeholder={t("locationPlaceholder")}
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  A landmark helps the owner recognise the spot.
+                  {t("locationHint")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -198,13 +201,13 @@ export function StepDetails({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Color{" "}
+                  {t("colourLabel")}{" "}
                   <span className="font-normal text-muted-foreground">
-                    (optional)
+                    ({tc("optional")})
                   </span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. black" {...field} />
+                  <Input placeholder={t("colourPlaceholder")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -216,13 +219,13 @@ export function StepDetails({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Brand{" "}
+                  {t("brandLabel")}{" "}
                   <span className="font-normal text-muted-foreground">
-                    (optional)
+                    ({tc("optional")})
                   </span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Fossil" {...field} />
+                  <Input placeholder={t("brandPlaceholder")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -235,25 +238,23 @@ export function StepDetails({
             render={({ field }) => (
               <FormItem className="sm:col-span-2">
                 <FormLabel>
-                  Verification question{" "}
+                  {t("claimQuestionLabel")}{" "}
                   <span className="font-normal text-muted-foreground">
-                    (optional)
+                    ({tc("optional")})
                   </span>
                 </FormLabel>
                 <FormControl>
                   <Input
                     placeholder={
                       type === "found"
-                        ? "e.g. What's inside the card slot?"
-                        : "e.g. What's on the lock screen?"
+                        ? t("claimQuestionPlaceholderFound")
+                        : t("claimQuestionPlaceholderLost")
                     }
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  Anyone claiming this must answer before you share contact
-                  details. Everyone can read the question — so don&apos;t put the
-                  answer in it.
+                  {t("claimQuestionHint")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

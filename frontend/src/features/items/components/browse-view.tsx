@@ -234,7 +234,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
 
       <div className="mt-6 flex gap-8">
         {/* Desktop: sticky filter sidebar */}
-        <aside className="hidden w-60 shrink-0 md:block" aria-label="Filters">
+        <aside className="hidden w-60 shrink-0 md:block" aria-label={tc("filters")}>
           <div className="sticky top-24 rounded-2xl border bg-card p-5">
             <h2 className="mb-4 text-sm font-semibold">{tc("filters")}</h2>
             <ItemFilters value={filters} onChange={updateFilters} />

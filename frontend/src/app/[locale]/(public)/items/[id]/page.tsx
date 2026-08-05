@@ -26,12 +26,12 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id, locale } = await params;
   const item = await fetchItem(id);
+  const t = await getTranslations({ locale: asLocale(locale), namespace: "item" });
 
   if (!item) {
-    return { title: "Item not found", robots: { index: false, follow: false } };
+    return { title: t("notFoundTitle"), robots: { index: false, follow: false } };
   }
 
-  const t = await getTranslations({ locale: asLocale(locale), namespace: "item" });
   const lost = item.type === "lost";
   const place = [wilayaName(item.wilaya_code, locale), item.location_text]
     .filter(Boolean)

@@ -2,6 +2,7 @@
 
 import { m } from "framer-motion";
 import { Tag } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { listContainer, listItem } from "@/animations";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,7 @@ export function StepCategory({
   value?: string;
   onSelect: (categoryId: string | undefined) => void;
 }) {
+  const t = useTranslations("report");
   const { data: categories, isLoading } = useCategories();
   const flat = flattenCategories(categories).filter((c) => c.depth === 0);
   const children = flattenCategories(categories).filter((c) => c.depth > 0);
@@ -42,7 +44,7 @@ export function StepCategory({
         animate="enter"
         className="grid grid-cols-2 gap-3 sm:grid-cols-3"
         role="radiogroup"
-        aria-label="Category"
+        aria-label={t("stepCategory")}
       >
         {all.map((category) => {
           const selected = value === category.id;
@@ -76,7 +78,7 @@ export function StepCategory({
         })}
       </m.div>
       <p className="text-center text-xs text-muted-foreground">
-        Not sure? You can continue without a category — it just helps matching.
+        {t("notSureCategory")}
       </p>
     </div>
   );

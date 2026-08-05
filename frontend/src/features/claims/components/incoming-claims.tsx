@@ -1,7 +1,7 @@
 "use client";
 
 import { m } from "framer-motion";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Check, Inbox, X } from "lucide-react";
 
 import { listContainer, listItem } from "@/animations";
@@ -24,6 +24,7 @@ import type { Item } from "@/types/item";
  * endpoint behind it is owner-only, so a non-owner would get a 403 anyway.
  */
 export function IncomingClaims({ item }: { item: Item }) {
+  const t = useTranslations("claims");
   const locale = useLocale();
   const { data: claims, isLoading } = useItemClaims(item.id, true);
   const approve = useApproveClaim(item.id);
@@ -47,14 +48,13 @@ export function IncomingClaims({ item }: { item: Item }) {
     return (
       <section aria-labelledby="claims-heading">
         <h2 id="claims-heading" className="mb-3 text-heading-3">
-          Claims
+          {t("incomingTitle")}
         </h2>
         <Card>
           <CardContent className="flex items-center gap-3 p-5">
             <Inbox className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
             <p className="text-body-sm text-muted-foreground">
-              No one has claimed this yet. We&apos;ll notify you the moment
-              someone does.
+              {t("emptyBody")}
             </p>
           </CardContent>
         </Card>
@@ -66,11 +66,11 @@ export function IncomingClaims({ item }: { item: Item }) {
     <section aria-labelledby="claims-heading" className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 id="claims-heading" className="text-heading-3">
-          Claims
+          {t("incomingTitle")}
         </h2>
         {pending.length > 0 ? (
           <span className="text-body-sm text-muted-foreground">
-            {pending.length} awaiting your review
+            {t("awaitingReview", { count: pending.length })}
           </span>
         ) : null}
       </div>
@@ -79,8 +79,8 @@ export function IncomingClaims({ item }: { item: Item }) {
       {approved?.contact ? (
         <ContactReveal
           contact={approved.contact}
-          heading={`You approved ${approved.claimant.full_name}`}
-          note="Here's how to reach them. Agree a public place and a time that suits you both."
+          heading={t("youApproved", { name: approved.claimant.full_name })}
+          note={t("approvedNote")}
         />
       ) : null}
 
@@ -133,7 +133,7 @@ export function IncomingClaims({ item }: { item: Item }) {
                       disabled={busy}
                     >
                       {approve.isPending ? <Spinner /> : <Check className="h-4 w-4" />}
-                      Approve &amp; share contacts
+                      {t("approveShare")}
                     </Button>
                     <Button
                       size="sm"
@@ -142,10 +142,10 @@ export function IncomingClaims({ item }: { item: Item }) {
                       disabled={busy}
                     >
                       <X className="h-4 w-4" />
-                      Not them
+                      {t("notThem")}
                     </Button>
                     <span className="ms-auto text-caption text-muted-foreground">
-                      Approving shares both your details
+                      {t("approvingSharesDetails")}
                     </span>
                   </div>
                 ) : null}

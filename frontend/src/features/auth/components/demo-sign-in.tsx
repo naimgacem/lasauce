@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Spinner } from "@/components/feedback/loading";
@@ -16,6 +17,7 @@ import { useAuthStore } from "@/store/auth.store";
  * when mocks are off.
  */
 export function DemoSignIn() {
+  const t = useTranslations("auth");
   const [pending, setPending] = React.useState(false);
 
   if (!env.useMocks) return null;
@@ -28,7 +30,7 @@ export function DemoSignIn() {
         password: "demo-password",
       });
       useAuthStore.getState().setSession(session);
-      toast.success("Signed in with the demo account.");
+      toast.success(t("demoSignedIn"));
     } finally {
       setPending(false);
     }
@@ -37,7 +39,7 @@ export function DemoSignIn() {
   return (
     <Button onClick={signIn} disabled={pending} className="w-full">
       {pending ? <Spinner /> : <Sparkles className="h-4 w-4" />}
-      Continue with demo account
+      {t("demoSignIn")}
     </Button>
   );
 }

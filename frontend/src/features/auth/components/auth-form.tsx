@@ -4,6 +4,7 @@ import * as React from "react";
 import { Link } from "@/i18n/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
@@ -25,33 +26,28 @@ import { ROUTES } from "@/lib/routes";
 import { ApiError } from "@/types/api";
 
 /** Mirrors the backend contract in `app/schemas/user.py` (password min 8). */
-const emailField = z
-  .string()
-  .min(1, "Enter your email")
-  .email("Enter a valid email address");
+function useAuthSchemas() {
+  const t = useTranslations("auth");
 
-const loginSchema = z.object({
-  email: emailField,
-  password: z.string().min(1, "Enter your password"),
-});
+  const emailField = z.string().min(1, t("emailRequired")).email(t("emailInvalid"));
 
-const registerSchema = z.object({
-  full_name: z.string().trim().min(2, "Enter your full name").max(255, "Name is too long"),
-  email: emailField,
-  password: z
-    .string()
-    .min(8, "Use at least 8 characters")
-    .max(128, "Password is too long"),
-  phone: z
-    .string()
-    .trim()
-    .max(32, "Phone number is too long")
-    .optional()
-    .or(z.literal("")),
-});
+  const loginSchema = z.object({
+    email: emailField,
+    password: z.string().min(1, t("passwordRequired")),
+  });
 
-type LoginValues = z.infer<typeof loginSchema>;
-type RegisterValues = z.infer<typeof registerSchema>;
+  const registerSchema = z.object({
+    full_name: z.string().trim().min(2, t("fullNameRequired")).max(255, t("fullNameTooLong")),
+    email: emailField,
+    password: z.string().min(8, t("passwordTooShort")).max(128, t("passwordTooLong")),
+    phone: z.string().trim().max(32, t("phoneTooLong")).optional().or(z.literal("")),
+  });
+
+  return { loginSchema, registerSchema };
+}
+
+type LoginValues = z.infer<ReturnType<typeof useAuthSchemas>["loginSchema"]>;
+type RegisterValues = z.infer<ReturnType<typeof useAuthSchemas>["registerSchema"]>;
 
 /**
  * Map a failed auth call onto the field it belongs to, so the user is told
@@ -60,22 +56,23 @@ type RegisterValues = z.infer<typeof registerSchema>;
 function applyAuthError(
   form: UseFormReturn<LoginValues> | UseFormReturn<RegisterValues>,
   error: unknown,
+  t: ReturnType<typeof useTranslations<"auth">>,
 ): void {
   const setRoot = (message: string) =>
     (form as UseFormReturn<LoginValues>).setError("root", { message });
 
   if (!(error instanceof ApiError)) {
-    setRoot(error instanceof Error && error.message ? error.message : "Something went wrong. Please try again.");
+    setRoot(error instanceof Error && error.message ? error.message : t("genericError"));
     return;
   }
 
   if (error.status === 401) {
-    setRoot("Incorrect email or password.");
+    setRoot(t("incorrectCredentials"));
     return;
   }
   if (error.status === 409) {
     (form as UseFormReturn<LoginValues>).setError("email", {
-      message: "That email is already registered. Try signing in instead.",
+      message: t("emailAlreadyRegistered"),
     });
     return;
   }
@@ -100,6 +97,7 @@ function PasswordInput({
   placeholder,
   ...field
 }: React.ComponentProps<typeof Input> & { autoComplete: string }) {
+  const t = useTranslations("auth");
   const [visible, setVisible] = React.useState(false);
 
   return (
@@ -115,7 +113,7 @@ function PasswordInput({
         type="button"
         onClick={() => setVisible((v) => !v)}
         className="absolute end-0 top-0 flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label={visible ? "Hide password" : "Show password"}
+        aria-label={visible ? t("hidePassword") : t("showPassword")}
         aria-pressed={visible}
       >
         {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -125,6 +123,9 @@ function PasswordInput({
 }
 
 function LoginForm() {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
+  const { loginSchema } = useAuthSchemas();
   const login = useLogin();
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -133,7 +134,7 @@ function LoginForm() {
 
   function onSubmit(values: LoginValues) {
     form.clearErrors("root");
-    login.mutate(values, { onError: (error) => applyAuthError(form, error) });
+    login.mutate(values, { onError: (error) => applyAuthError(form, error, t) });
   }
 
   return (
@@ -146,12 +147,12 @@ function LoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("email")}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -166,12 +167,12 @@ function LoginForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex items-center justify-between gap-2">
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("password")}</FormLabel>
                 <Link
                   href={ROUTES.forgotPassword}
                   className="text-caption text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                 >
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <FormControl>
@@ -184,7 +185,7 @@ function LoginForm() {
 
         <Button type="submit" className="w-full" disabled={login.isPending}>
           {login.isPending ? <Spinner /> : null}
-          Sign in
+          {tc("signIn")}
         </Button>
       </form>
     </Form>
@@ -192,6 +193,9 @@ function LoginForm() {
 }
 
 function RegisterForm() {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
+  const { registerSchema } = useAuthSchemas();
   const register = useRegister();
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -207,7 +211,7 @@ function RegisterForm() {
         password: values.password,
         phone: values.phone || undefined,
       },
-      { onError: (error) => applyAuthError(form, error) },
+      { onError: (error) => applyAuthError(form, error, t) },
     );
   }
 
@@ -221,12 +225,12 @@ function RegisterForm() {
           name="full_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full name</FormLabel>
+              <FormLabel>{t("fullName")}</FormLabel>
               <FormControl>
-                <Input autoComplete="name" placeholder="Amina Benali" {...field} />
+                <Input autoComplete="name" placeholder={t("namePlaceholder")} {...field} />
               </FormControl>
               <FormDescription>
-                Shown to the person you exchange an item with.
+                {t("nameHint")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -238,12 +242,12 @@ function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("email")}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -257,11 +261,11 @@ function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("password")}</FormLabel>
               <FormControl>
                 <PasswordInput
                   autoComplete="new-password"
-                  placeholder="At least 8 characters"
+                  placeholder={t("newPasswordPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -276,13 +280,13 @@ function RegisterForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Phone{" "}
-                <span className="font-normal text-muted-foreground">(optional)</span>
+                {t("phone")}{" "}
+                <span className="font-normal text-muted-foreground">({tc("optional")})</span>
               </FormLabel>
               <FormControl>
-                <Input type="tel" autoComplete="tel" placeholder="0555 12 34 56" {...field} />
+                <Input type="tel" autoComplete="tel" placeholder={t("phonePlaceholder")} {...field} />
               </FormControl>
-              <FormDescription>Only shared after you approve a claim.</FormDescription>
+              <FormDescription>{t("phoneHintClaim")}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -290,7 +294,7 @@ function RegisterForm() {
 
         <Button type="submit" className="w-full" disabled={register.isPending}>
           {register.isPending ? <Spinner /> : null}
-          Create account
+          {tc("signUp")}
         </Button>
       </form>
     </Form>

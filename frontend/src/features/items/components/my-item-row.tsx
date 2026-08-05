@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { m } from "framer-motion";
 import { CheckCircle2, MoreHorizontal, Trash2 } from "lucide-react";
@@ -33,16 +33,23 @@ import { useResolveItem, useWithdrawItem } from "@/features/items/hooks/use-item
 import { formatLocation } from "@/lib/algeria-wilayas";
 import { formatDate, formatRelative } from "@/lib/format";
 import { ROUTES } from "@/lib/routes";
-import { titleCase } from "@/lib/format";
 import type { Item } from "@/types/item";
 
 type PendingAction = "resolve" | "withdraw" | null;
+
+const CLOSED_REASON_KEY = {
+  recovered: "closedRecovered",
+  expired: "closedExpired",
+  withdrawn: "closedWithdrawn",
+} as const;
 
 /**
  * A row on /my-items — like ItemRow, but with the owner-only lifecycle actions.
  * Both actions close the report, so both confirm first.
  */
 export function MyItemRow({ item }: { item: Item }) {
+  const t = useTranslations("item");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const [confirming, setConfirming] = React.useState<PendingAction>(null);
   const resolve = useResolveItem();
@@ -66,7 +73,7 @@ export function MyItemRow({ item }: { item: Item }) {
           <Link
             href={ROUTES.item(item.id)}
             className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={`Open ${item.title}`}
+            aria-label={t("openItemAria", { title: item.title })}
           >
             <ItemImage
               item={item}
@@ -84,17 +91,18 @@ export function MyItemRow({ item }: { item: Item }) {
             </Link>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-muted-foreground">
               <span>
-                {item.type === "lost" ? "Lost" : "Found"}{" "}
+                {item.type === "lost" ? t("lostBadge") : t("foundBadge")}{" "}
                 {formatDate(item.lost_or_found_at, locale)}
               </span>
               {location ? <span className="truncate">{location}</span> : null}
-              <span>
-                {photos} photo{photos === 1 ? "" : "s"}
-              </span>
+              <span>{t("photoCount", { count: photos })}</span>
               {isClosed && item.closed_reason ? (
-                <span>Closed — {titleCase(item.closed_reason)}</span>
+                <span>
+                  {t("statusClosed")} —{" "}
+                  {t(CLOSED_REASON_KEY[item.closed_reason as keyof typeof CLOSED_REASON_KEY] ?? "statusClosed")}
+                </span>
               ) : (
-                <span>Posted {formatRelative(item.created_at, locale)}</span>
+                <span>{t("postedRelative", { relative: formatRelative(item.created_at, locale) })}</span>
               )}
             </div>
           </div>
@@ -112,7 +120,7 @@ export function MyItemRow({ item }: { item: Item }) {
                     variant="ghost"
                     size="icon-sm"
                     disabled={busy}
-                    aria-label={`Actions for ${item.title}`}
+                    aria-label={t("actionsForAria", { title: item.title })}
                   >
                     {busy ? <Spinner /> : <MoreHorizontal className="h-4 w-4" />}
                   </Button>
@@ -120,11 +128,11 @@ export function MyItemRow({ item }: { item: Item }) {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setConfirming("resolve")}>
                     <CheckCircle2 className="h-4 w-4" />
-                    Mark as recovered
+                    {t("markRecovered")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setConfirming("withdraw")}>
                     <Trash2 className="h-4 w-4" />
-                    Withdraw report
+                    {t("withdraw")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -138,24 +146,24 @@ export function MyItemRow({ item }: { item: Item }) {
           <DialogHeader>
             <DialogTitle>
               {confirming === "resolve"
-                ? "Mark this as recovered?"
-                : "Withdraw this report?"}
+                ? t("markRecoveredConfirmTitle")
+                : t("withdrawConfirmTitle")}
             </DialogTitle>
             <DialogDescription>
               {confirming === "resolve"
-                ? "The report closes and stops appearing in browse. Your history is kept."
-                : "The report closes and is hidden from browsing. This can't be undone, but your history is kept."}
+                ? t("markRecoveredConfirmBody")
+                : t("withdrawConfirmBody")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" onClick={() => setConfirming(null)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               variant={confirming === "withdraw" ? "destructive" : "default"}
               onClick={run}
             >
-              {confirming === "resolve" ? "Mark recovered" : "Withdraw report"}
+              {confirming === "resolve" ? t("markRecovered") : t("withdraw")}
             </Button>
           </DialogFooter>
         </DialogContent>

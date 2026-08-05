@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { KeyRound, ShieldAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -34,26 +35,27 @@ import { useResetPassword } from "@/features/auth/hooks/use-password";
 import { ROUTES } from "@/lib/routes";
 import { useAuthStore } from "@/store/auth.store";
 
-const schema = z
-  .object({
-    // Mirrors the backend contract in app/schemas/auth.py.
-    password: z
-      .string()
-      .min(8, "Use at least 8 characters")
-      .max(128, "Password is too long"),
-    confirm: z.string().min(1, "Confirm your new password"),
-  })
-  .refine((v) => v.password === v.confirm, {
-    message: "Passwords don't match",
-    path: ["confirm"],
-  });
-
-type Values = z.infer<typeof schema>;
-
 function ResetPasswordForm() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const token = useSearchParams().get("token");
   const reset = useResetPassword();
+
+  const schema = z
+    .object({
+      // Mirrors the backend contract in app/schemas/auth.py.
+      password: z
+        .string()
+        .min(8, t("passwordTooShort"))
+        .max(128, t("passwordTooLong")),
+      confirm: z.string().min(1, t("confirmPasswordRequired")),
+    })
+    .refine((v) => v.password === v.confirm, {
+      message: t("passwordsMismatch"),
+      path: ["confirm"],
+    });
+  type Values = z.infer<typeof schema>;
+
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { password: "", confirm: "" },
@@ -69,15 +71,14 @@ function ResetPasswordForm() {
           >
             <ShieldAlert className="h-6 w-6" />
           </span>
-          <CardTitle className="text-heading-3">This link is incomplete</CardTitle>
+          <CardTitle className="text-heading-3">{t("linkIncompleteTitle")}</CardTitle>
           <CardDescription>
-            Reset links expire after 30 minutes and can only be used once. Request
-            a fresh one and try again.
+            {t("resetLinkExpiredBody")}
           </CardDescription>
         </CardHeader>
         <CardFooter className="justify-center">
           <Button asChild>
-            <Link href={ROUTES.forgotPassword}>Request a new link</Link>
+            <Link href={ROUTES.forgotPassword}>{t("requestNewLink")}</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -93,8 +94,8 @@ function ResetPasswordForm() {
           // held in this tab is already dead — clear it rather than let the
           // user act on a stale one.
           useAuthStore.getState().clearSession();
-          toast.success("Password updated", {
-            description: "Sign in with your new password.",
+          toast.success(t("passwordUpdatedTitle"), {
+            description: t("passwordUpdatedBody"),
           });
           router.push(ROUTES.login);
         },
@@ -102,8 +103,8 @@ function ResetPasswordForm() {
           form.setError("root", {
             message:
               error instanceof Error
-                ? `${error.message} The link may have expired.`
-                : "Could not reset your password.",
+                ? t("resetErrorExpired", { message: error.message })
+                : t("resetErrorGeneric"),
           }),
       },
     );
@@ -118,9 +119,9 @@ function ResetPasswordForm() {
         >
           <KeyRound className="h-6 w-6" />
         </span>
-        <CardTitle className="text-heading-3">Choose a new password</CardTitle>
+        <CardTitle className="text-heading-3">{t("resetHeading")}</CardTitle>
         <CardDescription>
-          You&apos;ll be signed out everywhere else once it&apos;s changed.
+          {t("resetHeadingBody")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -140,18 +141,18 @@ function ResetPasswordForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New password</FormLabel>
+                  <FormLabel>{t("newPassword")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="new-password"
-                      placeholder="At least 8 characters"
+                      placeholder={t("newPasswordPlaceholder")}
                       autoFocus
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Use something you don&apos;t reuse elsewhere.
+                    {t("newPasswordHint")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -162,7 +163,7 @@ function ResetPasswordForm() {
               name="confirm"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm new password</FormLabel>
+                  <FormLabel>{t("confirmPassword")}</FormLabel>
                   <FormControl>
                     <Input type="password" autoComplete="new-password" {...field} />
                   </FormControl>
@@ -172,7 +173,7 @@ function ResetPasswordForm() {
             />
             <Button type="submit" className="w-full" disabled={reset.isPending}>
               {reset.isPending ? <Spinner /> : null}
-              Update password
+              {t("updatePassword")}
             </Button>
           </form>
         </Form>

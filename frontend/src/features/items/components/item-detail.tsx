@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { m } from "framer-motion";
 import {
   ArrowLeft,
@@ -48,6 +48,12 @@ import { formatDate, formatRelative } from "@/lib/format";
 import { ROUTES } from "@/lib/routes";
 import type { Item } from "@/types/item";
 
+const CLOSED_REASON_KEY = {
+  recovered: "closedRecovered",
+  expired: "closedExpired",
+  withdrawn: "closedWithdrawn",
+} as const;
+
 function Fact({
   icon: Icon,
   label,
@@ -69,6 +75,7 @@ function Fact({
 }
 
 export function ItemDetail({ item }: { item: Item }) {
+  const t = useTranslations("item");
   const locale = useLocale();
   const { user } = useSession();
   const withdraw = useWithdrawItem();
@@ -88,7 +95,7 @@ export function ItemDetail({ item }: { item: Item }) {
           <Button variant="ghost" size="sm" asChild>
             <Link href={item.type === "lost" ? ROUTES.lost : ROUTES.found}>
               <ArrowLeft className="h-4 w-4" />
-              Back to search
+              {t("backToSearch")}
             </Link>
           </Button>
 
@@ -97,15 +104,14 @@ export function ItemDetail({ item }: { item: Item }) {
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" disabled={withdraw.isPending}>
                   {withdraw.isPending ? <Spinner /> : <Trash2 className="h-4 w-4" />}
-                  Withdraw
+                  {t("withdrawShort")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Withdraw this report?</DialogTitle>
+                  <DialogTitle>{t("withdrawConfirmTitle")}</DialogTitle>
                   <DialogDescription>
-                    The report will be closed and hidden from browsing. This
-                    can&apos;t be undone, but your report history is preserved.
+                    {t("withdrawConfirmBody")}
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -115,7 +121,7 @@ export function ItemDetail({ item }: { item: Item }) {
                     disabled={withdraw.isPending}
                   >
                     {withdraw.isPending ? <Spinner /> : null}
-                    Withdraw report
+                    {t("withdraw")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -136,7 +142,9 @@ export function ItemDetail({ item }: { item: Item }) {
             <ProcessingBadge status={item.processing_status} />
             {isClosed && item.closed_reason ? (
               <span className="text-xs text-muted-foreground">
-                Closed — {item.closed_reason}
+                {t("closedReasonPrefix", {
+                  reason: t(CLOSED_REASON_KEY[item.closed_reason as keyof typeof CLOSED_REASON_KEY] ?? "statusClosed"),
+                })}
               </span>
             ) : null}
           </div>
@@ -153,26 +161,29 @@ export function ItemDetail({ item }: { item: Item }) {
         >
           <Fact
             icon={CalendarDays}
-            label={item.type === "lost" ? "Date lost" : "Date found"}
+            label={item.type === "lost" ? t("dateLostLabel") : t("dateFoundLabel")}
             value={formatDate(item.lost_or_found_at, locale)}
           />
           <Fact
             icon={MapPin}
-            label="Wilaya"
-            value={wilayaName(item.wilaya_code, locale) ?? "Not specified"}
+            label={t("location")}
+            value={wilayaName(item.wilaya_code, locale) ?? t("notSpecified")}
           />
           {item.location_text ? (
-            <Fact icon={MapPin} label="Where exactly" value={item.location_text} />
+            <Fact icon={MapPin} label={t("whereExactly")} value={item.location_text} />
           ) : null}
-          <Fact icon={Tag} label="Category" value={item.category?.name ?? "Uncategorised"} />
+          <Fact icon={Tag} label={t("category")} value={item.category?.name ?? t("uncategorised")} />
           {item.color ? (
-            <Fact icon={Palette} label="Color" value={item.color} />
+            <Fact icon={Palette} label={t("colour")} value={item.color} />
           ) : null}
-          {item.brand ? <Fact icon={Tag} label="Brand" value={item.brand} /> : null}
+          {item.brand ? <Fact icon={Tag} label={t("brand")} value={item.brand} /> : null}
           <Fact
             icon={Clock}
-            label="Reported"
-            value={`${formatRelative(item.created_at, locale)} · updated ${formatRelative(item.updated_at, locale)}`}
+            label={t("reportedLabel")}
+            value={t("reportedRelativeUpdated", {
+              relative: formatRelative(item.created_at, locale),
+              updatedRelative: formatRelative(item.updated_at, locale),
+            })}
           />
         </m.dl>
 
@@ -194,13 +205,12 @@ export function ItemDetail({ item }: { item: Item }) {
                   >
                     <Sparkles className="h-4 w-4" />
                   </span>
-                  Potential matches
+                  {t("potentialMatches")}
                 </CardTitle>
                 <CardDescription>
-                  When the matching engine ships, ranked candidates appear here —
-                  each with a confidence score and a plain-language explanation
-                  of why it might be{" "}
-                  {item.type === "lost" ? "your item" : "the owner's item"}.
+                  {t("potentialMatchesBody", {
+                    target: item.type === "lost" ? t("yourItem") : t("ownersItem"),
+                  })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -209,8 +219,7 @@ export function ItemDetail({ item }: { item: Item }) {
                     <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-processing" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-processing" />
                   </span>
-                  This report is queued for matching. You&apos;ll be notified the
-                  moment a likely match appears.
+                  {t("queuedForMatching")}
                 </div>
               </CardContent>
             </Card>

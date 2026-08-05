@@ -4,6 +4,7 @@ import * as React from "react";
 import { Link } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { FullPageLoader } from "@/components/feedback/loading";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { ROUTES } from "@/lib/routes";
 import { useAuthStore } from "@/store/auth.store";
 
 function VerifyEmailInner() {
+  const t = useTranslations("auth");
   const token = useSearchParams().get("token");
   const { isAuthed } = useSession();
   const verify = useVerifyEmail();
@@ -46,28 +48,28 @@ function VerifyEmailInner() {
     return (
       <Result
         tone="error"
-        title="This link is incomplete"
-        body="Verification links expire after 48 hours and can only be used once. Sign in and we'll send a fresh one."
-        action={{ href: ROUTES.login, label: "Go to sign in" }}
+        title={t("linkIncompleteTitle")}
+        body={t("verifyLinkIncompleteBody")}
+        action={{ href: ROUTES.login, label: t("goToSignIn") }}
       />
     );
   }
 
   if (verify.isPending || verify.isIdle) {
-    return <FullPageLoader label="Verifying your email…" />;
+    return <FullPageLoader label={t("verifyPending")} />;
   }
 
   if (verify.isError) {
     return (
       <Result
         tone="error"
-        title="We couldn't verify this link"
+        title={t("verifyFailed")}
         body={
           verify.error instanceof Error
-            ? `${verify.error.message} It may have expired or already been used.`
-            : "The link may have expired or already been used."
+            ? t("verifyFailedBody", { message: verify.error.message })
+            : t("verifyFailedBodyGeneric")
         }
-        action={{ href: ROUTES.login, label: "Go to sign in" }}
+        action={{ href: ROUTES.login, label: t("goToSignIn") }}
       />
     );
   }
@@ -75,12 +77,12 @@ function VerifyEmailInner() {
   return (
     <Result
       tone="success"
-      title="Email verified"
-      body="Thanks — your address is confirmed. You're all set to report and claim items."
+      title={t("verifiedTitle")}
+      body={t("verifiedBody")}
       action={
         isAuthed
-          ? { href: ROUTES.dashboard, label: "Go to dashboard" }
-          : { href: ROUTES.login, label: "Sign in" }
+          ? { href: ROUTES.dashboard, label: t("goToDashboard") }
+          : { href: ROUTES.login, label: t("goToSignIn") }
       }
     />
   );

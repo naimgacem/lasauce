@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { CalendarDays, MapPin, Palette, Sparkles, Tag } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +43,9 @@ export function StepReview({
   type: ItemType;
   images: LocalImage[];
 }) {
+  const t = useTranslations("report");
+  const tf = useTranslations("filters");
+  const ti = useTranslations("item");
   const locale = useLocale();
   const { data: categories } = useCategories();
   const categoryName = draft.category_id
@@ -66,28 +69,28 @@ export function StepReview({
           <dl className="mt-4 divide-y border-t">
             <Row
               icon={CalendarDays}
-              label={type === "lost" ? "Date lost" : "Date found"}
+              label={type === "lost" ? t("dateLostLabel") : t("dateFoundLabel")}
               value={formatDate(draft.lost_or_found_at, locale)}
             />
-            <Row icon={Tag} label="Category" value={categoryName ?? "Uncategorised"} />
+            <Row icon={Tag} label={tf("category")} value={categoryName ?? ti("uncategorised")} />
             {draft.wilaya_code ? (
               <Row
                 icon={MapPin}
-                label="Wilaya"
+                label={tf("wilaya")}
                 value={wilayaName(draft.wilaya_code, locale) ?? "—"}
               />
             ) : null}
             {draft.location_text ? (
-              <Row icon={MapPin} label="Where exactly" value={draft.location_text} />
+              <Row icon={MapPin} label={t("locationLabel")} value={draft.location_text} />
             ) : null}
             {draft.color ? (
-              <Row icon={Palette} label="Color" value={draft.color} />
+              <Row icon={Palette} label={t("colourLabel")} value={draft.color} />
             ) : null}
-            {draft.brand ? <Row icon={Tag} label="Brand" value={draft.brand} /> : null}
+            {draft.brand ? <Row icon={Tag} label={t("brandLabel")} value={draft.brand} /> : null}
           </dl>
 
           {images.length > 0 ? (
-            <div className="mt-4 flex gap-2" aria-label={`${images.length} photos selected`}>
+            <div className="mt-4 flex gap-2" aria-label={t("photosSelectedAria", { count: images.length })}>
               {images.map((img) => (
                 <div key={img.id} className="relative h-14 w-14">
                   <Image
@@ -108,9 +111,7 @@ export function StepReview({
       <div className="flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
         <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
         <p className="text-foreground/80">
-          Once published, the matching engine starts comparing this report
-          against every {type === "lost" ? "found" : "lost"} item — you&apos;ll be
-          notified when a likely match appears.
+          {t("matchingAgainst", { side: type === "lost" ? ti("foundBadge") : ti("lostBadge") })}
         </p>
       </div>
     </div>

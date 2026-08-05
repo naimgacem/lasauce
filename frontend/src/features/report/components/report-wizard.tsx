@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { m } from "framer-motion";
 import { ArrowLeft, ArrowRight, History, Send } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { pageVariants } from "@/animations";
@@ -19,7 +20,7 @@ import {
 import { StepReview } from "@/features/report/components/step-review";
 import { StepType } from "@/features/report/components/step-type";
 import {
-  WIZARD_STEPS,
+  useWizardSteps,
   WizardProgress,
 } from "@/features/report/components/wizard-progress";
 import type { DetailsValues } from "@/features/report/schemas";
@@ -39,6 +40,9 @@ import type { ItemType } from "@/types/item";
 const DETAILS_FORM_ID = "report-details-form";
 
 export function ReportWizard() {
+  const t = useTranslations("report");
+  const tc = useTranslations("common");
+  const wizardSteps = useWizardSteps();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { draft, saveDraft, clearDraft } = useDraftStore();
@@ -162,19 +166,19 @@ export function ReportWizard() {
         });
       } catch (error) {
         photosFailed = true;
-        toast.warning("Report published, but the photos didn't upload", {
+        toast.warning(t("photosFailedTitle"), {
           description:
             error instanceof Error
-              ? `${error.message} You can add them from the item page.`
-              : "You can add them from the item page.",
+              ? t("photosFailedBody", { message: error.message })
+              : t("photosFailedBodyGeneric"),
           duration: 8000,
         });
       }
     }
 
     if (!photosFailed) {
-      toast.success("Report published", {
-        description: "We'll start looking for matches right away.",
+      toast.success(t("publishedTitle"), {
+        description: t("publishedBody"),
       });
     }
 
@@ -202,11 +206,11 @@ export function ReportWizard() {
   }
 
   const headings: Record<number, { title: string; hint: string }> = {
-    0: { title: "What happened?", hint: "This determines which side we search." },
-    1: { title: "Pick a category", hint: "Optional — but it sharpens matching." },
-    2: { title: "Describe the item", hint: "Details are what the AI matches on." },
-    3: { title: "Add photos", hint: "Optional — image matching loves them." },
-    4: { title: "Review & publish", hint: "One last look before it goes live." },
+    0: { title: t("step0Title"), hint: t("step0Hint") },
+    1: { title: t("step1Title"), hint: t("step1Hint") },
+    2: { title: t("step2Title"), hint: t("step2Hint") },
+    3: { title: t("step3Title"), hint: t("step3Hint") },
+    4: { title: t("step4Title"), hint: t("step4Hint") },
   };
 
   // The report is live and the draft is gone — hold this until the router
@@ -216,7 +220,7 @@ export function ReportWizard() {
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 py-24 text-center">
         <Spinner />
         <p className="text-body-sm text-muted-foreground" aria-live="polite">
-          Report published — taking you to it…
+          {t("redirecting")}
         </p>
       </div>
     );
@@ -231,10 +235,10 @@ export function ReportWizard() {
         <div className="flex items-center gap-3 rounded-xl border bg-card p-3.5 text-sm">
           <History className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           <p className="flex-1 text-muted-foreground">
-            Picked up your unfinished draft right where you left it.
+            {t("resumedDraft")}
           </p>
           <Button variant="ghost" size="sm" onClick={startOver}>
-            Start over
+            {t("startOver")}
           </Button>
         </div>
       ) : null}
@@ -281,7 +285,7 @@ export function ReportWizard() {
         {step > 0 ? (
           <Button variant="ghost" onClick={() => go(step - 1)} disabled={busy}>
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {tc("back")}
           </Button>
         ) : (
           <span />
@@ -289,28 +293,28 @@ export function ReportWizard() {
 
         {step === 2 ? (
           <Button type="submit" form={DETAILS_FORM_ID}>
-            Continue
+            {tc("continue")}
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : step === 4 ? (
           <Button onClick={publish} disabled={busy}>
             {busy ? <Spinner /> : <Send className="h-4 w-4" />}
             {upload.isPending
-              ? `Uploading ${images.length} photo${images.length === 1 ? "" : "s"}…`
+              ? t("uploadingPhotos", { count: images.length })
               : create.isPending
-                ? "Publishing…"
-                : "Publish report"}
+                ? t("publishing")
+                : t("publish")}
           </Button>
         ) : step > 0 ? (
           <Button onClick={() => go(step + 1)}>
-            Continue
+            {tc("continue")}
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : null}
       </div>
 
       <p className="sr-only" aria-live="polite">
-        Step {step + 1} of {WIZARD_STEPS.length}: {WIZARD_STEPS[step]}
+        {t("stepProgress", { n: step + 1, total: wizardSteps.length, label: wizardSteps[step] })}
       </p>
     </div>
   );

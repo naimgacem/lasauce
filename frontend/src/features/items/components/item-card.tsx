@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { m } from "framer-motion";
 import { CalendarDays, MapPin } from "lucide-react";
 
@@ -19,15 +19,17 @@ import type { Item } from "@/types/item";
 
 /** Grid card — photo-led, hover lift per the animation system. */
 export function ItemCard({ item }: { item: Item }) {
+  const t = useTranslations("item");
   const locale = useLocale();
   const location = formatLocation(item.wilaya_code, item.location_text, locale);
+  const typeLabel = item.type === "lost" ? t("lostBadge") : t("foundBadge");
 
   return (
     <m.div variants={listItem} whileHover={cardHover} whileTap={cardTap}>
       <Link
         href={ROUTES.item(item.id)}
         className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        aria-label={`${item.type === "lost" ? "Lost" : "Found"}: ${item.title}`}
+        aria-label={t("typeTitleAria", { type: typeLabel, title: item.title })}
       >
         <Card interactive className="h-full overflow-hidden">
           <div className="relative overflow-hidden">
@@ -63,7 +65,7 @@ export function ItemCard({ item }: { item: Item }) {
               ) : null}
               <p className="flex items-center gap-1.5">
                 <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                {item.type === "lost" ? "Lost" : "Found"}{" "}
+                {typeLabel}{" "}
                 {formatDate(item.lost_or_found_at, locale)}
               </p>
             </div>

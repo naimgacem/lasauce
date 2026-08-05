@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { m } from "framer-motion";
 import {
@@ -42,6 +42,8 @@ export function PotentialMatchCard({
   /** Example rendering (dashboard preview) — actions hidden, links disabled. */
   preview?: boolean;
 }) {
+  const t = useTranslations("matches");
+  const ti = useTranslations("item");
   const locale = useLocale();
   const { candidate_item: candidate } = match;
 
@@ -72,7 +74,7 @@ export function PotentialMatchCard({
             <div className="flex items-start justify-between gap-4">
               <Badge variant="ai">
                 <Sparkles className="h-3 w-3" aria-hidden />
-                Potential match
+                {t("potentialMatch")}
               </Badge>
               <ConfidenceRing value={match.confidence} size={56} />
             </div>
@@ -99,13 +101,13 @@ export function PotentialMatchCard({
                   ) : null}
                   <span className="flex items-center gap-1">
                     <CalendarDays className="h-3 w-3" aria-hidden />
-                    {candidate.type === "found" ? "Found" : "Lost"}{" "}
+                    {candidate.type === "found" ? ti("foundBadge") : ti("lostBadge")}{" "}
                     {formatDate(candidate.event_date, locale)}
                   </span>
                 </div>
 
                 {/* Why the AI thinks so — plain language, always visible */}
-                <ul className="space-y-1 pt-1" aria-label="Why this might be a match">
+                <ul className="space-y-1 pt-1" aria-label={t("whyMatchAria")}>
                   {match.explanation.map((reason) => (
                     <li
                       key={reason}
@@ -131,7 +133,7 @@ export function PotentialMatchCard({
                     disabled={pending}
                   >
                     <Check className="h-4 w-4" />
-                    This is it
+                    {t("confirm")}
                   </Button>
                 ) : null}
                 {onReject ? (
@@ -142,11 +144,11 @@ export function PotentialMatchCard({
                     disabled={pending}
                   >
                     <X className="h-4 w-4" />
-                    Not mine
+                    {t("reject")}
                   </Button>
                 ) : null}
                 <span className="ms-auto text-caption text-muted-foreground">
-                  Your answer improves future matching
+                  {t("feedbackNote")}
                 </span>
               </div>
             ) : null}

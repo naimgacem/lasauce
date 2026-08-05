@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { m } from "framer-motion";
 import {
   ArrowRight,
@@ -35,7 +35,7 @@ import { useSession } from "@/features/auth/hooks/use-session";
 import { ItemRow } from "@/features/items/components/item-row";
 import { useItems } from "@/features/items/hooks/use-items";
 import { PotentialMatchCard } from "@/features/matches/components/potential-match-card";
-import { SAMPLE_MATCH } from "@/features/matches/sample";
+import { useSampleMatch } from "@/features/matches/sample";
 import { useNotifications } from "@/features/notifications/hooks/use-notifications";
 import { formatRelative } from "@/lib/format";
 import { ROUTES } from "@/lib/routes";
@@ -78,6 +78,10 @@ function StatCard({
 }
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
+  const tc = useTranslations("common");
+  const tn = useTranslations("notifications");
+  const sampleMatch = useSampleMatch();
   const locale = useLocale();
   const { user } = useSession();
   const firstName = user?.full_name.split(" ")[0];
@@ -103,13 +107,13 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Welcome back${firstName ? `, ${firstName}` : ""}`}
-        description="Here's where your reports stand."
+        title={firstName ? t("welcomeNamed", { name: firstName }) : t("welcome")}
+        description={t("subtitle")}
       >
         <Button asChild>
           <Link href={ROUTES.report}>
             <Plus className="h-4 w-4" />
-            Report item
+            {tc("reportItem")}
           </Link>
         </Button>
       </PageHeader>
@@ -128,15 +132,15 @@ export default function DashboardPage() {
           animate="enter"
           className="grid grid-cols-2 gap-4 lg:grid-cols-4"
         >
-          <StatCard label="Active reports" value={stats.total} icon={PackageOpen} />
-          <StatCard label="Lost" value={stats.lost} icon={Search} accent="lost" />
+          <StatCard label={t("statTotal")} value={stats.total} icon={PackageOpen} />
+          <StatCard label={t("statLost")} value={stats.lost} icon={Search} accent="lost" />
           <StatCard
-            label="Found"
+            label={t("statFound")}
             value={stats.found}
             icon={PackageSearch}
             accent="found"
           />
-          <StatCard label="With matches" value={stats.matched} icon={Sparkles} />
+          <StatCard label={t("statMatched")} value={stats.matched} icon={Sparkles} />
         </m.div>
       )}
 
@@ -146,12 +150,12 @@ export default function DashboardPage() {
           <section aria-labelledby="recent-reports">
             <div className="mb-3 flex items-center justify-between">
               <h2 id="recent-reports" className="text-lg font-semibold">
-                Your recent reports
+                {t("recentReports")}
               </h2>
               {recent.length > 0 ? (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={ROUTES.search}>
-                    Search all
+                    {t("searchAll")}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -167,11 +171,11 @@ export default function DashboardPage() {
             ) : recent.length === 0 ? (
               <EmptyState
                 icon={PackageOpen}
-                title="No reports yet"
-                description="Lost or found something? Reporting takes about two minutes — the matching engine handles the searching."
+                title={t("emptyTitle")}
+                description={t("emptyBody")}
                 action={
                   <Button asChild>
-                    <Link href={ROUTES.report}>Report an item</Link>
+                    <Link href={ROUTES.report}>{tc("reportItem")}</Link>
                   </Button>
                 }
               />
@@ -194,16 +198,14 @@ export default function DashboardPage() {
             <div className="mb-3 flex items-center justify-between">
               <h2 id="ai-preview" className="flex items-center gap-2 text-lg font-semibold">
                 <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-                AI matching
+                {t("aiMatching")}
               </h2>
-              <Badge variant="secondary">Example preview</Badge>
+              <Badge variant="secondary">{t("examplePreview")}</Badge>
             </div>
             <div className="space-y-3">
-              <PotentialMatchCard match={SAMPLE_MATCH} preview />
+              <PotentialMatchCard match={sampleMatch} preview />
               <p className="px-1 text-xs text-muted-foreground">
-                This is what a real suggestion will look like. The engine
-                launches soon — your existing reports are matched
-                retroactively, and you&apos;ll be notified here and by email.
+                {t("aiPreviewBody")}
               </p>
             </div>
           </section>
@@ -213,11 +215,11 @@ export default function DashboardPage() {
         <aside aria-labelledby="recent-activity" className="min-w-0">
           <div className="mb-3 flex items-center justify-between">
             <h2 id="recent-activity" className="text-lg font-semibold">
-              Activity
+              {t("activity")}
             </h2>
             <Button variant="ghost" size="sm" asChild>
               <Link href={ROUTES.notifications}>
-                View all
+                {t("viewAll")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -233,9 +235,9 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <Bell className="h-5 w-5 text-muted-foreground" aria-hidden />
-                <CardTitle className="text-sm">All quiet</CardTitle>
+                <CardTitle className="text-sm">{t("allQuiet")}</CardTitle>
                 <CardDescription className="text-xs">
-                  Match alerts and report activity will appear here.
+                  {t("activityBody")}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -256,7 +258,7 @@ export default function DashboardPage() {
                       {!n.is_read ? (
                         <span
                           className="h-2 w-2 shrink-0 rounded-full bg-primary"
-                          aria-label="Unread"
+                          aria-label={tn("unread")}
                         />
                       ) : null}
                       <p className="truncate text-sm font-medium">{n.title}</p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { m } from "framer-motion";
 import {
@@ -29,30 +29,23 @@ import { RecentItemsStrip } from "@/features/items/components/recent-items-strip
 import { wilayasFor } from "@/lib/algeria-wilayas";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 
-const steps = [
-  {
-    icon: FileText,
-    title: "Report it",
-    body: "A two-minute form for what you lost — or what you found.",
-  },
-  {
-    icon: Sparkles,
-    title: "We look for matches",
-    body: "Every new report is compared against the other side. You get notified.",
-    ai: true,
-  },
-  {
-    icon: Handshake,
-    title: "Reunite",
-    body: "Answer the owner's question, confirm the match, arrange the handover.",
-  },
-];
+const STEP_ICONS = [FileText, Sparkles, Handshake] as const;
 
 const ALL_ALGERIA = "all";
 
 export default function LandingPage() {
+  const t = useTranslations("landing");
+  const tc = useTranslations("common");
+  const ti = useTranslations("item");
   const locale = useLocale();
   const [wilaya, setWilaya] = useState(ALL_ALGERIA);
+
+  const steps = [1, 2, 3].map((n, i) => ({
+    icon: STEP_ICONS[i],
+    title: t(`step${n}Title` as "step1Title"),
+    body: t(`step${n}Body` as "step1Body"),
+    ai: n === 2,
+  }));
 
   return (
     <>
@@ -73,22 +66,21 @@ export default function LandingPage() {
           <m.div variants={listItem}>
             <Badge variant="ai-soft" className="px-3 py-1">
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              AI-powered matching
+              {t("aiBadge")}
             </Badge>
           </m.div>
 
           <m.h1 variants={listItem} className="max-w-3xl text-display">
-            Lost something?
+            {t("heroTitle")}
             <br />
-            <span className="text-primary">Found something?</span>
+            <span className="text-primary">{t("heroHighlight")}</span>
           </m.h1>
 
           <m.p
             variants={listItem}
             className="max-w-xl text-balance text-body-lg text-muted-foreground"
           >
-            Report it in minutes. We compare every lost and found report across
-            Algeria and tell you when there&apos;s a likely reunion.
+            {t("heroSubtitle")}
           </m.p>
 
           {/* Search card */}
@@ -112,9 +104,9 @@ export default function LandingPage() {
                   <Input
                     type="search"
                     name="q"
-                    placeholder="What are you looking for? e.g. black wallet"
+                    placeholder={t("searchPlaceholder")}
                     className="h-14 border-0 bg-transparent ps-11 text-base shadow-none hover:border-0 focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    aria-label="Search for an item"
+                    aria-label={t("searchLabel")}
                   />
                 </div>
 
@@ -126,12 +118,12 @@ export default function LandingPage() {
                   <Select value={wilaya} onValueChange={setWilaya}>
                     <SelectTrigger
                       className="h-14 border-0 bg-transparent ps-10 text-base shadow-none focus:ring-0 focus:ring-offset-0"
-                      aria-label="Filter by wilaya"
+                      aria-label={t("wilayaFilterLabel")}
                     >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_ALGERIA}>All Algeria</SelectItem>
+                      <SelectItem value={ALL_ALGERIA}>{tc("allAlgeria")}</SelectItem>
                       {wilayasFor(locale).map((option) => (
                         <SelectItem key={option.code} value={String(option.code)}>
                           {option.name}
@@ -146,7 +138,7 @@ export default function LandingPage() {
                   size="xl"
                   className="m-1.5 md:m-0 md:me-1 md:min-w-[132px]"
                 >
-                  Search
+                  {tc("search")}
                 </Button>
               </div>
             </form>
@@ -154,19 +146,19 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Button size="lg" asChild>
                 <Link href={loginWithNext(ROUTES.reportFound)}>
-                  Post what you found
+                  {t("postFound")}
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href={loginWithNext(ROUTES.reportLost)}>
-                  Report a lost item
+                  {t("reportLost")}
                 </Link>
               </Button>
             </div>
 
             <p className="flex items-center justify-center gap-2 text-caption text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-              Your contact details stay private until you approve a claim.
+              {t("privacyNote")}
             </p>
           </m.div>
         </m.div>
@@ -184,7 +176,7 @@ export default function LandingPage() {
             id="how-it-works"
             className="text-center text-heading-2"
           >
-            How it works
+            {t("howItWorks")}
           </m.h2>
 
           <m.ol
@@ -232,7 +224,7 @@ export default function LandingPage() {
           <m.div {...revealOnce} variants={revealUp} className="mt-block text-center">
             <Button variant="ghost" asChild>
               <Link href={ROUTES.lost}>
-                Browse lost items
+                {ti("browseLost")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

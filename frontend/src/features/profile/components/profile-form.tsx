@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -27,13 +28,6 @@ import { Input } from "@/components/ui/input";
 import { useUpdateProfile } from "@/features/profile/hooks/use-update-profile";
 import type { User } from "@/types/auth";
 
-const profileSchema = z.object({
-  full_name: z.string().min(2, "Please enter your name").max(120),
-  phone: z.string().max(30, "Phone number is too long").optional().or(z.literal("")),
-});
-
-type ProfileValues = z.infer<typeof profileSchema>;
-
 function initials(name: string): string {
   return name
     .split(" ")
@@ -45,7 +39,16 @@ function initials(name: string): string {
 }
 
 export function ProfileForm({ user }: { user: User }) {
+  const t = useTranslations("profile");
+  const tc = useTranslations("common");
   const update = useUpdateProfile();
+
+  const profileSchema = z.object({
+    full_name: z.string().min(2, t("fullNameError")).max(120),
+    phone: z.string().max(30, t("phoneError")).optional().or(z.literal("")),
+  });
+  type ProfileValues = z.infer<typeof profileSchema>;
+
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -64,8 +67,8 @@ export function ProfileForm({ user }: { user: User }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Profile</CardTitle>
-        <CardDescription>How you appear to people you match with.</CardDescription>
+        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardDescription>{t("formDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-6 flex items-center gap-4">
@@ -88,7 +91,7 @@ export function ProfileForm({ user }: { user: User }) {
               name="full_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full name</FormLabel>
+                  <FormLabel>{t("fullName")}</FormLabel>
                   <FormControl>
                     <Input autoComplete="name" {...field} />
                   </FormControl>
@@ -102,16 +105,16 @@ export function ProfileForm({ user }: { user: User }) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Phone{" "}
+                    {t("phone")}{" "}
                     <span className="font-normal text-muted-foreground">
-                      (optional)
+                      ({tc("optional")})
                     </span>
                   </FormLabel>
                   <FormControl>
                     <Input type="tel" autoComplete="tel" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Only shared after a confirmed match.
+                    {t("phoneHint")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -122,7 +125,7 @@ export function ProfileForm({ user }: { user: User }) {
               disabled={update.isPending || !form.formState.isDirty}
             >
               {update.isPending ? <Spinner /> : null}
-              Save changes
+              {t("saveChanges")}
             </Button>
           </form>
         </Form>

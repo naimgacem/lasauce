@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { FullPageLoader } from "@/components/feedback/loading";
 import { useSession } from "@/features/auth/hooks/use-session";
@@ -11,6 +12,7 @@ import { loginWithNext } from "@/lib/routes";
  * redirects guests to login preserving the intended destination.
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("auth");
   const router = useRouter();
   const pathname = usePathname();
   const { status } = useSession();
@@ -22,7 +24,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [status, pathname, router]);
 
   if (status === "loading") return <FullPageLoader />;
-  if (status === "guest") return <FullPageLoader label="Redirecting to sign in…" />;
+  if (status === "guest") return <FullPageLoader label={t("redirectingToSignIn")} />;
 
   return <>{children}</>;
 }

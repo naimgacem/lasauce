@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { LogOut, User as UserIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,8 @@ function initials(name: string): string {
 }
 
 export function UserMenu() {
+  const t = useTranslations("nav");
+  const tc = useTranslations("common");
   const { user } = useSession();
   const logout = useLogout();
 
@@ -56,13 +59,13 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href={ROUTES.profile} className="cursor-pointer">
             <UserIcon className="h-4 w-4" />
-            Profile
+            {t("profile")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => logout.mutate()} disabled={logout.isPending}>
           <LogOut className="h-4 w-4" />
-          Sign out
+          {tc("signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

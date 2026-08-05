@@ -24,6 +24,7 @@ const tabs = [
  */
 export function MobileTabBar() {
   const t = useTranslations("nav");
+  const tc = useTranslations("common");
   const pathname = usePathname();
   const { data } = useUnreadCount();
   const unread = data?.count ?? 0;
@@ -59,7 +60,7 @@ export function MobileTabBar() {
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("primaryNav")}
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden"
     >
       <div className="mx-auto flex max-w-md items-end justify-between px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
@@ -67,7 +68,7 @@ export function MobileTabBar() {
 
         <Link
           href={ROUTES.report}
-          aria-label="Report an item"
+          aria-label={tc("reportItem")}
           className="-mt-6 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-background transition-transform active:scale-95"
         >
           <Plus className="h-6 w-6" />

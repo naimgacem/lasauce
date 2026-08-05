@@ -2,19 +2,28 @@
 
 import { m } from "framer-motion";
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
-export const WIZARD_STEPS = [
-  "Lost or found",
-  "Category",
-  "Details",
-  "Photos",
-  "Review",
+const WIZARD_STEP_KEYS = [
+  "stepType",
+  "stepCategory",
+  "stepDetails",
+  "stepPhotos",
+  "stepReview",
 ] as const;
+
+/** Translated step labels — shared with the wizard for its sr-only progress text. */
+export function useWizardSteps(): string[] {
+  const t = useTranslations("report");
+  return WIZARD_STEP_KEYS.map((key) => t(key));
+}
 
 /** Progress indicator: animated bar + labelled dots; screen-reader friendly. */
 export function WizardProgress({ step }: { step: number }) {
+  const t = useTranslations("report");
+  const WIZARD_STEPS = useWizardSteps();
   const total = WIZARD_STEPS.length;
   const pct = (step / (total - 1)) * 100;
 
@@ -24,7 +33,7 @@ export function WizardProgress({ step }: { step: number }) {
       aria-valuemin={1}
       aria-valuemax={total}
       aria-valuenow={step + 1}
-      aria-valuetext={`Step ${step + 1} of ${total}: ${WIZARD_STEPS[step]}`}
+      aria-valuetext={t("stepProgress", { n: step + 1, total, label: WIZARD_STEPS[step] })}
     >
       <div className="relative mx-3 h-1 rounded-full bg-muted">
         <m.div

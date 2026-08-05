@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import {
   Card,
@@ -11,15 +12,21 @@ import {
 import { AuthForm } from "@/features/auth/components/auth-form";
 import { ROUTES } from "@/lib/routes";
 
-export const metadata: Metadata = { title: "Create account" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("common");
+  return { title: t("signUp") };
+}
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const t = await getTranslations("auth");
+  const tc = await getTranslations("common");
+
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-xl">Create your account</CardTitle>
+        <CardTitle className="text-xl">{t("registerTitle")}</CardTitle>
         <CardDescription>
-          Create an account to post and search reports.
+          {t("registerSubtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -27,12 +34,12 @@ export default function RegisterPage() {
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t("haveAccount")}{" "}
           <Link
             href={ROUTES.login}
             className="font-medium text-primary hover:underline"
           >
-            Sign in
+            {tc("signIn")}
           </Link>
         </p>
       </CardFooter>

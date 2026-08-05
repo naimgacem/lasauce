@@ -1,5 +1,6 @@
+import { useTranslations } from "next-intl";
+
 import { Badge } from "@/components/ui/badge";
-import { titleCase } from "@/lib/format";
 import type { ItemStatus, ItemType, ProcessingStatus } from "@/types/item";
 
 const STATUS_VARIANT: Record<
@@ -18,23 +19,34 @@ const STATUS_VARIANT: Record<
  * colour blindness.
  */
 export function ItemTypeBadge({ type }: { type: ItemType }) {
+  const t = useTranslations("item");
   return (
     <Badge variant={type === "lost" ? "lost" : "found"}>
-      {type === "lost" ? "Lost" : "Found"}
+      {type === "lost" ? t("lostBadge") : t("foundBadge")}
     </Badge>
   );
 }
 
+const STATUS_LABEL_KEY: Record<ItemStatus, "statusOpen" | "statusMatched" | "statusClaimed" | "statusClosed"> = {
+  open: "statusOpen",
+  matched: "statusMatched",
+  claimed: "statusClaimed",
+  closed: "statusClosed",
+};
+
 export function ItemStatusBadge({ status }: { status: ItemStatus }) {
-  return <Badge variant={STATUS_VARIANT[status]}>{titleCase(status)}</Badge>;
+  const t = useTranslations("item");
+  return <Badge variant={STATUS_VARIANT[status]}>{t(STATUS_LABEL_KEY[status])}</Badge>;
 }
 
 /** Amber pulse while the ML pipeline works; silent once ready. */
 export function ProcessingBadge({ status }: { status: ProcessingStatus }) {
+  const t = useTranslations("item");
+
   if (status === "ready") return null;
 
   if (status === "failed") {
-    return <Badge variant="outline">Processing failed</Badge>;
+    return <Badge variant="outline">{t("processingFailed")}</Badge>;
   }
 
   return (
@@ -43,7 +55,7 @@ export function ProcessingBadge({ status }: { status: ProcessingStatus }) {
         <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-processing" />
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-processing" />
       </span>
-      Matching
+      {t("matching")}
     </Badge>
   );
 }

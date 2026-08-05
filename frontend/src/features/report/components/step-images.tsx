@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { ImagePlus, Info, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +24,7 @@ export function StepImages({
   images: LocalImage[];
   onChange: (images: LocalImage[]) => void;
 }) {
+  const t = useTranslations("report");
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   function addFiles(files: FileList | null) {
@@ -55,16 +57,16 @@ export function StepImages({
           addFiles(e.dataTransfer.files);
         }}
         className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed bg-card p-10 text-center transition-colors hover:border-muted-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        aria-label="Add photos"
+        aria-label={t("addPhotos")}
       >
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
           <ImagePlus className="h-6 w-6 text-muted-foreground" aria-hidden />
         </span>
         <span className="text-sm font-medium">
-          Drag photos here, or click to choose
+          {t("dropPhotos")}
         </span>
         <span className="text-xs text-muted-foreground">
-          Up to 5 images · JPG or PNG
+          {t("photoLimits")}
         </span>
       </button>
       <input
@@ -97,7 +99,7 @@ export function StepImages({
                 variant="destructive"
                 className="absolute -end-2 -top-2 h-6 w-6 rounded-full"
                 onClick={() => remove(img.id)}
-                aria-label={`Remove ${img.file.name}`}
+                aria-label={t("removePhotoAria", { name: img.file.name })}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -109,9 +111,7 @@ export function StepImages({
       <div className="flex items-start gap-2.5 rounded-xl border bg-muted/40 p-3.5 text-caption text-muted-foreground">
         <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
         <p>
-          Photos are optional, but they make a match far more likely. We resize
-          them and strip location data from the file before storing — so a photo
-          never reveals where you took it.
+          {t("photoPrivacy")}
         </p>
       </div>
     </div>

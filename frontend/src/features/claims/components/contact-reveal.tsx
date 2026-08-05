@@ -1,6 +1,7 @@
 "use client";
 
 import { Mail, MessageCircle, Phone, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,13 +21,17 @@ function whatsappNumber(phone: string): string {
  */
 export function ContactReveal({
   contact,
-  heading = "Contact details",
+  heading,
   note,
 }: {
   contact: ClaimContact;
   heading?: string;
   note?: string;
 }) {
+  const t = useTranslations("claims");
+  const ta = useTranslations("auth");
+  const tp = useTranslations("profile");
+
   return (
     <Card className="border-found/30 bg-found-muted/50">
       <CardContent className="space-y-4 p-5">
@@ -38,21 +43,21 @@ export function ContactReveal({
             <ShieldCheck className="h-4.5 w-4.5" />
           </span>
           <div className="min-w-0">
-            <h3 className="text-heading-4">{heading}</h3>
+            <h3 className="text-heading-4">{heading ?? t("contactTitle")}</h3>
             <p className="text-body-sm text-muted-foreground">
-              {note ?? "Agree a public place and a time that suits you both."}
+              {note ?? t("meetingNote")}
             </p>
           </div>
         </div>
 
         <dl className="space-y-2 rounded-xl border bg-card p-4">
           <div className="flex items-center gap-3">
-            <dt className="sr-only">Name</dt>
+            <dt className="sr-only">{tp("fullName")}</dt>
             <dd className="font-medium">{contact.full_name}</dd>
           </div>
           <div className="flex items-center gap-3 text-body-sm">
             <Mail className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-            <dt className="sr-only">Email</dt>
+            <dt className="sr-only">{ta("email")}</dt>
             <dd className="min-w-0 truncate">
               <a
                 href={`mailto:${contact.email}`}
@@ -65,7 +70,7 @@ export function ContactReveal({
           {contact.phone ? (
             <div className="flex items-center gap-3 text-body-sm">
               <Phone className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-              <dt className="sr-only">Phone</dt>
+              <dt className="sr-only">{ta("phone")}</dt>
               <dd>
                 <a
                   href={`tel:${contact.phone}`}
@@ -87,13 +92,13 @@ export function ContactReveal({
                 rel="noopener noreferrer"
               >
                 <MessageCircle className="h-4 w-4" />
-                WhatsApp
+                {t("whatsapp")}
               </a>
             </Button>
             <Button size="sm" variant="outline" asChild>
               <a href={`tel:${contact.phone}`}>
                 <Phone className="h-4 w-4" />
-                Call
+                {t("call")}
               </a>
             </Button>
           </div>

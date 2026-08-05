@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { KeyRound, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Spinner } from "@/components/feedback/loading";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,8 @@ import type { Item } from "@/types/item";
  * reporter approves.
  */
 export function ClaimDialog({ item }: { item: Item }) {
+  const t = useTranslations("claims");
+  const tc = useTranslations("common");
   const [open, setOpen] = React.useState(false);
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
   const [message, setMessage] = React.useState("");
@@ -55,19 +58,19 @@ export function ClaimDialog({ item }: { item: Item }) {
       <DialogTrigger asChild>
         <Button size="lg">
           <KeyRound className="h-4 w-4" />
-          {item.type === "found" ? "This is mine" : "I found this"}
+          {item.type === "found" ? t("thisIsMine") : t("iFoundThis")}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {item.type === "found" ? "Prove it's yours" : "Tell them what you found"}
+            {item.type === "found" ? t("proveYours") : t("tellFound")}
           </DialogTitle>
           <DialogDescription>
             {questions.length > 0
-              ? "Answer the reporter's questions. They'll see your answers and decide."
-              : "Describe something only the right person would know."}
+              ? t("answerQuestionsBody")
+              : t("describeOnlyRightPerson")}
           </DialogDescription>
         </DialogHeader>
 
@@ -83,28 +86,27 @@ export function ClaimDialog({ item }: { item: Item }) {
                 onChange={(e) =>
                   setAnswers((prev) => ({ ...prev, [question]: e.target.value }))
                 }
-                placeholder="Your answer…"
+                placeholder={t("answerPlaceholder")}
               />
             </div>
           ))}
 
           <div className="space-y-2">
             <Label htmlFor="claim-message">
-              Anything else{questions.length > 0 ? " (optional)" : ""}
+              {t("anythingElse")}{questions.length > 0 ? ` (${tc("optional")})` : ""}
             </Label>
             <Textarea
               id="claim-message"
               rows={3}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="e.g. I lost it on Tuesday near the tram stop."
+              placeholder={t("messageExamplePlaceholder")}
             />
           </div>
 
           <p className="flex items-start gap-2 rounded-xl border bg-muted/40 p-3 text-caption text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            Your contact details stay private. They&apos;re shared only if the
-            reporter approves your claim.
+            {t("privacyNote")}
           </p>
 
           <DialogFooter className="gap-2 sm:gap-2">
@@ -114,11 +116,11 @@ export function ClaimDialog({ item }: { item: Item }) {
               onClick={() => setOpen(false)}
               disabled={submit.isPending}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button type="submit" disabled={!canSubmit || submit.isPending}>
               {submit.isPending ? <Spinner /> : null}
-              Send claim
+              {t("submit")}
             </Button>
           </DialogFooter>
         </form>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { m } from "framer-motion";
 import { Archive, PackageOpen, Plus, Search } from "lucide-react";
 
@@ -20,36 +21,32 @@ import type { ItemQuery } from "@/types/item";
 
 type TabId = "lost" | "found" | "closed";
 
-const TABS: { id: TabId; label: string; query: Partial<ItemQuery> }[] = [
-  { id: "lost", label: "Lost", query: { type: "lost" } },
-  { id: "found", label: "Found", query: { type: "found" } },
+const TAB_QUERIES: Record<TabId, Partial<ItemQuery>> = {
+  lost: { type: "lost" },
+  found: { type: "found" },
   // The API hides closed items unless a status is named explicitly.
-  { id: "closed", label: "Closed", query: { status: "closed" } },
-];
-
-const EMPTY: Record<TabId, { title: string; description: string }> = {
-  lost: {
-    title: "No open lost reports",
-    description:
-      "Report something you've lost and we'll compare it against every found item as new ones arrive.",
-  },
-  found: {
-    title: "No open found reports",
-    description:
-      "Found something? Post it so the owner can prove it's theirs and get it back.",
-  },
-  closed: {
-    title: "Nothing closed yet",
-    description:
-      "Recovered and withdrawn reports are kept here so you always have the history.",
-  },
+  closed: { status: "closed" },
 };
 
 export default function MyItemsPage() {
+  const t = useTranslations("myItems");
+  const tc = useTranslations("common");
   const { user } = useSession();
   const [tab, setTab] = React.useState<TabId>("lost");
 
-  const active = TABS.find((t) => t.id === tab)!;
+  const TABS: { id: TabId; label: string; query: Partial<ItemQuery> }[] = [
+    { id: "lost", label: t("tabLost"), query: TAB_QUERIES.lost },
+    { id: "found", label: t("tabFound"), query: TAB_QUERIES.found },
+    { id: "closed", label: t("tabClosed"), query: TAB_QUERIES.closed },
+  ];
+
+  const EMPTY: Record<TabId, { title: string; description: string }> = {
+    lost: { title: t("emptyLostTitle"), description: t("emptyLostBody") },
+    found: { title: t("emptyFoundTitle"), description: t("emptyFoundBody") },
+    closed: { title: t("emptyClosedTitle"), description: t("emptyClosedBody") },
+  };
+
+  const active = TABS.find((opt) => opt.id === tab)!;
   const { data, isPending, isError, error, refetch } = useItems(
     { user_id: user?.id, page_size: 50, ...active.query },
     // Never query before the session is known: without `user_id` the API would
@@ -65,13 +62,13 @@ export default function MyItemsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="My items"
-        description="Everything you've reported, and what happened to it."
+        title={t("title")}
+        description={t("description")}
       >
         <Button asChild>
           <Link href={ROUTES.report}>
             <Plus className="h-4 w-4" />
-            Report item
+            {tc("reportItem")}
           </Link>
         </Button>
       </PageHeader>
@@ -79,20 +76,20 @@ export default function MyItemsPage() {
       {/* Tabs — roving selection with proper tab semantics. */}
       <div
         role="tablist"
-        aria-label="Report status"
+        aria-label={t("tabsLabel")}
         className="flex w-full gap-1 rounded-xl border bg-card p-1 sm:w-auto sm:self-start"
       >
-        {TABS.map((t) => {
-          const selected = t.id === tab;
+        {TABS.map((opt) => {
+          const selected = opt.id === tab;
           return (
             <button
-              key={t.id}
+              key={opt.id}
               role="tab"
-              id={`tab-${t.id}`}
+              id={`tab-${opt.id}`}
               aria-selected={selected}
               aria-controls="my-items-panel"
               tabIndex={selected ? 0 : -1}
-              onClick={() => setTab(t.id)}
+              onClick={() => setTab(opt.id)}
               onKeyDown={(e) => {
                 if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
                 e.preventDefault();
@@ -112,7 +109,7 @@ export default function MyItemsPage() {
                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
               )}
             >
-              {t.label}
+              {opt.label}
             </button>
           );
         })}
@@ -132,7 +129,7 @@ export default function MyItemsPage() {
           </div>
         ) : isError ? (
           <ErrorState
-            title="Couldn't load your items"
+            title={t("loadError")}
             message={error instanceof Error ? error.message : undefined}
             onRetry={() => refetch()}
           />
@@ -144,7 +141,7 @@ export default function MyItemsPage() {
             action={
               tab === "closed" ? undefined : (
                 <Button asChild>
-                  <Link href={ROUTES.report}>Report an item</Link>
+                  <Link href={ROUTES.report}>{tc("reportItem")}</Link>
                 </Button>
               )
             }

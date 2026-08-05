@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ import { useMounted } from "@/hooks/use-mounted";
 const EMAIL_PREF_KEY = "lf-pref-email-notifications";
 
 export function PreferencesCard() {
+  const t = useTranslations("profile");
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
 
@@ -37,23 +39,23 @@ export function PreferencesCard() {
   function toggleEmail(on: boolean) {
     setEmailNotifications(on);
     localStorage.setItem(EMAIL_PREF_KEY, on ? "on" : "off");
-    toast.success(on ? "Email notifications on." : "Email notifications off.");
+    toast.success(on ? t("emailNotificationsOn") : t("emailNotificationsOff"));
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Preferences</CardTitle>
-        <CardDescription>Appearance and notifications on this device.</CardDescription>
+        <CardTitle className="text-base">{t("preferences")}</CardTitle>
+        <CardDescription>{t("preferencesDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
           <div>
             <Label htmlFor="pref-theme" className="text-sm font-medium">
-              Theme
+              {t("theme")}
             </Label>
             <p className="text-xs text-muted-foreground">
-              Light, dark, or follow your system.
+              {t("themeHint")}
             </p>
           </div>
           {mounted ? (
@@ -62,9 +64,9 @@ export function PreferencesCard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                <SelectItem value="light">{t("themeLight")}</SelectItem>
+                <SelectItem value="dark">{t("themeDark")}</SelectItem>
+                <SelectItem value="system">{t("themeSystem")}</SelectItem>
               </SelectContent>
             </Select>
           ) : null}
@@ -73,10 +75,10 @@ export function PreferencesCard() {
         <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
           <div>
             <Label htmlFor="pref-email" className="text-sm font-medium">
-              Email notifications
+              {t("emailNotifications")}
             </Label>
             <p className="text-xs text-muted-foreground">
-              Match alerts and important account events.
+              {t("emailNotificationsHint")}
             </p>
           </div>
           <Switch
@@ -87,7 +89,7 @@ export function PreferencesCard() {
         </div>
 
         <p className="px-1 text-xs text-muted-foreground">
-          Motion respects your system&apos;s “reduce motion” setting automatically.
+          {t("motionHint")}
         </p>
       </CardContent>
     </Card>
