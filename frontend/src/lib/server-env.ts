@@ -5,17 +5,18 @@
  */
 export const serverEnv = {
   /**
-   * Base URL the Next *server* uses to reach the API.
+   * Base URL the Next *server* uses to reach the API. Always absolute.
    *
-   * This is deliberately separate from `NEXT_PUBLIC_API_URL`: that one is the
-   * URL the browser uses, so it has to be host-reachable (`localhost:8000`).
-   * Inside Docker, `localhost` from the frontend container is the frontend
-   * container itself — server-side fetches must go to the compose service name.
+   * Deliberately NOT derived from `NEXT_PUBLIC_API_URL`: that one is relative
+   * (`/api/v1`) so the browser stays same-origin, and `fetch` on the server has
+   * no origin to resolve a relative path against. Defaults to the same
+   * `API_ORIGIN` the `/api/v1/*` proxy in next.config.mjs forwards to, so one
+   * variable moves both. Inside Docker that must be the compose service name —
+   * `localhost` from the frontend container is the frontend container itself.
    */
   apiUrl:
-    process.env.INTERNAL_API_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:8000/api/v1",
+    process.env.INTERNAL_API_URL ||
+    `${(process.env.API_ORIGIN || "http://localhost:8000").replace(/\/+$/, "")}/api/v1`,
 
   /**
    * Public origin of this site. Open Graph URLs must be absolute — a relative

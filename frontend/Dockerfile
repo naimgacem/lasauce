@@ -14,14 +14,17 @@ COPY . .
 
 # NEXT_PUBLIC_* values are inlined into the client bundle at BUILD time, so they
 # must arrive as build args — setting them at runtime would have no effect.
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-# Empty on purpose: item photos stay same-origin and resolve through the
-# `/media/*` rewrite, which is what lets next/image optimise them in Docker.
+# Both empty on purpose: API calls and item photos stay same-origin and resolve
+# through the `/api/v1/*` and `/media/*` rewrites. That is what lets next/image
+# optimise photos in Docker, and what keeps ONE build usable from localhost, a
+# LAN IP or a tunnel — a hostname baked in here would pin it to that host alone.
+ARG NEXT_PUBLIC_API_URL=
 ARG NEXT_PUBLIC_MEDIA_URL=
 ARG NEXT_PUBLIC_USE_MOCKS=false
 # `rewrites()` is serialised into .next/routes-manifest.json during the build,
-# so the media proxy target has to be known HERE — a runtime env var arrives
-# too late and the baked-in default would win.
+# so the proxy targets have to be known HERE — a runtime env var arrives too
+# late and the baked-in default would win.
+ARG API_ORIGIN=http://localhost:8000
 ARG MEDIA_ORIGIN=http://localhost:8000
 # Needed at build time too: statically prerendered pages evaluate their exported
 # `metadata` (and therefore `metadataBase`) during the build, so canonical and
@@ -31,6 +34,7 @@ ARG SITE_URL=http://localhost:3000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_MEDIA_URL=$NEXT_PUBLIC_MEDIA_URL \
     NEXT_PUBLIC_USE_MOCKS=$NEXT_PUBLIC_USE_MOCKS \
+    API_ORIGIN=$API_ORIGIN \
     MEDIA_ORIGIN=$MEDIA_ORIGIN \
     SITE_URL=$SITE_URL \
     NEXT_TELEMETRY_DISABLED=1

@@ -6,6 +6,14 @@ import { trySingleFlightRefresh } from "./refresh";
 
 type Primitive = string | number | boolean;
 
+/**
+ * Whatever host the app was loaded from — a LAN IP and a tunnel URL resolve
+ * their own API without any rebuild. Server components never call `request`
+ * (they use `services/server/*`), so the fallback only has to be parseable.
+ */
+const browserOrigin =
+  typeof window === "undefined" ? "http://localhost:3000" : window.location.origin;
+
 export interface RequestOptions {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   /** JSON-serialised, unless it's a FormData (sent as multipart). */
@@ -26,7 +34,10 @@ export async function request<T>(
 ): Promise<T> {
   const { method = "GET", body, params, timeoutMs = 12_000 } = options;
 
-  const url = new URL(env.apiUrl + path);
+  // `apiUrl` is normally relative (`/api/v1`) so calls stay same-origin; `new
+  // URL` can't parse that without a base. The base is ignored when apiUrl is
+  // absolute, so both configurations go through the same line.
+  const url = new URL(env.apiUrl + path, browserOrigin);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== "") url.searchParams.set(key, String(value));

@@ -92,18 +92,21 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      # NEXT_PUBLIC_* is inlined at build time. These are the URLs the BROWSER
-      # uses, so they must be host-reachable (`localhost`), never compose service
-      # names (`api`) — the request originates outside the compose network.
+      # NEXT_PUBLIC_* is inlined at build time, so anything set here is frozen
+      # into the JS bundle and shipped to every browser. Both are blank on
+      # purpose: API calls and photos resolve same-origin through the /api/v1/*
+      # and /media/* rewrites, which is what lets ONE build serve localhost, a
+      # LAN IP and a tunnel URL alike. Setting a host here re-pins the bundle to
+      # that host and breaks every other viewer.
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
-        # Blank: photos resolve same-origin via the /media/* rewrite.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
         NEXT_PUBLIC_MEDIA_URL: ${NEXT_PUBLIC_MEDIA_URL:-}
         NEXT_PUBLIC_USE_MOCKS: ${NEXT_PUBLIC_USE_MOCKS:-false}
-        # Where the Next server proxies /media/* to. Must be the compose service
-        # name — `localhost` inside this container is the container itself,
-        # which is why direct API image URLs failed with ECONNREFUSED.
-        # Build-time: Next bakes rewrites into its routes manifest.
+        # Where the Next server proxies /api/v1/* and /media/* to. Must be the
+        # compose service name — `localhost` inside this container is the
+        # container itself, which is why direct API image URLs failed with
+        # ECONNREFUSED. Build-time: Next bakes rewrites into its routes manifest.
+        API_ORIGIN: ${API_ORIGIN:-http://api:8000}
         MEDIA_ORIGIN: ${MEDIA_ORIGIN:-http://api:8000}
         # Also a build arg: statically prerendered pages bake their canonical
         # and og:url during the build, so runtime alone leaves them wrong.
@@ -111,9 +114,12 @@ services:
     # Read at REQUEST time by server components (unlike NEXT_PUBLIC_*, which are
     # baked in at build), so these belong in `environment`, not `args`.
     environment:
-      # Server-side fetches for SSR + generateMetadata. Must be the compose
-      # service name: `localhost` here is the frontend container itself.
+      # Server-side fetches for SSR + generateMetadata, and the runtime targets
+      # of the two rewrites. Must be the compose service name: `localhost` here
+      # is the frontend container itself.
       INTERNAL_API_URL: ${INTERNAL_API_URL:-http://api:8000/api/v1}
+      API_ORIGIN: ${API_ORIGIN:-http://api:8000}
+      MEDIA_ORIGIN: ${MEDIA_ORIGIN:-http://api:8000}
       # Absolute origin used to build Open Graph URLs. Set this to the real
       # public domain in production or link previews will point at localhost.
       SITE_URL: ${SITE_URL:-http://localhost:${FRONTEND_PORT:-3000}}
