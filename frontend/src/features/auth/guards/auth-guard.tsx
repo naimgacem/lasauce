@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { usePathname, useRouter } from "next/navigation";
-
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { FullPageLoader } from "@/components/feedback/loading";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { loginWithNext } from "@/lib/routes";

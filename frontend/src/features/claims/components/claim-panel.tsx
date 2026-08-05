@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { CheckCircle2, Clock, KeyRound, Lock, XCircle } from "lucide-react";
 
 import { Spinner } from "@/components/feedback/loading";
@@ -22,6 +23,7 @@ import type { Item } from "@/types/item";
  * Renders nothing for the item's owner — they get `IncomingClaims` instead.
  */
 export function ClaimPanel({ item }: { item: Item }) {
+  const locale = useLocale();
   const { user, isAuthed } = useSession();
   const isOwner = user?.id === item.user_id;
   const { data: myClaims } = useMyClaims(isAuthed && !isOwner);
@@ -36,7 +38,7 @@ export function ClaimPanel({ item }: { item: Item }) {
   if (!isAuthed) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center gap-3 p-6 text-center sm:flex-row sm:text-left">
+        <CardContent className="flex flex-col items-center gap-3 p-6 text-center sm:flex-row sm:text-start">
           <Lock className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
           <p className="flex-1 text-body-sm text-muted-foreground">
             Sign in to claim this item. You&apos;ll answer the reporter&apos;s
@@ -70,7 +72,7 @@ export function ClaimPanel({ item }: { item: Item }) {
           <div className="min-w-0 flex-1">
             <p className="font-medium">Waiting for the reporter to review</p>
             <p className="text-body-sm text-muted-foreground">
-              Sent {formatRelative(mine.created_at)}. We&apos;ll notify you either way.
+              Sent {formatRelative(mine.created_at, locale)}. We&apos;ll notify you either way.
             </p>
           </div>
           <Button

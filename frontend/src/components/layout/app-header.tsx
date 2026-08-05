@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { ChevronDown, Plus } from "lucide-react";
 
 import { Logo } from "@/components/layout/logo";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
@@ -16,19 +16,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ROUTES } from "@/lib/routes";
+import { useTranslations } from "next-intl";
+
 import { cn } from "@/lib/utils";
 
+
 const links = [
-  { href: ROUTES.dashboard, label: "Dashboard" },
-  { href: ROUTES.search, label: "Search" },
-  { href: ROUTES.myItems, label: "My items" },
-];
+  { href: ROUTES.dashboard, key: "dashboard" },
+  { href: ROUTES.search, key: "search" },
+  { href: ROUTES.myItems, key: "myItems" },
+] as const;
 
 /**
  * Authenticated shell header. Desktop (≥lg) carries the nav; on mobile the
  * bottom tab bar owns navigation and this bar stays slim.
  */
 export function AppHeader() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
 
   return (
@@ -49,13 +53,13 @@ export function AppHeader() {
                   : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
               )}
             >
-              {link.label}
+              {t(link.key)}
             </Link>
           ))}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" className="ml-2">
+              <Button size="sm" className="ms-2">
                 <Plus className="h-4 w-4" />
                 Report
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" />
@@ -76,8 +80,9 @@ export function AppHeader() {
           </DropdownMenu>
         </nav>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ms-auto flex items-center gap-1">
           <NotificationBell />
+          <LanguageSwitcher />
           <ThemeToggle />
           <UserMenu />
         </div>

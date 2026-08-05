@@ -1,6 +1,7 @@
 "use client";
 
 import { m } from "framer-motion";
+import { useLocale } from "next-intl";
 import { Check, Inbox, X } from "lucide-react";
 
 import { listContainer, listItem } from "@/animations";
@@ -23,6 +24,7 @@ import type { Item } from "@/types/item";
  * endpoint behind it is owner-only, so a non-owner would get a 403 anyway.
  */
 export function IncomingClaims({ item }: { item: Item }) {
+  const locale = useLocale();
   const { data: claims, isLoading } = useItemClaims(item.id, true);
   const approve = useApproveClaim(item.id);
   const reject = useRejectClaim(item.id);
@@ -98,7 +100,7 @@ export function IncomingClaims({ item }: { item: Item }) {
                       {claim.claimant.full_name}
                     </p>
                     <p className="text-caption text-muted-foreground">
-                      {formatRelative(claim.created_at)}
+                      {formatRelative(claim.created_at, locale)}
                     </p>
                   </div>
                   <ClaimStatusBadge status={claim.status} />
@@ -142,7 +144,7 @@ export function IncomingClaims({ item }: { item: Item }) {
                       <X className="h-4 w-4" />
                       Not them
                     </Button>
-                    <span className="ml-auto text-caption text-muted-foreground">
+                    <span className="ms-auto text-caption text-muted-foreground">
                       Approving shares both your details
                     </span>
                   </div>

@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     CheckConstraint,
+    Computed,
     DateTime,
     Enum,
     Float,
@@ -25,10 +26,19 @@ from sqlalchemy import (
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+
+# Postgres text search configuration created in migration 0005: French stemming
+# with `unaccent` folded in, so "telephone" matches "téléphone".
+TS_CONFIG = "fr_unaccent"
+
+SEARCH_VECTOR_SQL = (
+    f"setweight(to_tsvector('{TS_CONFIG}', coalesce(title, '')), 'A') || "
+    f"setweight(to_tsvector('{TS_CONFIG}', coalesce(description, '')), 'B')"
+)
 
 if TYPE_CHECKING:
     from app.models.category import Category
@@ -90,6 +100,14 @@ class Item(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    # Maintained by Postgres (see migration 0005). Deferred so it never rides
+    # along on ordinary reads — it exists purely to be matched against.
+    search_vector: Mapped[str | None] = mapped_column(
+        TSVECTOR,
+        Computed(SEARCH_VECTOR_SQL, persisted=True),
+        nullable=True,
+        deferred=True,
+    )
     category_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("categories.id", ondelete="SET NULL"),

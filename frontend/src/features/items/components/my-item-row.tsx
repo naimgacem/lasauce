@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { m } from "framer-motion";
 import { CheckCircle2, MoreHorizontal, Trash2 } from "lucide-react";
 
@@ -42,13 +43,14 @@ type PendingAction = "resolve" | "withdraw" | null;
  * Both actions close the report, so both confirm first.
  */
 export function MyItemRow({ item }: { item: Item }) {
+  const locale = useLocale();
   const [confirming, setConfirming] = React.useState<PendingAction>(null);
   const resolve = useResolveItem();
   const withdraw = useWithdrawItem();
 
   const busy = resolve.isPending || withdraw.isPending;
   const isClosed = item.status === "closed";
-  const location = formatLocation(item.wilaya_code, item.location_text);
+  const location = formatLocation(item.wilaya_code, item.location_text, locale);
   const photos = item.images.length;
 
   function run() {
@@ -83,7 +85,7 @@ export function MyItemRow({ item }: { item: Item }) {
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-muted-foreground">
               <span>
                 {item.type === "lost" ? "Lost" : "Found"}{" "}
-                {formatDate(item.lost_or_found_at)}
+                {formatDate(item.lost_or_found_at, locale)}
               </span>
               {location ? <span className="truncate">{location}</span> : null}
               <span>
@@ -92,7 +94,7 @@ export function MyItemRow({ item }: { item: Item }) {
               {isClosed && item.closed_reason ? (
                 <span>Closed — {titleCase(item.closed_reason)}</span>
               ) : (
-                <span>Posted {formatRelative(item.created_at)}</span>
+                <span>Posted {formatRelative(item.created_at, locale)}</span>
               )}
             </div>
           </div>

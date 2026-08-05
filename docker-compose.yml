@@ -105,6 +105,18 @@ services:
         # which is why direct API image URLs failed with ECONNREFUSED.
         # Build-time: Next bakes rewrites into its routes manifest.
         MEDIA_ORIGIN: ${MEDIA_ORIGIN:-http://api:8000}
+        # Also a build arg: statically prerendered pages bake their canonical
+        # and og:url during the build, so runtime alone leaves them wrong.
+        SITE_URL: ${SITE_URL:-http://localhost:${FRONTEND_PORT:-3000}}
+    # Read at REQUEST time by server components (unlike NEXT_PUBLIC_*, which are
+    # baked in at build), so these belong in `environment`, not `args`.
+    environment:
+      # Server-side fetches for SSR + generateMetadata. Must be the compose
+      # service name: `localhost` here is the frontend container itself.
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://api:8000/api/v1}
+      # Absolute origin used to build Open Graph URLs. Set this to the real
+      # public domain in production or link previews will point at localhost.
+      SITE_URL: ${SITE_URL:-http://localhost:${FRONTEND_PORT:-3000}}
     depends_on:
       api:
         condition: service_healthy

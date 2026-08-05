@@ -28,7 +28,7 @@ export function WizardProgress({ step }: { step: number }) {
     >
       <div className="relative mx-3 h-1 rounded-full bg-muted">
         <m.div
-          className="absolute inset-y-0 left-0 rounded-full bg-primary"
+          className="absolute inset-y-0 start-0 rounded-full bg-primary"
           initial={false}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.3, ease: "easeOut" }}

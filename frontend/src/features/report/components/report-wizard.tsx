@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { m } from "framer-motion";
 import { ArrowLeft, ArrowRight, History, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +27,11 @@ import {
   useCreateItem,
   useUploadItemImages,
 } from "@/features/items/hooks/use-items";
+import {
+  clearDraftImages,
+  loadDraftImages,
+  saveDraftImages,
+} from "@/lib/draft-images";
 import { ROUTES } from "@/lib/routes";
 import { useDraftStore } from "@/store/draft.store";
 import type { ItemType } from "@/types/item";
@@ -41,6 +47,8 @@ export function ReportWizard() {
 
   const [images, setImages] = React.useState<LocalImage[]>([]);
   const [resumed, setResumed] = React.useState(false);
+  /** Set the moment publishing succeeds — see `publish()` for why. */
+  const [published, setPublished] = React.useState(false);
 
   // A draft is "meaningful" once the user got past picking a type.
   const hasMeaningfulDraft = Boolean(draft && (draft.step > 0 || draft.title));
@@ -52,9 +60,39 @@ export function ReportWizard() {
       saveDraft({ type: urlType, step: 1 });
     }
     if (hasMeaningfulDraft) setResumed(true);
+
+    // Photos are persisted separately (IndexedDB) because `File` can't be
+    // JSON-serialised into the localStorage draft. Restore them with the rest
+    // of the draft — without this a refresh brought the text back but silently
+    // dropped every selected photo.
+    let cancelled = false;
+    if (hasMeaningfulDraft) {
+      void loadDraftImages().then((files) => {
+        if (cancelled || files.length === 0) return;
+        setImages(
+          files.map((file) => ({
+            id: crypto.randomUUID(),
+            file,
+            // Object URLs are per-document; the originals died with the reload.
+            previewUrl: URL.createObjectURL(file),
+          })),
+        );
+      });
+    } else {
+      void clearDraftImages(); // orphans from a published or abandoned draft
+    }
+    return () => {
+      cancelled = true;
+    };
     // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Mirror every picker change into IndexedDB so a refresh can't drop photos. */
+  function updateImages(next: LocalImage[]) {
+    setImages(next);
+    void saveDraftImages(next.map((img) => img.file));
+  }
 
   const step = draft?.step ?? 0;
   const type: ItemType = draft?.type ?? "lost";
@@ -92,20 +130,28 @@ export function ReportWizard() {
       return;
     }
 
-    const item = await create.mutateAsync({
-      type,
-      title: draft.title,
-      description: draft.description,
-      category_id: draft.category_id || null,
-      color: draft.color || null,
-      brand: draft.brand || null,
-      wilaya_code: draft.wilaya_code ?? null,
-      claim_questions: draft.claim_question?.trim()
-        ? [draft.claim_question.trim()]
-        : [],
-      location_text: draft.location_text || null,
-      lost_or_found_at: new Date(draft.lost_or_found_at).toISOString(),
-    });
+    let item;
+    try {
+      item = await create.mutateAsync({
+        type,
+        title: draft.title,
+        description: draft.description,
+        category_id: draft.category_id || null,
+        color: draft.color || null,
+        brand: draft.brand || null,
+        wilaya_code: draft.wilaya_code ?? null,
+        claim_questions: draft.claim_question?.trim()
+          ? [draft.claim_question.trim()]
+          : [],
+        location_text: draft.location_text || null,
+        lost_or_found_at: new Date(draft.lost_or_found_at).toISOString(),
+      });
+    } catch {
+      // useCreateItem's onError already surfaced the reason; stay on review so
+      // the user can retry without retyping. Swallowing here also keeps the
+      // click handler from rejecting into an unhandled promise.
+      return;
+    }
 
     let photosFailed = false;
     if (images.length > 0) {
@@ -132,14 +178,24 @@ export function ReportWizard() {
       });
     }
 
+    // Freeze the wizard BEFORE clearing the draft. `clearDraft()` is a
+    // synchronous store update, so without this the component re-renders at
+    // step 0 ("What happened?") while the route transition is still in flight —
+    // which looks exactly like publishing did nothing and left you behind.
+    setPublished(true);
     images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+    void clearDraftImages();
     clearDraft();
-    router.push(ROUTES.item(item.id));
+    // `replace`, not `push`: Back from the published report should return to
+    // wherever the user came from, never into a now-empty wizard.
+    router.replace(ROUTES.item(item.id));
   }
 
   function startOver() {
     clearDraft();
+    images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     setImages([]);
+    void clearDraftImages();
     setResumed(false);
     const presetStep = urlType === "lost" || urlType === "found" ? 1 : 0;
     if (presetStep === 1) saveDraft({ type: urlType as ItemType, step: 1 });
@@ -152,6 +208,19 @@ export function ReportWizard() {
     3: { title: "Add photos", hint: "Optional — image matching loves them." },
     4: { title: "Review & publish", hint: "One last look before it goes live." },
   };
+
+  // The report is live and the draft is gone — hold this until the router
+  // lands on the item page rather than flashing an empty step 0.
+  if (published) {
+    return (
+      <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 py-24 text-center">
+        <Spinner />
+        <p className="text-body-sm text-muted-foreground" aria-live="polite">
+          Report published — taking you to it…
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -203,7 +272,7 @@ export function ReportWizard() {
             formId={DETAILS_FORM_ID}
           />
         ) : null}
-        {step === 3 ? <StepImages images={images} onChange={setImages} /> : null}
+        {step === 3 ? <StepImages images={images} onChange={updateImages} /> : null}
         {step === 4 ? <StepReview draft={draft ?? {}} type={type} images={images} /> : null}
       </m.div>
 

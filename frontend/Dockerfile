@@ -23,10 +23,16 @@ ARG NEXT_PUBLIC_USE_MOCKS=false
 # so the media proxy target has to be known HERE — a runtime env var arrives
 # too late and the baked-in default would win.
 ARG MEDIA_ORIGIN=http://localhost:8000
+# Needed at build time too: statically prerendered pages evaluate their exported
+# `metadata` (and therefore `metadataBase`) during the build, so canonical and
+# Open Graph URLs are frozen here. It is ALSO passed at runtime, for the
+# `generateMetadata` on dynamic routes like /items/[id].
+ARG SITE_URL=http://localhost:3000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_MEDIA_URL=$NEXT_PUBLIC_MEDIA_URL \
     NEXT_PUBLIC_USE_MOCKS=$NEXT_PUBLIC_USE_MOCKS \
     MEDIA_ORIGIN=$MEDIA_ORIGIN \
+    SITE_URL=$SITE_URL \
     NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { m } from "framer-motion";
 import {
   ArrowLeft,
@@ -68,6 +69,7 @@ function Fact({
 }
 
 export function ItemDetail({ item }: { item: Item }) {
+  const locale = useLocale();
   const { user } = useSession();
   const withdraw = useWithdrawItem();
   const isOwner = user?.id === item.user_id;
@@ -152,12 +154,12 @@ export function ItemDetail({ item }: { item: Item }) {
           <Fact
             icon={CalendarDays}
             label={item.type === "lost" ? "Date lost" : "Date found"}
-            value={formatDate(item.lost_or_found_at)}
+            value={formatDate(item.lost_or_found_at, locale)}
           />
           <Fact
             icon={MapPin}
             label="Wilaya"
-            value={wilayaName(item.wilaya_code) ?? "Not specified"}
+            value={wilayaName(item.wilaya_code, locale) ?? "Not specified"}
           />
           {item.location_text ? (
             <Fact icon={MapPin} label="Where exactly" value={item.location_text} />
@@ -170,7 +172,7 @@ export function ItemDetail({ item }: { item: Item }) {
           <Fact
             icon={Clock}
             label="Reported"
-            value={`${formatRelative(item.created_at)} · updated ${formatRelative(item.updated_at)}`}
+            value={`${formatRelative(item.created_at, locale)} · updated ${formatRelative(item.updated_at, locale)}`}
           />
         </m.dl>
 

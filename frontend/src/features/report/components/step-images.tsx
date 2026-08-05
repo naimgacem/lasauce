@@ -95,7 +95,7 @@ export function StepImages({
                 type="button"
                 size="icon"
                 variant="destructive"
-                className="absolute -right-2 -top-2 h-6 w-6 rounded-full"
+                className="absolute -end-2 -top-2 h-6 w-6 rounded-full"
                 onClick={() => remove(img.id)}
                 aria-label={`Remove ${img.file.name}`}
               >

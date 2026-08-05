@@ -13,7 +13,11 @@
  * MEDIA_ORIGIN is a RUNTIME server variable (never `NEXT_PUBLIC_*`) so the same
  * image can be rebuilt-free-swapped to an S3/R2 bucket in production.
  */
+import createNextIntlPlugin from "next-intl/plugin";
+
 const MEDIA_ORIGIN = process.env.MEDIA_ORIGIN ?? "http://localhost:8000";
+
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -35,4 +39,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

@@ -50,6 +50,12 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    # Window after rotation in which replaying the *previous* refresh token is
+    # treated as a benign race (second tab, reload mid-refresh, retried request)
+    # instead of token theft. Without it a single stale replay revokes every
+    # session the user has. Keep it small — it is the window in which a stolen
+    # token would still work.
+    REFRESH_REUSE_GRACE_SECONDS: int = 30
     PASSWORD_RESET_EXPIRE_MINUTES: int = 30
     EMAIL_VERIFY_EXPIRE_HOURS: int = 48
 

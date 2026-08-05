@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { m } from "framer-motion";
 import { CalendarDays, MapPin } from "lucide-react";
 
@@ -18,7 +19,8 @@ import type { Item } from "@/types/item";
 
 /** Grid card — photo-led, hover lift per the animation system. */
 export function ItemCard({ item }: { item: Item }) {
-  const location = formatLocation(item.wilaya_code, item.location_text);
+  const locale = useLocale();
+  const location = formatLocation(item.wilaya_code, item.location_text, locale);
 
   return (
     <m.div variants={listItem} whileHover={cardHover} whileTap={cardTap}>
@@ -46,7 +48,7 @@ export function ItemCard({ item }: { item: Item }) {
                 <ItemStatusBadge status={item.status} />
               </div>
               <span className="whitespace-nowrap text-caption text-muted-foreground">
-                {formatRelative(item.created_at)}
+                {formatRelative(item.created_at, locale)}
               </span>
             </div>
             <h3 className="line-clamp-1 text-heading-4 transition-colors group-hover:text-primary">
@@ -62,7 +64,7 @@ export function ItemCard({ item }: { item: Item }) {
               <p className="flex items-center gap-1.5">
                 <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 {item.type === "lost" ? "Lost" : "Found"}{" "}
-                {formatDate(item.lost_or_found_at)}
+                {formatDate(item.lost_or_found_at, locale)}
               </p>
             </div>
           </CardContent>

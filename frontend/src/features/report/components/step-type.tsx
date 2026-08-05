@@ -54,7 +54,7 @@ export function StepType({
             aria-checked={selected}
             onClick={() => onSelect(option.value)}
             className={cn(
-              "flex flex-col items-start gap-3 rounded-2xl border-2 bg-card p-6 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "flex flex-col items-start gap-3 rounded-2xl border-2 bg-card p-6 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               selected
                 ? "border-primary"
                 : "border-border hover:border-muted-foreground/40",

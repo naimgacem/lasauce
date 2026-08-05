@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useLocale } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { detailsSchema, type DetailsValues } from "@/features/report/schemas";
-import { ALGERIA_WILAYAS } from "@/lib/algeria-wilayas";
+import { wilayasFor } from "@/lib/algeria-wilayas";
 import type { ReportDraft } from "@/store/draft.store";
 import type { ItemType } from "@/types/item";
 
@@ -45,6 +46,7 @@ export function StepDetails({
   /** External submit: the wizard's Continue button targets this form. */
   formId: string;
 }) {
+  const locale = useLocale();
   const form = useForm<DetailsValues>({
     resolver: zodResolver(detailsSchema),
     defaultValues: {
@@ -155,7 +157,7 @@ export function StepDetails({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {ALGERIA_WILAYAS.map((wilaya) => (
+                    {wilayasFor(locale).map((wilaya) => (
                       <SelectItem key={wilaya.code} value={String(wilaya.code)}>
                         {wilaya.name}
                       </SelectItem>

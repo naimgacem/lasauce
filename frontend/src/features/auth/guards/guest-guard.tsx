@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { FullPageLoader } from "@/components/feedback/loading";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { DEFAULT_AUTHED_ROUTE } from "@/lib/routes";

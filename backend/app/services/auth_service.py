@@ -107,13 +107,31 @@ class AuthService:
         if record is None:
             raise AuthenticationError("Invalid refresh token")
 
-        # Reuse detection: a presented-but-revoked token means the chain is
-        # compromised — revoke every active token for that user.
+        # A presented-but-revoked token means one of two very different things:
+        #   * a benign race — a second tab, a reload that landed mid-refresh, or
+        #     a retried request replaying the token it held just before rotation
+        #     completed;
+        #   * genuine theft of a rotated token.
+        # Age is what separates them. Inside the grace window we re-issue and
+        # leave the chain alone; outside it we assume compromise and revoke
+        # everything. Treating every replay as theft logged people out for
+        # simply reloading the page at the wrong moment.
+        replayed_in_grace = False
         if record.revoked_at is not None:
-            await self.refresh_tokens.revoke_all_for_user(record.user_id)
-            await self.session.commit()
-            logger.warning("refresh_token_reuse_detected", extra={"user_id": str(record.user_id)})
-            raise AuthenticationError("Refresh token has been revoked")
+            age = (_now() - record.revoked_at).total_seconds()
+            if record.replaced_by is not None and age <= settings.REFRESH_REUSE_GRACE_SECONDS:
+                replayed_in_grace = True
+                logger.info(
+                    "refresh_token_replay_within_grace",
+                    extra={"user_id": str(record.user_id), "age_seconds": age},
+                )
+            else:
+                await self.refresh_tokens.revoke_all_for_user(record.user_id)
+                await self.session.commit()
+                logger.warning(
+                    "refresh_token_reuse_detected", extra={"user_id": str(record.user_id)}
+                )
+                raise AuthenticationError("Refresh token has been revoked")
 
         if record.expires_at <= _now():
             raise AuthenticationError("Refresh token has expired")
@@ -125,8 +143,12 @@ class AuthService:
         # Rotate: issue a new token, then revoke the old one pointing to the new.
         access = create_access_token(user.id)
         new_raw, new_record = await self._issue_refresh_token(user.id, user_agent, ip)
-        record.revoked_at = _now()
-        record.replaced_by = new_record.id
+        # Only stamp rotation on the token's FIRST use. Re-stamping on a grace
+        # replay would slide the window forward each time, so a stolen token
+        # replayed in a loop could stay alive indefinitely.
+        if not replayed_in_grace:
+            record.revoked_at = _now()
+            record.replaced_by = new_record.id
         await self.session.commit()
         return access, new_raw, user
 

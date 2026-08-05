@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import {
   flattenCategories,
   useCategories,
 } from "@/features/categories/hooks/use-categories";
-import { ALGERIA_WILAYAS } from "@/lib/algeria-wilayas";
+import { wilayasFor } from "@/lib/algeria-wilayas";
 import type { ItemQuery } from "@/types/item";
 
 const ALL = "all";
@@ -43,6 +44,7 @@ export function ItemFilters({
   value: BrowseFilters;
   onChange: (next: Partial<BrowseFilters>) => void;
 }) {
+  const locale = useLocale();
   const { data: categories } = useCategories();
   const flat = flattenCategories(categories);
   const active = countActiveFilters(value);
@@ -82,7 +84,7 @@ export function ItemFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>All wilayas</SelectItem>
-            {ALGERIA_WILAYAS.map((wilaya) => (
+            {wilayasFor(locale).map((wilaya) => (
               <SelectItem key={wilaya.code} value={String(wilaya.code)}>
                 {wilaya.name}
               </SelectItem>

@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { m } from "framer-motion";
 import {
   CalendarDays,
@@ -41,6 +42,7 @@ export function PotentialMatchCard({
   /** Example rendering (dashboard preview) — actions hidden, links disabled. */
   preview?: boolean;
 }) {
+  const locale = useLocale();
   const { candidate_item: candidate } = match;
 
   const photo = (
@@ -98,7 +100,7 @@ export function PotentialMatchCard({
                   <span className="flex items-center gap-1">
                     <CalendarDays className="h-3 w-3" aria-hidden />
                     {candidate.type === "found" ? "Found" : "Lost"}{" "}
-                    {formatDate(candidate.event_date)}
+                    {formatDate(candidate.event_date, locale)}
                   </span>
                 </div>
 
@@ -143,7 +145,7 @@ export function PotentialMatchCard({
                     Not mine
                   </Button>
                 ) : null}
-                <span className="ml-auto text-caption text-muted-foreground">
+                <span className="ms-auto text-caption text-muted-foreground">
                   Your answer improves future matching
                 </span>
               </div>

@@ -1,19 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Bell, Home, Plus, Search, User } from "lucide-react";
 
 import { useUnreadCount } from "@/features/notifications/hooks/use-unread-count";
 import { ROUTES } from "@/lib/routes";
+import { useTranslations } from "next-intl";
+
 import { cn } from "@/lib/utils";
 
+
 const tabs = [
-  { href: ROUTES.dashboard, label: "Home", icon: Home },
-  { href: ROUTES.search, label: "Search", icon: Search },
+  { href: ROUTES.dashboard, key: "home", icon: Home },
+  { href: ROUTES.search, key: "search", icon: Search },
   // center slot is the raised Report button
-  { href: ROUTES.notifications, label: "Alerts", icon: Bell },
-  { href: ROUTES.profile, label: "You", icon: User },
+  { href: ROUTES.notifications, key: "notifications", icon: Bell },
+  { href: ROUTES.profile, key: "profile", icon: User },
 ] as const;
 
 /**
@@ -21,6 +23,7 @@ const tabs = [
  * button is the primary action: report an item.
  */
 export function MobileTabBar() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const { data } = useUnreadCount();
   const unread = data?.count ?? 0;
@@ -47,9 +50,9 @@ export function MobileTabBar() {
           aria-hidden
         />
         {isAlerts && unread > 0 ? (
-          <span className="absolute right-1/2 top-0 h-2 w-2 translate-x-3 rounded-full bg-primary" />
+          <span className="absolute end-1/2 top-0 h-2 w-2 translate-x-3 rtl:-translate-x-3 rounded-full bg-primary" />
         ) : null}
-        {tab.label}
+        {t(tab.key)}
       </Link>
     );
   };

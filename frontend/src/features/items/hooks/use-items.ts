@@ -6,27 +6,42 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 
 import { itemKeys } from "@/lib/query-keys";
 import { ROUTES } from "@/lib/routes";
 import { api } from "@/services";
-import type { CreateItemPayload, ItemQuery } from "@/types/item";
+import type { CreateItemPayload, Item, ItemQuery } from "@/types/item";
 
-export function useItems(query: ItemQuery) {
+/**
+ * Browse/search items.
+ *
+ * `enabled` matters for owner-scoped lists: an undefined `user_id` is dropped
+ * from the query string, so firing before the session is known would quietly
+ * list *every* user's items under "My items". Callers that scope by user must
+ * gate on having the id.
+ */
+export function useItems(query: ItemQuery, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: itemKeys.list(query),
     queryFn: () => api.items.list(query),
     placeholderData: keepPreviousData, // previous page stays visible while fetching
+    enabled: options?.enabled ?? true,
   });
 }
 
-export function useItem(id: string) {
+/**
+ * A single item. `initialData` lets a server-rendered page hand over what it
+ * already fetched, so the detail view paints instantly and still refetches in
+ * the background to pick up edits made since the server render.
+ */
+export function useItem(id: string, options?: { initialData?: Item }) {
   return useQuery({
     queryKey: itemKeys.detail(id),
     queryFn: () => api.items.get(id),
     enabled: Boolean(id),
+    initialData: options?.initialData,
   });
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Bell } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ export function NotificationBell() {
       <Link href={ROUTES.notifications} aria-label={`Notifications${count ? ` (${count} unread)` : ""}`}>
         <Bell className="h-5 w-5" />
         {count > 0 ? (
-          <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground">
+          <span className="absolute end-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground">
             {count > 9 ? "9+" : count}
           </span>
         ) : null}

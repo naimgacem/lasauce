@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useLocale } from "next-intl";
 import { CalendarDays, MapPin, Palette, Sparkles, Tag } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +43,7 @@ export function StepReview({
   type: ItemType;
   images: LocalImage[];
 }) {
+  const locale = useLocale();
   const { data: categories } = useCategories();
   const categoryName = draft.category_id
     ? flattenCategories(categories).find((c) => c.id === draft.category_id)?.name
@@ -65,14 +67,14 @@ export function StepReview({
             <Row
               icon={CalendarDays}
               label={type === "lost" ? "Date lost" : "Date found"}
-              value={formatDate(draft.lost_or_found_at)}
+              value={formatDate(draft.lost_or_found_at, locale)}
             />
             <Row icon={Tag} label="Category" value={categoryName ?? "Uncategorised"} />
             {draft.wilaya_code ? (
               <Row
                 icon={MapPin}
                 label="Wilaya"
-                value={wilayaName(draft.wilaya_code) ?? "—"}
+                value={wilayaName(draft.wilaya_code, locale) ?? "—"}
               />
             ) : null}
             {draft.location_text ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { m } from "framer-motion";
+import { useLocale } from "next-intl";
 
 import { formatConfidence } from "@/lib/format";
 
@@ -17,6 +18,7 @@ export function ConfidenceRing({
   value: number;
   size?: number;
 }) {
+  const locale = useLocale();
   const stroke = 5;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -30,7 +32,7 @@ export function ConfidenceRing({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(clamped * 100)}
-      aria-label={`Match confidence ${formatConfidence(clamped)}`}
+      aria-label={`Match confidence ${formatConfidence(clamped, locale)}`}
     >
       <svg width={size} height={size} className="-rotate-90">
         <defs>
@@ -63,7 +65,7 @@ export function ConfidenceRing({
         />
       </svg>
       <span className="absolute text-sm font-bold tabular-nums">
-        {formatConfidence(clamped)}
+        {formatConfidence(clamped, locale)}
       </span>
     </div>
   );

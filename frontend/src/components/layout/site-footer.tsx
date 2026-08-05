@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/layout/logo";
 import { ROUTES } from "@/lib/routes";
 

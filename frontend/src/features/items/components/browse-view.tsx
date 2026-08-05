@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { m } from "framer-motion";
 import {
   LayoutGrid,
@@ -40,6 +40,7 @@ import {
 import { ItemRow } from "@/features/items/components/item-row";
 import { useItems } from "@/features/items/hooks/use-items";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useTranslations } from "next-intl";
 import { ROUTES } from "@/lib/routes";
 import type { ItemType } from "@/types/item";
 
@@ -90,25 +91,57 @@ function filtersFromParams(params: URLSearchParams): BrowseFilters {
 }
 
 function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
+  const t = useTranslations("browse");
+  const tc = useTranslations("common");
   const searchParams = useSearchParams();
-  const [search, setSearch] = React.useState(searchParams.get("q") ?? "");
-  const [filters, setFilters] = React.useState<BrowseFilters>(() =>
-    filtersFromParams(searchParams),
-  );
-  const [page, setPage] = React.useState(1);
-  const [view, setView] = React.useState<ViewMode>("grid");
-  const debouncedSearch = useDebounce(search, 300);
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // Keep in sync when the URL changes (e.g. arriving from the landing hero).
+  // The URL is the single source of truth for anything worth sharing, so a
+  // filtered search is linkable and bookmarkable, back/forward behave, and the
+  // wilaya chosen on the landing hero survives the trip to /search instead of
+  // being dropped on arrival.
+  const q = searchParams.get("q") ?? "";
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const filters = React.useMemo(
+    () => filtersFromParams(searchParams),
+    [searchParams],
+  );
+
+  // View mode is a personal preference, not part of the search — it stays local.
+  const [view, setView] = React.useState<ViewMode>("grid");
+  const [searchInput, setSearchInput] = React.useState(q);
+  const debouncedSearch = useDebounce(searchInput, 300);
+
+  const setParams = React.useCallback(
+    (updates: Record<string, string | number | undefined | null>) => {
+      const next = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === undefined || value === null || value === "") next.delete(key);
+        else next.set(key, String(value));
+      }
+      const qs = next.toString();
+      // `replace`, not `push`: one history entry per keystroke would bury the
+      // back button under a page of near-identical search URLs.
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [searchParams, pathname, router],
+  );
+
+  // Debounced text → URL. Any new query resets to the first page.
   React.useEffect(() => {
-    setSearch(searchParams.get("q") ?? "");
-    setFilters(filtersFromParams(searchParams));
-    setPage(1);
-  }, [searchParams]);
+    if (debouncedSearch === q) return;
+    setParams({ q: debouncedSearch, page: null });
+  }, [debouncedSearch, q, setParams]);
+
+  // URL → input, so back/forward and hero arrivals refill the search box.
+  React.useEffect(() => {
+    setSearchInput(q);
+  }, [q]);
 
   const query = {
     type: presetType,
-    q: debouncedSearch || undefined,
+    q: q || undefined,
     ...filters,
     page,
     page_size: PAGE_SIZE,
@@ -116,19 +149,18 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
   const { data, isLoading, isFetching, isError, error, refetch } = useItems(query);
 
   function updateFilters(next: Partial<BrowseFilters>) {
-    setFilters((prev) => ({ ...prev, ...next }));
-    setPage(1);
+    setParams({ ...next, page: null });
   }
 
   const activeCount = countActiveFilters(filters);
   const items = data?.items ?? [];
-  const hasQuery = Boolean(debouncedSearch || activeCount);
+  const hasQuery = Boolean(q || activeCount);
 
   return (
     <div className="container py-8">
       <PageHeader title={title} description={description}>
         <Button asChild>
-          <Link href={ROUTES.report}>Report an item</Link>
+          <Link href={ROUTES.report}>{tc("reportItem")}</Link>
         </Button>
       </PageHeader>
 
@@ -136,30 +168,27 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
       <div className="mt-6 flex items-center gap-2">
         <div className="relative flex-1 md:max-w-sm">
           <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
           <Input
             type="search"
-            placeholder="Search by title or description…"
-            className="pl-9"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            aria-label="Search items"
+            placeholder={t("searchPlaceholder")}
+            className="ps-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            aria-label={tc("search")}
           />
         </div>
 
         {/* Mobile: slide-over filter drawer */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" className="md:hidden" aria-label="Open filters">
+            <Button variant="outline" className="md:hidden" aria-label={t("openFilters")}>
               <SlidersHorizontal className="h-4 w-4" />
-              Filters
+              {tc("filters")}
               {activeCount > 0 ? (
-                <Badge className="ml-1 h-5 min-w-5 justify-center px-1">
+                <Badge className="ms-1 h-5 min-w-5 justify-center px-1">
                   {activeCount}
                 </Badge>
               ) : null}
@@ -167,7 +196,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
           </SheetTrigger>
           <SheetContent side="right" className="w-[300px] overflow-y-auto">
             <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
+              <SheetTitle>{tc("filters")}</SheetTitle>
             </SheetHeader>
             <div className="mt-6">
               <ItemFilters value={filters} onChange={updateFilters} />
@@ -176,9 +205,9 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
         </Sheet>
 
         <div
-          className="ml-auto hidden items-center rounded-md border p-0.5 sm:flex"
+          className="ms-auto hidden items-center rounded-md border p-0.5 sm:flex"
           role="group"
-          aria-label="View mode"
+          aria-label={tc("viewMode")}
         >
           <Button
             variant={view === "grid" ? "secondary" : "ghost"}
@@ -186,7 +215,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
             className="h-8 w-8"
             onClick={() => setView("grid")}
             aria-pressed={view === "grid"}
-            aria-label="Grid view"
+            aria-label={tc("gridView")}
           >
             <LayoutGrid className="h-4 w-4" />
           </Button>
@@ -196,7 +225,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
             className="h-8 w-8"
             onClick={() => setView("list")}
             aria-pressed={view === "list"}
-            aria-label="List view"
+            aria-label={tc("listView")}
           >
             <List className="h-4 w-4" />
           </Button>
@@ -207,7 +236,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
         {/* Desktop: sticky filter sidebar */}
         <aside className="hidden w-60 shrink-0 md:block" aria-label="Filters">
           <div className="sticky top-24 rounded-2xl border bg-card p-5">
-            <h2 className="mb-4 text-sm font-semibold">Filters</h2>
+            <h2 className="mb-4 text-sm font-semibold">{tc("filters")}</h2>
             <ItemFilters value={filters} onChange={updateFilters} />
           </div>
         </aside>
@@ -230,28 +259,27 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
             )
           ) : isError ? (
             <ErrorState
-              title="Couldn't load items"
+              title={t("loadError")}
               message={error instanceof Error ? error.message : undefined}
               onRetry={() => refetch()}
             />
           ) : items.length === 0 ? (
             <EmptyState
               icon={hasQuery ? Search : PackageOpen}
-              title={hasQuery ? "Nothing matched your search" : "Nothing here yet"}
-              description={
-                hasQuery
-                  ? "Can’t find it? Report your lost item and our matching engine will keep looking as new reports arrive."
-                  : "Be the first to post. Reports take about two minutes, and our matching engine does the searching."
-              }
+              title={hasQuery ? t("emptySearchTitle") : t("emptyTitle")}
+              description={hasQuery ? t("emptySearchBody") : t("emptyBody")}
               action={
                 <Button asChild>
-                  <Link href={ROUTES.report}>Report your lost item</Link>
+                  <Link href={ROUTES.report}>{t("reportYourItem")}</Link>
                 </Button>
               }
             />
           ) : view === "grid" ? (
             <m.div
-              key={`grid-${page}-${debouncedSearch}-${JSON.stringify(filters)}`}
+              // Keyed on view + page only. Including the filters (previously via
+              // JSON.stringify) tore down and rebuilt every card on each
+              // keystroke, losing focus and restarting animations mid-typing.
+              key={`grid-${page}`}
               variants={listContainer}
               initial="initial"
               animate="enter"
@@ -263,7 +291,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
             </m.div>
           ) : (
             <m.div
-              key={`list-${page}-${debouncedSearch}-${JSON.stringify(filters)}`}
+              key={`list-${page}`}
               variants={listContainer}
               initial="initial"
               animate="enter"
@@ -280,7 +308,8 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
               page={data.page}
               totalPages={data.total_pages}
               total={data.total}
-              onPageChange={setPage}
+              // Page 1 is the default — leave it out so shared links stay tidy.
+              onPageChange={(next) => setParams({ page: next === 1 ? null : next })}
             />
           ) : null}
         </div>

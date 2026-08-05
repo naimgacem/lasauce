@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { m } from "framer-motion";
 import {
   Bell,
@@ -36,6 +37,7 @@ export function NotificationItem({
   onRead: (id: string) => void;
 }) {
   const router = useRouter();
+  const locale = useLocale();
   const meta = TYPE_META[notification.type];
   const Icon = meta.icon;
 
@@ -50,7 +52,7 @@ export function NotificationItem({
         type="button"
         onClick={open}
         className={cn(
-          "flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "flex w-full items-start gap-3 rounded-xl border p-4 text-start transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           !notification.is_read && "border-primary/20 bg-primary/[0.03]",
         )}
         aria-label={`${notification.is_read ? "" : "Unread: "}${notification.title}`}
@@ -86,7 +88,7 @@ export function NotificationItem({
             {notification.body}
           </span>
           <span className="block text-xs text-muted-foreground/70">
-            {formatRelative(notification.created_at)}
+            {formatRelative(notification.created_at, locale)}
           </span>
         </span>
       </button>

@@ -42,6 +42,29 @@ async def engine():
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
+        # `items.search_vector` is a generated column over this configuration,
+        # so it must exist before create_all. Mirrors migration 0005 — these
+        # tests build the schema from metadata rather than running migrations.
+        await conn.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_ts_config WHERE cfgname = 'fr_unaccent'
+                    ) THEN
+                        EXECUTE 'CREATE TEXT SEARCH CONFIGURATION fr_unaccent (COPY = french)';
+                        EXECUTE 'ALTER TEXT SEARCH CONFIGURATION fr_unaccent '
+                                'ALTER MAPPING FOR hword, hword_part, word '
+                                'WITH unaccent, french_stem';
+                    END IF;
+                END
+                $$;
+                """
+            )
+        )
         await conn.run_sync(Base.metadata.create_all)
     try:
         yield eng

@@ -34,8 +34,8 @@ export function EmptyState({
       <div className="relative mb-6 animate-scale-in" aria-hidden>
         <div className="absolute -inset-5 rounded-full bg-primary/[0.07] blur-2xl" />
         <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border bg-card shadow-md">
-          <div className="absolute -right-2 -top-2 h-4 w-4 rounded-full bg-secondary" />
-          <div className="absolute -bottom-1.5 -left-2.5 h-3 w-3 rounded-full bg-primary/25" />
+          <div className="absolute -end-2 -top-2 h-4 w-4 rounded-full bg-secondary" />
+          <div className="absolute -bottom-1.5 -start-2.5 h-3 w-3 rounded-full bg-primary/25" />
           {Icon ? <Icon className="h-9 w-9 text-muted-foreground" /> : null}
         </div>
       </div>

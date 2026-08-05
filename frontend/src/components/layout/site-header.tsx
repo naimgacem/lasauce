@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Menu, Plus } from "lucide-react";
 
 import { Logo } from "@/components/layout/logo";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
@@ -18,16 +18,21 @@ import {
 } from "@/components/ui/sheet";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { loginWithNext, ROUTES } from "@/lib/routes";
+import { useTranslations } from "next-intl";
+
 import { cn } from "@/lib/utils";
 
+
 const NAV = [
-  { href: ROUTES.lost, label: "Lost items" },
-  { href: ROUTES.found, label: "Found items" },
-  { href: ROUTES.search, label: "Search" },
+  { href: ROUTES.lost, key: "lostItems" },
+  { href: ROUTES.found, key: "foundItems" },
+  { href: ROUTES.search, key: "search" },
 ] as const;
 
 /** Public shell header — marketing nav, auth-aware right side. */
 export function SiteHeader() {
+  const t = useTranslations("nav");
+  const tc = useTranslations("common");
   const pathname = usePathname();
   const { isAuthed } = useSession();
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -58,12 +63,13 @@ export function SiteHeader() {
                   : "text-muted-foreground",
               )}
             >
-              {link.label}
+              {t(link.key)}
             </Link>
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ms-auto flex items-center gap-2">
+          <LanguageSwitcher />
           <ThemeToggle />
 
           {isAuthed ? (
@@ -74,7 +80,7 @@ export function SiteHeader() {
                 asChild
                 className="hidden sm:inline-flex"
               >
-                <Link href={ROUTES.dashboard}>Dashboard</Link>
+                <Link href={ROUTES.dashboard}>{t("dashboard")}</Link>
               </Button>
               <UserMenu />
             </>
@@ -86,7 +92,7 @@ export function SiteHeader() {
                 asChild
                 className="hidden sm:inline-flex"
               >
-                <Link href={ROUTES.login}>Sign in</Link>
+                <Link href={ROUTES.login}>{tc("signIn")}</Link>
               </Button>
               <Button size="sm" asChild className="hidden sm:inline-flex">
                 <Link href={reportHref}>
@@ -104,7 +110,7 @@ export function SiteHeader() {
                 variant="ghost"
                 size="icon"
                 className="md:hidden"
-                aria-label="Open menu"
+                aria-label={t("openMenu")}
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -128,7 +134,7 @@ export function SiteHeader() {
                         : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                     )}
                   >
-                    {link.label}
+                    {t(link.key)}
                   </Link>
                 ))}
               </nav>
