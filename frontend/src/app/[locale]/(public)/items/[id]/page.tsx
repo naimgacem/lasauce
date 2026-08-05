@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { ItemDetailView } from "@/features/items/components/item-detail-view";
 import { formatDate } from "@/lib/format";
 import { serverEnv } from "@/lib/server-env";
-import { absoluteMediaUrl, fetchItem } from "@/services/server/items";
+import {
+  absoluteMediaUrl,
+  fetchItem,
+  serverKnowsEveryItem,
+} from "@/services/server/items";
 import { localeAlternates } from "@/lib/metadata";
 import { getTranslations } from "next-intl/server";
 import { asLocale } from "@/i18n/routing";
@@ -74,8 +78,10 @@ export default async function ItemDetailPage({ params }: PageProps) {
   const { id } = await params;
   const item = await fetchItem(id);
   // Real 404 status, not a 200 carrying an error message — crawlers and the
-  // browser both need to know this page doesn't exist.
-  if (!item) notFound();
+  // browser both need to know this page doesn't exist. Only the server can say
+  // so, though: in mock mode it doesn't hold the whole dataset, so it defers to
+  // the client instead of 404-ing an item that is really there.
+  if (!item && serverKnowsEveryItem) notFound();
 
-  return <ItemDetailView initialItem={item} />;
+  return <ItemDetailView itemId={id} initialItem={item ?? undefined} />;
 }
