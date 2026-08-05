@@ -67,9 +67,11 @@ export interface NotificationsApi {
 export interface MatchesApi {
   forItem(itemId: string): Promise<MatchSuggestions>;
   get(id: string): Promise<MatchSuggestion>;
-  confirm(id: string): Promise<void>;
-  reject(id: string): Promise<void>;
+  confirm(id: string): Promise<MatchSuggestion>;
+  reject(id: string): Promise<MatchSuggestion>;
   feedback(id: string, payload: MatchFeedbackPayload): Promise<void>;
+  /** Re-embed and re-match. Returns once queued, not once finished. */
+  rematch(itemId: string): Promise<void>;
 }
 
 export interface ClaimsApi {

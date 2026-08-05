@@ -3,8 +3,12 @@ import { useTranslations } from "next-intl";
 import type { MatchSuggestion } from "@/types/match";
 
 /**
- * Illustrative suggestion for preview surfaces (dashboard) while the matching
- * engine is pre-launch. Clearly labelled as an example wherever rendered.
+ * Illustrative suggestion for preview surfaces (dashboard). Clearly labelled as
+ * an example wherever rendered.
+ *
+ * Uses real reason codes rather than the sample sentences, so the preview
+ * exercises the same translation path as a live match — a broken reason key
+ * shows up here instead of only in production.
  */
 export function useSampleMatch(): MatchSuggestion {
   const t = useTranslations("matches");
@@ -17,6 +21,7 @@ export function useSampleMatch(): MatchSuggestion {
       title: t("sampleTitle"),
       primary_image_url: "https://picsum.photos/seed/lf-wallet-found/800/600",
       location_text: t("sampleLocation"),
+      wilaya_code: 16,
       event_date: new Date(Date.now() - 86_400_000).toISOString(),
     },
     text_score: 0.83,
@@ -24,11 +29,12 @@ export function useSampleMatch(): MatchSuggestion {
     combined_score: 0.88,
     confidence: 0.86,
     status: "suggested",
+    created_at: new Date().toISOString(),
     explanation: [
-      t("sampleExplanation1"),
-      t("sampleExplanation2"),
-      t("sampleExplanation3"),
-      t("sampleExplanation4"),
+      { code: "same_category", params: { name: "Wallets & Purses" } },
+      { code: "text_strong" },
+      { code: "time_close", params: { days: 1 } },
+      { code: "same_wilaya", params: { wilaya_code: 16 } },
     ],
   };
 }

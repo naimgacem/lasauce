@@ -24,6 +24,14 @@ import {
 const notFound = (what: string) =>
   new ApiError({ message: `${what} not found`, code: "NOT_FOUND", status: 404 });
 
+function findMatch(id: string) {
+  const suggestion = Object.values(MOCK_MATCHES)
+    .flatMap((s) => s.matches)
+    .find((m) => m.match_id === id);
+  if (!suggestion) throw notFound("Match");
+  return suggestion;
+}
+
 function paginate<T>(rows: T[], page = 1, pageSize = 20): Paginated<T> {
   const start = (page - 1) * pageSize;
   return {
@@ -342,25 +350,33 @@ export const mockApi: Api = {
         MOCK_MATCHES[itemId] ?? {
           item: { id: itemId, type: "lost", title: "" },
           matches: [],
+          //  `ready`, not `pending`: with no worker in mock mode an in-flight
+          //  status would leave the panel spinning forever.
+          processing_status: "ready",
         }
       );
     },
     async get(id) {
       await delay();
-      const suggestion = Object.values(MOCK_MATCHES)
-        .flatMap((s) => s.matches)
-        .find((m) => m.match_id === id);
-      if (!suggestion) throw notFound("Match");
-      return suggestion;
+      return findMatch(id);
     },
-    async confirm() {
+    async confirm(id) {
       await delay();
+      const match = findMatch(id);
+      match.status = "confirmed";
+      return match;
     },
-    async reject() {
+    async reject(id) {
       await delay();
+      const match = findMatch(id);
+      match.status = "rejected";
+      return match;
     },
     async feedback() {
       await delay();
+    },
+    async rematch() {
+      await delay(400);
     },
   },
 };

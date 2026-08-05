@@ -12,12 +12,13 @@ import uuid
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_active_user, get_db
+from app.api.deps import get_current_active_user, get_db, get_queue
 from app.core.wilayas import WILAYA_CODE_MAX, WILAYA_CODE_MIN
 from app.models.item import ItemStatus, ItemType
 from app.models.user import User
 from app.schemas.item import ItemCreate, ItemListResponse, ItemRead, ItemUpdate
 from app.services.item_service import ItemService
+from app.services.queue import JobQueue
 
 router = APIRouter()
 
@@ -27,8 +28,9 @@ async def create_item(
     data: ItemCreate,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
+    queue: JobQueue = Depends(get_queue),
 ) -> ItemRead:
-    item = await ItemService(db).create_item(user, data)
+    item = await ItemService(db, queue).create_item(user, data)
     return ItemRead.model_validate(item)
 
 
@@ -87,8 +89,9 @@ async def update_item(
     data: ItemUpdate,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
+    queue: JobQueue = Depends(get_queue),
 ) -> ItemRead:
-    item = await ItemService(db).update_item(user, item_id, data)
+    item = await ItemService(db, queue).update_item(user, item_id, data)
     return ItemRead.model_validate(item)
 
 

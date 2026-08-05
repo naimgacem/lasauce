@@ -1,0 +1,15 @@
+# Embedding-model dependencies — WORKER ONLY.
+#
+# Kept out of requirements.txt on purpose: the api and worker build from the same
+# Dockerfile, and the API never imports torch. Installing these only in the `ml`
+# stage keeps the API image (and every API rebuild) small.
+#
+# Install with the CPU wheel index. The default PyPI torch bundles CUDA and
+# pulls ~2.5GB of NVIDIA libraries we cannot use — the CPU build is ~200MB and
+# is what actually runs here.
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.5.1+cpu
+
+# Text embeddings. Pulls transformers/tokenizers/huggingface-hub transitively.
+sentence-transformers==3.3.1

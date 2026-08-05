@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfidenceRing } from "@/features/matches/components/confidence-ring";
+import { useMatchReason } from "@/features/matches/use-match-reason";
+import { imageUrl } from "@/features/items/components/item-image";
 import { formatDate } from "@/lib/format";
 import { ROUTES } from "@/lib/routes";
 import type { MatchSuggestion } from "@/types/match";
@@ -45,13 +47,24 @@ export function PotentialMatchCard({
   const t = useTranslations("matches");
   const ti = useTranslations("item");
   const locale = useLocale();
+  const renderReason = useMatchReason();
   const { candidate_item: candidate } = match;
+
+  // Codes the client has no translation for render empty and are dropped, so a
+  // backend that ships a new reason first degrades to a shorter list.
+  const reasons = match.explanation
+    .map((reason) => ({ code: reason.code, text: renderReason(reason) }))
+    .filter((r) => r.text);
+
+  // The API sends a storage key; the same resolver every other item photo uses
+  // turns it into a same-origin `/media/...` path.
+  const photoUrl = imageUrl(candidate.primary_image_url);
 
   const photo = (
     <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-muted sm:h-32 sm:w-32">
-      {candidate.primary_image_url ? (
+      {photoUrl ? (
         <Image
-          src={candidate.primary_image_url}
+          src={photoUrl}
           alt={candidate.title}
           fill
           sizes="128px"
@@ -108,16 +121,16 @@ export function PotentialMatchCard({
 
                 {/* Why the AI thinks so — plain language, always visible */}
                 <ul className="space-y-1 pt-1" aria-label={t("whyMatchAria")}>
-                  {match.explanation.map((reason) => (
+                  {reasons.map(({ code, text }) => (
                     <li
-                      key={reason}
+                      key={code}
                       className="flex items-start gap-1.5 text-xs text-foreground/80"
                     >
                       <Sparkles
                         className="mt-0.5 h-3 w-3 shrink-0 text-ai-from"
                         aria-hidden
                       />
-                      {reason}
+                      {text}
                     </li>
                   ))}
                 </ul>

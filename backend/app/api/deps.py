@@ -20,10 +20,12 @@ from app.core.security import TOKEN_TYPE_ACCESS, decode_token
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.repositories.user import UserRepository
+from app.services.queue import JobQueue
 
 __all__ = [
     "get_db",
     "get_redis",
+    "get_queue",
     "get_settings",
     "Settings",
     "get_current_user",
@@ -45,6 +47,15 @@ async def get_redis(request: Request) -> Redis:
     if redis is None:  # pragma: no cover - defensive
         raise RuntimeError("Redis connection is not initialised")
     return redis
+
+
+async def get_queue(request: Request) -> JobQueue:
+    """Background job queue.
+
+    Deliberately tolerant where `get_redis` is strict: a request that merely
+    wants to schedule an embedding must still succeed when the queue is down.
+    """
+    return JobQueue(getattr(request.app.state, "redis", None))
 
 
 async def get_current_user(

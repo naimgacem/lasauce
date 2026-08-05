@@ -51,6 +51,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # Lean stage — no torch. The API only enqueues jobs.
+      target: api
     # Migrate, then seed default categories (idempotent — matches on slug), then serve.
     command: sh -c "alembic upgrade head && python -m app.db.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment: *backend-env
@@ -78,6 +80,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # Carries the embedding stack — this is the only service that loads a model.
+      target: worker
     command: ["arq", "app.workers.main.WorkerSettings"]
     environment: *backend-env
     depends_on:
@@ -87,6 +91,10 @@ services:
         condition: service_healthy
     volumes:
       - media:/app/media
+      # Keeps the downloaded model weights across container recreation. Without
+      # this, every `docker compose up` re-downloads ~470MB before the worker
+      # can process its first job.
+      - hf_cache:/app/.cache/huggingface
 
   frontend:
     build:
@@ -145,3 +153,4 @@ volumes:
   pgdata:
   redisdata:
   media:
+  hf_cache:

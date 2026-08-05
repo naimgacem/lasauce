@@ -70,6 +70,58 @@ class Settings(BaseSettings):
     # --- AI (configured now, used in M4/M5) ---
     OPENAI_API_KEY: str | None = None
 
+    # --- Embeddings ---
+    #  MUST be multilingual. Reports arrive in French, Arabic and English, often
+    #  mixed inside one description, so an English-only encoder (the widely
+    #  quoted all-MiniLM-L6-v2) scores "Téléphone Samsung égaré" against
+    #  "Samsung phone lost" as near-unrelated — precisely the match the product
+    #  exists to find. This model covers 50+ languages and is *also* 384-d, so it
+    #  drops into the existing `items.text_embedding` column unchanged.
+    TEXT_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    TEXT_EMBED_DIM: int = 384
+    ML_DEVICE: str = "cpu"  # cpu | cuda
+    #  Encoding is batched; larger batches are faster but hold more RAM. 32 keeps
+    #  the worker comfortably under 1.5GB on CPU.
+    EMBED_BATCH_SIZE: int = 32
+
+    # --- Matching: retrieval ---
+    #  Candidates pulled per modality before scoring. The funnel is a pre-filter
+    #  (opposite type, open, date window) then ANN, so this bounds scoring work.
+    MATCH_TOPK: int = 50
+    #  A found report can precede the lost report (someone picks it up before the
+    #  owner notices) or trail it by weeks, so the window is deliberately wide
+    #  and symmetric.
+    MATCH_DATE_SLACK_DAYS: int = 30
+
+    # --- Matching: fusion weights ---
+    MATCH_W_TEXT: float = 0.5
+    MATCH_W_IMAGE: float = 0.5
+    #  Blended into the text score. Embeddings capture meaning but blur exact
+    #  tokens: "iPhone 14 Pro" and "iPhone 13 Pro" are near-identical vectors.
+    #  Postgres FTS (migration 0005) knows they differ, so a lexical term rescues
+    #  the model numbers, brands and serials that matter most for identification.
+    MATCH_W_LEXICAL: float = 0.25
+
+    # --- Matching: confidence boosts ---
+    #  Corroboration from independent metadata. Small on purpose: they nudge
+    #  ranking, they must never manufacture a match out of a weak similarity.
+    MATCH_BOOST_CATEGORY: float = 0.05
+    MATCH_BOOST_COLOR: float = 0.04
+    MATCH_BOOST_BRAND: float = 0.04
+    #  Same-wilaya rather than a geo radius: no report in the corpus carries
+    #  coordinates (the form never asks), while most carry a wilaya. The
+    #  `earthdistance` radius stays unused until coordinates actually exist.
+    MATCH_BOOST_WILAYA: float = 0.05
+    MATCH_BOOST_TIME: float = 0.04
+    #  Rewards a candidate that stands clear of the pack: a top score well above
+    #  the runner-up is more trustworthy than the same score in a tie.
+    MATCH_BOOST_MARGIN: float = 0.05
+
+    # --- Matching: thresholds ---
+    CONF_PERSIST: float = 0.55  # below this, don't store the match at all
+    CONF_NOTIFY: float = 0.70  # at/above this, notify both users
+    CONF_STRONG: float = 0.85  # UI badge "high confidence"
+
     # --- Storage ---
     STORAGE_PROVIDER: str = "local"  # local | s3
     MEDIA_ROOT: str = "/app/media"

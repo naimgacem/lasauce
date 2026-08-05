@@ -43,6 +43,7 @@ import {
 } from "@/features/items/components/item-badges";
 import { ItemGallery } from "@/features/items/components/item-gallery";
 import { useWithdrawItem } from "@/features/items/hooks/use-items";
+import { MatchPanel } from "@/features/matches/components/match-panel";
 import { wilayaName } from "@/lib/algeria-wilayas";
 import { formatDate, formatRelative } from "@/lib/format";
 import { ROUTES } from "@/lib/routes";
@@ -192,38 +193,11 @@ export function ItemDetail({ item }: { item: Item }) {
           {isOwner ? <IncomingClaims item={item} /> : <ClaimPanel item={item} />}
         </m.div>
 
-        {/* Potential Matches — future placeholder, flagship slot */}
+        {/* Potential matches — the flagship slot. Owner-only: the API scopes
+            suggestions to the two people involved, so this renders nothing for
+            anyone else. */}
         <m.div variants={listItem}>
-          {/* AI-gradient hairline frame — the one gradient in the product. */}
-          <div className="ring-ai-gradient rounded-2xl shadow-md">
-            <Card className="rounded-[calc(1rem-1px)] border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2.5 text-heading-4">
-                  <span
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-ai-gradient text-ai-foreground shadow-sm"
-                    aria-hidden
-                  >
-                    <Sparkles className="h-4 w-4" />
-                  </span>
-                  {t("potentialMatches")}
-                </CardTitle>
-                <CardDescription>
-                  {t("potentialMatchesBody", {
-                    target: item.type === "lost" ? t("yourItem") : t("ownersItem"),
-                  })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 rounded-xl border border-dashed bg-muted/30 p-4 text-body-sm text-muted-foreground">
-                  <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
-                    <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-processing" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-processing" />
-                  </span>
-                  {t("queuedForMatching")}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <MatchPanel item={item} isOwner={isOwner} />
         </m.div>
       </m.div>
     </div>

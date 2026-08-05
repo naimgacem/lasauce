@@ -1,6 +1,6 @@
 """Aggregates all versioned (`/api/v1`) routers.
 
-`matches` and `admin` join once the matching engine and admin surfaces ship.
+`admin` joins once the admin surfaces ship.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     claims,
     images,
     items,
+    matches,
     notifications,
 )
 
@@ -25,6 +26,8 @@ api_router.include_router(items.router, prefix="/items", tags=["items"])
 api_router.include_router(images.router, prefix="/items", tags=["images"])
 api_router.include_router(claims.item_claims_router, prefix="/items", tags=["claims"])
 api_router.include_router(claims.claims_router, prefix="/claims", tags=["claims"])
+api_router.include_router(matches.item_matches_router, prefix="/items", tags=["matches"])
+api_router.include_router(matches.matches_router, prefix="/matches", tags=["matches"])
 api_router.include_router(
     notifications.router, prefix="/notifications", tags=["notifications"]
 )

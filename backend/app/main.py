@@ -12,7 +12,7 @@ import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
-import redis.asyncio as aioredis
+from arq.connections import RedisSettings, create_pool
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -79,16 +79,19 @@ async def lifespan(app: FastAPI):
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
 
     if settings.redis_enabled:
-        app.state.redis = aioredis.from_url(
-            settings.REDIS_URL, encoding="utf-8", decode_responses=True
-        )
+        # arq's pool, not a bare redis client: `ArqRedis` subclasses
+        # `redis.asyncio.Redis`, so the readiness ping below still works, while
+        # also exposing `enqueue_job` for the embedding/matching pipeline. One
+        # connection pool serves both rather than holding two.
+        app.state.redis = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
         try:
             await app.state.redis.ping()
             logger.info("redis_connected")
         except Exception as exc:  # noqa: BLE001 - non-fatal; surfaced via /health/ready
             logger.warning("redis_unavailable", extra={"error": str(exc)})
     else:
-        # Queue-free mode: nothing enqueues work until the ML worker ships.
+        # Queue-free mode: items are created but never embedded, so they stay
+        # `pending`. Useful for single-service deploys with no worker.
         app.state.redis = None
         logger.info("redis_disabled")
 

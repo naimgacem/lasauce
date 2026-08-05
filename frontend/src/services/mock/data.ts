@@ -216,10 +216,11 @@ export const MOCK_NOTIFICATIONS: AppNotification[] = [
   },
 ];
 
-/** Fake AI suggestions so the M5 match UI can be built before the engine. */
+/** Stand-in AI suggestions so the match UI is demoable without a worker. */
 export const MOCK_MATCHES: Record<string, MatchSuggestions> = {
   "i-wallet": {
     item: { id: "i-wallet", type: "lost", title: "Black leather wallet" },
+    processing_status: "ready",
     matches: [
       {
         match_id: "m-1",
@@ -229,6 +230,7 @@ export const MOCK_MATCHES: Record<string, MatchSuggestions> = {
           title: "Dark bifold wallet, found at bus stop",
           primary_image_url: "https://picsum.photos/seed/lf-wallet-found/800/600",
           location_text: "Main St bus stop",
+          wilaya_code: 16,
           event_date: daysAgo(1).slice(0, 10),
         },
         text_score: 0.83,
@@ -236,11 +238,12 @@ export const MOCK_MATCHES: Record<string, MatchSuggestions> = {
         combined_score: 0.88,
         confidence: 0.86,
         status: "suggested",
+        created_at: daysAgo(1),
         explanation: [
-          "same category",
-          "image strongly similar",
-          "found 1 day after lost",
-          "300 m from reported location",
+          { code: "same_category", params: { name: "Wallets & Purses" } },
+          { code: "text_strong" },
+          { code: "time_close", params: { days: 1 } },
+          { code: "same_wilaya", params: { wilaya_code: 16 } },
         ],
       },
     ],

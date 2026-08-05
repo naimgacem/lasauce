@@ -1,8 +1,10 @@
 """Item service: CRUD with ownership enforcement and lifecycle transitions.
 
 Owns the unit of work. Raises domain exceptions; never returns HTTP types.
-Embedding/matching are NOT triggered here yet — that is wired in M4/M5 (a
-`# TODO(M4)` marks the enqueue point).
+
+Creating or re-describing an item schedules the embed → match pipeline. The
+enqueue happens *after* the commit, never inside the transaction: a job that
+starts before the row is visible would read nothing and mark the item failed.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from app.models.user import User, UserRole
 from app.repositories.category import CategoryRepository
 from app.repositories.item import ItemRepository
 from app.schemas.item import ItemCreate, ItemUpdate
+from app.services.queue import JobQueue
 
 logger = get_logger(__name__)
 
@@ -27,11 +30,22 @@ def _now() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
 
 
+#  Editing any of these changes what the item *is*, so its embedding is stale
+#  and every suggestion derived from it needs recomputing. Editing a phone
+#  number or claim question does not.
+EMBEDDING_RELEVANT_FIELDS = frozenset(
+    {"title", "description", "category_id", "color", "brand"}
+)
+
+
 class ItemService:
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession, queue: JobQueue | None = None) -> None:
         self.session = session
         self.items = ItemRepository(session)
         self.categories = CategoryRepository(session)
+        #  Optional so existing callers (and tests) work unchanged; a null queue
+        #  simply means nothing is scheduled.
+        self.queue = queue or JobQueue(None)
 
     async def _require_category_exists(self, category_id: uuid.UUID | None) -> None:
         if category_id is not None and await self.categories.get(category_id) is None:
@@ -68,7 +82,7 @@ class ItemService:
             claim_questions=data.claim_questions,
         )
         await self.session.commit()
-        # TODO(M4): enqueue embed_item(item.id) once the worker pipeline exists.
+        await self.queue.embed_item(item.id)
         logger.info("item_created", extra={"item_id": str(item.id), "type": item.type.value})
         return await self._get_or_404(item.id)
 
@@ -84,7 +98,8 @@ class ItemService:
         if values:
             await self.items.update(item, **values)
             await self.session.commit()
-            # TODO(M4): if title/description/category changed, re-enqueue embedding.
+            if EMBEDDING_RELEVANT_FIELDS & values.keys():
+                await self.queue.embed_item(item.id)
         return await self._get_or_404(item.id)
 
     async def delete_item(self, user: User, item_id: uuid.UUID) -> None:

@@ -14,6 +14,7 @@ from app.models.item import (
     ProcessingStatus,
 )
 from app.models.item_image import ItemImage
+from app.models.match import Match, MatchFeedback, MatchStatus
 from app.models.notification import Notification, NotificationType
 from app.models.refresh_token import RefreshToken
 from app.models.user import User, UserRole, UserStatus
@@ -34,4 +35,7 @@ __all__ = [
     "NotificationType",
     "Claim",
     "ClaimStatus",
+    "Match",
+    "MatchStatus",
+    "MatchFeedback",
 ]

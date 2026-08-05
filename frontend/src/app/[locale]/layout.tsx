@@ -34,6 +34,11 @@ export async function generateMetadata({
     metadataBase: new URL(serverEnv.siteUrl),
     title: { default: t("siteName"), template: `%s · ${t("siteName")}` },
     description: t("description"),
+    icons: {
+      icon: "/favicon.jpg",
+      shortcut: "/favicon.jpg",
+      apple: "/favicon.jpg",
+    },
     openGraph: {
       siteName: t("siteName"),
       type: "website",
