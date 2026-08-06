@@ -1,10 +1,10 @@
 {
   "meta": {
-    "siteName": "Lost & Found",
+    "siteName": "l'almath",
     "description": "Report lost items, post things you've found, and let AI help reunite people with their things."
   },
   "common": {
-    "appName": "Lost & Found",
+    "appName": "l'almath",
     "loading": "Loading…",
     "retry": "Try again",
     "cancel": "Cancel",
@@ -460,12 +460,17 @@
     "claimQuestionTooLong": "Keep the question short"
   },
   "matches": {
+    "tierLabel": "Premium",
     "confidenceAria": "Match confidence {value}",
     "potentialMatch": "Potential match",
     "whyMatchAria": "Why this might be a match",
     "confirm": "This is it",
     "reject": "Not mine",
     "feedbackNote": "Your answer improves future matching",
+    "confirmedBadge": "Confirmed match",
+    "confirmedNote": "You confirmed this match. We've notified the other person so you can arrange the handover.",
+    "rejectedBadge": "Dismissed",
+    "rejectedNote": "You said this isn't yours. We won't suggest it again.",
     "empty": "No matches yet. We'll keep looking as new reports come in.",
     "searching": "Looking for matches…",
     "title": "Potential matches",

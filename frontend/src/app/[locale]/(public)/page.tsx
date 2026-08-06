@@ -11,7 +11,7 @@ import {
   MapPin,
   Search,
   ShieldCheck,
-  Sparkles,
+  ScanSearch,
 } from "lucide-react";
 
 import { listContainer, listItem, revealOnce, revealUp } from "@/animations";
@@ -29,7 +29,7 @@ import { RecentItemsStrip } from "@/features/items/components/recent-items-strip
 import { wilayasFor } from "@/lib/algeria-wilayas";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 
-const STEP_ICONS = [FileText, Sparkles, Handshake] as const;
+const STEP_ICONS = [FileText, ScanSearch, Handshake] as const;
 
 const ALL_ALGERIA = "all";
 
@@ -64,8 +64,7 @@ export default function LandingPage() {
           className="container relative flex flex-col items-center gap-6 py-section text-center md:py-section-lg"
         >
           <m.div variants={listItem}>
-            <Badge variant="ai-soft" className="px-3 py-1">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            <Badge variant="premium" className="px-3 py-1">
               {t("aiBadge")}
             </Badge>
           </m.div>
@@ -203,7 +202,7 @@ export default function LandingPage() {
                 <span
                   className={
                     step.ai
-                      ? "relative flex h-14 w-14 items-center justify-center rounded-2xl bg-ai-gradient text-ai-foreground shadow-md transition-transform duration-300 ease-out group-hover:scale-105"
+                      ? "relative flex h-14 w-14 items-center justify-center rounded-2xl bg-premium-gradient text-premium-foreground shadow-md transition-transform duration-300 ease-out group-hover:scale-105"
                       : "relative flex h-14 w-14 items-center justify-center rounded-2xl border bg-card text-primary shadow-sm transition-transform duration-300 ease-out group-hover:scale-105"
                   }
                 >

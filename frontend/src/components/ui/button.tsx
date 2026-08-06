@@ -30,8 +30,9 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/75",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        /* AI surfaces only — the single gradient in the product. */
-        ai: "bg-ai-gradient text-ai-foreground shadow-sm hover:shadow-md hover:brightness-110",
+        /* Paid-feature surfaces only — the single gradient in the product. */
+        premium:
+          "bg-premium-gradient text-premium-foreground shadow-sm hover:shadow-md hover:brightness-[1.06]",
       },
       size: {
         default: "h-10 px-4 py-2",

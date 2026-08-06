@@ -124,12 +124,14 @@ const config: Config = {
           muted: "hsl(var(--processing-muted))",
         },
 
-        /* AI surfaces only. */
-        ai: {
-          from: "hsl(var(--ai-from))",
-          to: "hsl(var(--ai-to))",
-          foreground: "hsl(var(--ai-foreground))",
-          muted: "hsl(var(--ai-muted))",
+        /* Paid-feature surfaces only. */
+        premium: {
+          from: "hsl(var(--premium-from))",
+          via: "hsl(var(--premium-via))",
+          to: "hsl(var(--premium-to))",
+          foreground: "hsl(var(--premium-foreground))",
+          ink: "hsl(var(--premium-ink))",
+          muted: "hsl(var(--premium-muted))",
         },
       },
 

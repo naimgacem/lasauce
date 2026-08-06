@@ -33,9 +33,18 @@ const badgeVariants = cva(
         "processing-soft":
           "border-processing/25 bg-processing-muted text-processing dark:text-processing dark:border-processing/30",
 
-        /* Reserved for AI surfaces only. */
-        ai: "border-transparent bg-ai-gradient text-ai-foreground",
-        "ai-soft": "border-ai-from/25 bg-ai-muted text-ai-from",
+        /* Reserved for the paid matching feature.
+           Outlined rather than filled: a solid gold pill shouts, and shouting
+           is what cheap looks like. A hairline rule with letter-spaced small
+           caps is how a premium tier labels itself. */
+        premium: [
+          "border-premium-ink/35 bg-premium-muted text-premium-ink",
+          "dark:border-premium-ink/30 dark:bg-premium-muted dark:text-premium-ink",
+          "text-[0.6875rem] font-medium uppercase tracking-[0.08em]",
+        ].join(" "),
+        /* Solid foil. For the one place that has to read as a seal. */
+        "premium-solid":
+          "border-transparent bg-premium-gradient text-premium-foreground font-medium",
       },
     },
     defaultVariants: {

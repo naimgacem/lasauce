@@ -8,7 +8,7 @@ import {
   CheckCheck,
   PackageCheck,
   PackageX,
-  Sparkles,
+  Gem,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,7 +22,9 @@ const TYPE_META: Record<
   NotificationType,
   { icon: LucideIcon; iconClass: string; ai?: boolean }
 > = {
-  match_found: { icon: Sparkles, iconClass: "text-white", ai: true },
+  //  Dark ink, not white: the badge behind it is gold, and white on gold
+  //  cannot reach 4.5:1 without muddying the colour into brown.
+  match_found: { icon: Gem, iconClass: "text-premium-foreground", ai: true },
   match_confirmed: { icon: CheckCheck, iconClass: "text-found" },
   item_claimed: { icon: PackageCheck, iconClass: "text-primary" },
   item_closed: { icon: PackageX, iconClass: "text-muted-foreground" },
@@ -65,7 +67,7 @@ export function NotificationItem({
         <span
           className={cn(
             "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-            meta.ai ? "bg-ai-gradient" : "bg-secondary",
+            meta.ai ? "bg-premium-gradient" : "bg-secondary",
           )}
           aria-hidden
         >

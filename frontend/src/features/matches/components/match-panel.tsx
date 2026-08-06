@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { RefreshCw, Sparkles } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -45,19 +45,16 @@ export function MatchPanel({ item, isOwner }: { item: Item; isOwner: boolean }) 
     ["pending", "embedding", "matching"].includes(data?.processing_status ?? "");
 
   return (
-    <div className="ring-ai-gradient rounded-2xl shadow-md">
+    <div className="ring-premium shadow-premium rounded-2xl">
       <Card className="rounded-[calc(1rem-1px)] border-0">
         <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2.5 text-heading-4">
-              <span
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-ai-gradient text-ai-foreground shadow-sm"
-                aria-hidden
-              >
-                <Sparkles className="h-4 w-4" />
-              </span>
-              {t("title")}
-            </CardTitle>
+          <div className="space-y-2">
+            {/* Small caps over the title rather than an icon beside it. A
+                label states the tier; a glyph decorates it. */}
+            <span className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-premium-ink">
+              {t("tierLabel")}
+            </span>
+            <CardTitle className="text-heading-4">{t("title")}</CardTitle>
             <CardDescription>{t("subtitle")}</CardDescription>
           </div>
           <Button
@@ -92,7 +89,13 @@ export function MatchPanel({ item, isOwner }: { item: Item; isOwner: boolean }) 
                 match={match}
                 onConfirm={() => confirm.mutate(match.match_id)}
                 onReject={() => reject.mutate(match.match_id)}
-                pending={confirm.isPending || reject.isPending}
+                //  Scoped to the card actually being submitted. A shared flag
+                //  would freeze every other suggestion while one request is in
+                //  flight, which reads as the whole panel breaking.
+                pending={
+                  (confirm.isPending && confirm.variables === match.match_id) ||
+                  (reject.isPending && reject.variables === match.match_id)
+                }
               />
             ))
           )}

@@ -1,10 +1,10 @@
 {
   "meta": {
-    "siteName": "Lost & Found",
+    "siteName": "l'almath",
     "description": "Signalez ce que vous avez perdu, publiez ce que vous avez trouvé, et laissez l'IA réunir les gens avec leurs affaires."
   },
   "common": {
-    "appName": "Lost & Found",
+    "appName": "l'almath",
     "loading": "Chargement…",
     "retry": "Réessayer",
     "cancel": "Annuler",
@@ -460,12 +460,17 @@
     "claimQuestionTooLong": "Gardez la question courte"
   },
   "matches": {
+    "tierLabel": "Premium",
     "confidenceAria": "Confiance de correspondance {value}",
     "potentialMatch": "Correspondance potentielle",
     "whyMatchAria": "Pourquoi ceci pourrait être une correspondance",
     "confirm": "C'est ça",
     "reject": "Pas à moi",
     "feedbackNote": "Votre réponse améliore les futures correspondances",
+    "confirmedBadge": "Correspondance confirmée",
+    "confirmedNote": "Vous avez confirmé cette correspondance. Nous avons prévenu l'autre personne afin d'organiser la remise.",
+    "rejectedBadge": "Écartée",
+    "rejectedNote": "Vous avez indiqué que ce n'est pas à vous. Nous ne la proposerons plus.",
     "empty": "Aucune correspondance pour l'instant. Nous continuons à chercher.",
     "searching": "Recherche de correspondances…",
     "title": "Correspondances potentielles",

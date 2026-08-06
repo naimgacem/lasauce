@@ -10,7 +10,7 @@ import {
   PackageSearch,
   Plus,
   Search,
-  Sparkles,
+  Gem,
   type LucideIcon,
 } from "lucide-react";
 
@@ -140,7 +140,7 @@ export default function DashboardPage() {
             icon={PackageSearch}
             accent="found"
           />
-          <StatCard label={t("statMatched")} value={stats.matched} icon={Sparkles} />
+          <StatCard label={t("statMatched")} value={stats.matched} icon={Gem} />
         </m.div>
       )}
 
@@ -193,11 +193,11 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* AI matching preview — flagship surface */}
+          {/* Paid matching preview — flagship surface */}
           <section aria-labelledby="ai-preview">
             <div className="mb-3 flex items-center justify-between">
               <h2 id="ai-preview" className="flex items-center gap-2 text-lg font-semibold">
-                <Sparkles className="h-4 w-4 text-primary" aria-hidden />
+                <Gem className="h-4 w-4 text-premium-ink" aria-hidden />
                 {t("aiMatching")}
               </h2>
               <Badge variant="secondary">{t("examplePreview")}</Badge>

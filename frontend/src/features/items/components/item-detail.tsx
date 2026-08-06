@@ -9,7 +9,6 @@ import {
   Clock,
   MapPin,
   Palette,
-  Sparkles,
   Tag,
   Trash2,
 } from "lucide-react";

@@ -8,7 +8,7 @@ const STATUS_VARIANT: Record<
   React.ComponentProps<typeof Badge>["variant"]
 > = {
   open: "secondary",
-  matched: "ai",
+  matched: "premium",
   claimed: "default",
   closed: "outline",
 };
