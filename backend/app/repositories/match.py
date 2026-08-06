@@ -42,6 +42,11 @@ class Candidate:
     lexical_sim: float
 
 
+def to_pgvector(embedding: Sequence[float]) -> str:
+    """pgvector's text form. Avoids depending on driver-level type registration."""
+    return "[" + ",".join(repr(float(x)) for x in embedding) + "]"
+
+
 def build_tsquery(*texts: str | None) -> str | None:
     """Build an OR tsquery from free text, or None when nothing is usable.
 
@@ -88,9 +93,47 @@ class MatchRepository(BaseRepository[Match]):
         them would make them permanently invisible to the engine. Exact category
         agreement is rewarded later, in `scoring.score_pair`, where it belongs.
         """
+        return await self._score(
+            item=item,
+            embedding=embedding,
+            tail="ORDER BY i.text_embedding <=> CAST(:qvec AS vector) LIMIT :k",
+            extra_params={"k": limit or settings.MATCH_TOPK},
+        )
+
+    async def score_specific(
+        self,
+        *,
+        item: Item,
+        embedding: Sequence[float],
+        item_ids: Sequence[uuid.UUID],
+    ) -> list[Candidate]:
+        """Text-score a known set of items, bypassing ANN retrieval.
+
+        Used for candidates that surfaced through image similarity alone: they
+        still need a text score so fusion has both modalities, but they were
+        never returned by the text query — by definition, since that is why they
+        needed the image route in the first place.
+        """
+        if not item_ids:
+            return []
+        return await self._score(
+            item=item,
+            embedding=embedding,
+            tail="AND i.id = ANY(:ids)",
+            extra_params={"ids": list(item_ids)},
+        )
+
+    async def _score(
+        self,
+        *,
+        item: Item,
+        embedding: Sequence[float],
+        tail: str,
+        extra_params: dict,
+    ) -> list[Candidate]:
+        """Shared projection + pre-filter. `tail` selects ANN or a fixed id set."""
         opposite = ItemType.found if item.type == ItemType.lost else ItemType.lost
         slack = dt.timedelta(days=settings.MATCH_DATE_SLACK_DAYS)
-        k = limit or settings.MATCH_TOPK
 
         sql = text(
             f"""
@@ -119,17 +162,14 @@ class MatchRepository(BaseRepository[Match]):
                  OR i.category_id = CAST(:category_id AS uuid)
               )
               AND i.lost_or_found_at BETWEEN :date_lo AND :date_hi
-            ORDER BY i.text_embedding <=> CAST(:qvec AS vector)
-            LIMIT :k
+            {tail}
             """
         )
 
         result = await self.session.execute(
             sql,
             {
-                #  pgvector parses its text form, which avoids depending on
-                #  driver-level type registration for the bind.
-                "qvec": "[" + ",".join(repr(float(x)) for x in embedding) + "]",
+                "qvec": to_pgvector(embedding),
                 "tsquery": build_tsquery(item.title, item.description),
                 "opposite": opposite.value,
                 "statuses": list(MATCHABLE_STATUSES),
@@ -137,7 +177,7 @@ class MatchRepository(BaseRepository[Match]):
                 "category_id": item.category_id,
                 "date_lo": item.lost_or_found_at - slack,
                 "date_hi": item.lost_or_found_at + slack,
-                "k": k,
+                **extra_params,
             },
         )
         return [
@@ -148,6 +188,73 @@ class MatchRepository(BaseRepository[Match]):
             )
             for row in result
         ]
+
+    async def retrieve_image_candidates(
+        self,
+        *,
+        item: Item,
+        embeddings: Sequence[Sequence[float]],
+        limit: int | None = None,
+    ) -> set[uuid.UUID]:
+        """Items whose photos resemble this item's photos.
+
+        A second, independent route into the candidate set. Text retrieval alone
+        misses the case the product most needs to handle: a two-word description
+        ("black bag") next to a clear photograph. Whoever writes that description
+        is relying entirely on the picture, and so must the matcher.
+
+        Returns ids only — the scoring pass computes the actual image similarity
+        from the loaded vectors, since it needs the best pair across both
+        galleries rather than the distance to one query photo.
+        """
+        if not embeddings:
+            return set()
+
+        opposite = ItemType.found if item.type == ItemType.lost else ItemType.lost
+        slack = dt.timedelta(days=settings.MATCH_DATE_SLACK_DAYS)
+        per_image = max(1, (limit or settings.MATCH_TOPK) // len(embeddings))
+
+        #  The nearest-neighbour ordering has to happen inside a subquery: with
+        #  `SELECT DISTINCT`, Postgres rejects an ORDER BY over an expression
+        #  that is not in the select list. Ordering first and de-duplicating
+        #  after is also what we want semantically — an item with three similar
+        #  photos should not crowd out three different items.
+        sql = text(
+            """
+            SELECT DISTINCT nearest.item_id
+            FROM (
+                SELECT ii.item_id
+                FROM item_images ii
+                JOIN items i ON i.id = ii.item_id
+                WHERE i.type = :opposite
+                  AND i.status = ANY(:statuses)
+                  AND i.id <> :item_id
+                  AND ii.image_embedding IS NOT NULL
+                  AND i.lost_or_found_at BETWEEN :date_lo AND :date_hi
+                ORDER BY ii.image_embedding <=> CAST(:qvec AS vector)
+                LIMIT :k
+            ) AS nearest
+            """
+        )
+
+        found: set[uuid.UUID] = set()
+        #  One ANN scan per query photo. An item holds at most
+        #  MAX_IMAGES_PER_ITEM (5) of them, and each scan is index-backed.
+        for embedding in embeddings:
+            result = await self.session.execute(
+                sql,
+                {
+                    "qvec": to_pgvector(embedding),
+                    "opposite": opposite.value,
+                    "statuses": list(MATCHABLE_STATUSES),
+                    "item_id": item.id,
+                    "date_lo": item.lost_or_found_at - slack,
+                    "date_hi": item.lost_or_found_at + slack,
+                    "k": per_image,
+                },
+            )
+            found.update(row.item_id for row in result)
+        return found
 
     async def load_items(self, item_ids: Sequence[uuid.UUID]) -> dict[uuid.UUID, Item]:
         """Load candidates with the relations scoring needs, in one round trip."""
@@ -219,13 +326,47 @@ class MatchRepository(BaseRepository[Match]):
             )
         )
 
+    async def expire_stale(
+        self,
+        *,
+        item_id: uuid.UUID,
+        keep: set[tuple[uuid.UUID, uuid.UUID]],
+    ) -> int:
+        """Retract suggestions this item no longer supports.
+
+        Re-scoring can only ever insert or update, so without this a suggestion
+        that drops below the persist threshold — because the description was
+        corrected, a misleading photo was deleted, or the scoring policy was
+        tuned — stays visible forever with the score it had on the day it was
+        written. The user keeps seeing a match the engine no longer believes in.
+
+        `expired` rather than DELETE: the row may already carry `match_feedback`,
+        which is training data, and an audit trail of what was once suggested is
+        worth more than the few bytes it costs. Settled rows are never touched —
+        a confirmed match is a fact about two people, not a score.
+        """
+        result = await self.session.execute(
+            select(Match).where(
+                (Match.lost_item_id == item_id) | (Match.found_item_id == item_id),
+                Match.status.notin_((*SETTLED_MATCH_STATUSES, "expired")),
+            )
+        )
+        expired = 0
+        for match in result.scalars().all():
+            if (match.lost_item_id, match.found_item_id) not in keep:
+                match.status = "expired"
+                expired += 1
+        return expired
+
     async def list_for_item(self, item_id: uuid.UUID) -> list[Match]:
-        """Suggestions for an item, from whichever side it sits on."""
+        """Live suggestions for an item, from whichever side it sits on."""
         result = await self.session.execute(
             select(Match)
             .where(
                 (Match.lost_item_id == item_id) | (Match.found_item_id == item_id),
-                Match.status != "rejected",
+                #  Rejected: the user said no. Expired: the engine no longer
+                #  stands behind it. Neither belongs on the page.
+                Match.status.notin_(("rejected", "expired")),
             )
             .order_by(Match.confidence.desc())
             .options(

@@ -64,6 +64,27 @@ def blend_lexical(vector_sim: float, lexical_sim: float) -> float:
     return clamp01((1.0 - w) * vector_sim + w * lexical_sim)
 
 
+def calibrate_image(raw: float | None) -> float | None:
+    """Rescale a raw CLIP cosine into something usable as a 0..1 similarity.
+
+    CLIP image embeddings are anisotropic — they sit in a narrow cone, so
+    *unrelated* photos land around 0.65-0.71 rather than near zero, while the
+    same object re-shot lands around 0.96. Passing the raw value to `fuse` makes
+    a missing-the-point photo look like 70% agreement and lifts weak text matches
+    over the persist threshold.
+
+    Mapping [floor, 1] onto [0, 1] recovers the signal, and clamping at zero
+    means "less alike than two random photos" reads as no evidence rather than
+    negative evidence.
+    """
+    if raw is None:
+        return None
+    floor = settings.MATCH_IMAGE_SIM_FLOOR
+    if floor >= 1.0:  # defensive: a misconfigured floor must not divide by zero
+        return clamp01(raw)
+    return clamp01((raw - floor) / (1.0 - floor))
+
+
 def fuse(text_score: float, image_score: float | None) -> float:
     """Weighted fusion that redistributes weight over the present modalities.
 
@@ -119,6 +140,9 @@ def score_pair(
     manufacture a match from an unrelated pair, which would be the worse failure
     (a false "we found your wallet" costs far more trust than a missed suggestion).
     """
+    #  Calibrated here, at the single entry point, so the score that is fused,
+    #  persisted and shown to the user are all the same number.
+    image_score = calibrate_image(image_score)
     combined = fuse(text_score, image_score)
     confidence = combined
     reasons: list[Reason] = []

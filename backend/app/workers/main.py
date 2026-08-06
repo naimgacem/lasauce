@@ -22,7 +22,9 @@ from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.db.session import AsyncSessionLocal
 from app.models.item import Item, ItemStatus, ProcessingStatus
+from app.models.item_image import ItemImage
 from app.services.matching_service import MatchingService
+from app.storage import get_storage
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -84,6 +86,51 @@ async def embed_item(ctx: dict[str, Any], item_id_str: str) -> str:
             await _set_status(session, item_id, ProcessingStatus.failed)
             raise
 
+    await ctx["redis"].enqueue_job("run_matching", item_id_str)
+    return "embedded"
+
+
+async def embed_image(ctx: dict[str, Any], image_id_str: str) -> str:
+    """Compute the CLIP vector for one uploaded photo, then re-match its item.
+
+    Per image rather than per item: photos arrive in a separate request after the
+    report is created, often one at a time, and re-encoding an item's whole
+    gallery on every upload would be wasted work. The re-match afterwards is what
+    lets a photo change the ranking of an item that was already scored on text.
+    """
+    from app.ml.image import encode_images
+
+    image_id = uuid.UUID(image_id_str)
+    async with AsyncSessionLocal() as session:
+        try:
+            row = await session.execute(
+                select(ItemImage).where(ItemImage.id == image_id)
+            )
+            image = row.scalar_one_or_none()
+            if image is None:
+                #  Deleted between upload and this job — normal, not an error.
+                logger.info("embed_image_missing", extra={"image_id": image_id_str})
+                return "missing"
+
+            blob = await get_storage().open(image.image_path)
+            vector = encode_images([blob])[0]
+            await session.execute(
+                update(ItemImage)
+                .where(ItemImage.id == image_id)
+                .values(image_embedding=vector)
+            )
+            await session.commit()
+            item_id_str = str(image.item_id)
+            logger.info(
+                "image_embedded",
+                extra={"image_id": image_id_str, "item_id": item_id_str},
+            )
+        except Exception:
+            logger.exception("embed_image_failed", extra={"image_id": image_id_str})
+            await session.rollback()
+            raise
+
+    #  Only matching is re-run: the text vector is untouched by a photo upload.
     await ctx["redis"].enqueue_job("run_matching", item_id_str)
     return "embedded"
 
@@ -161,7 +208,7 @@ class WorkerSettings:
     """arq configuration discovered by the `arq` CLI."""
 
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
-    functions = [ping, embed_item, run_matching, sweep_stuck]
+    functions = [ping, embed_item, embed_image, run_matching, sweep_stuck]
     cron_jobs = [cron(sweep_stuck, minute={5, 35}, run_at_startup=False)]
     on_startup = on_startup
     on_shutdown = on_shutdown

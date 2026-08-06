@@ -11,11 +11,12 @@ import uuid
 from fastapi import APIRouter, Depends, File, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_active_user, get_db
+from app.api.deps import get_current_active_user, get_db, get_queue
 from app.core.config import get_settings
 from app.models.user import User
 from app.schemas.item import ItemImageRead
 from app.services.image_service import ImageService
+from app.services.queue import JobQueue
 
 router = APIRouter()
 settings = get_settings()
@@ -32,8 +33,9 @@ async def upload_images(
     files: list[UploadFile] = File(..., description="JPEG, PNG or WebP"),
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
+    queue: JobQueue = Depends(get_queue),
 ) -> list[ItemImageRead]:
-    images = await ImageService(db).add_images(user, item_id, files)
+    images = await ImageService(db, queue).add_images(user, item_id, files)
     return [ItemImageRead.model_validate(i) for i in images]
 
 
@@ -47,6 +49,7 @@ async def delete_image(
     image_id: uuid.UUID,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
+    queue: JobQueue = Depends(get_queue),
 ) -> Response:
-    await ImageService(db).delete_image(user, item_id, image_id)
+    await ImageService(db, queue).delete_image(user, item_id, image_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

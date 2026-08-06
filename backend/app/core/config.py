@@ -79,6 +79,16 @@ class Settings(BaseSettings):
     #  drops into the existing `items.text_embedding` column unchanged.
     TEXT_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     TEXT_EMBED_DIM: int = 384
+    #  CLIP, via sentence-transformers rather than `open_clip`: it is already a
+    #  dependency, exposes the same `.encode()` the text model uses, and emits
+    #  the 512-d vectors `item_images.image_embedding` was created for.
+    #
+    #  The plain (English) CLIP is correct here despite the multilingual text
+    #  model: images are only ever compared to images, so no language is
+    #  involved. A multilingual CLIP variant would only matter for cross-modal
+    #  text→image search, which is a later feature.
+    IMAGE_MODEL_NAME: str = "sentence-transformers/clip-ViT-B-32"
+    IMAGE_EMBED_DIM: int = 512
     ML_DEVICE: str = "cpu"  # cpu | cuda
     #  Encoding is batched; larger batches are faster but hold more RAM. 32 keeps
     #  the worker comfortably under 1.5GB on CPU.
@@ -96,6 +106,14 @@ class Settings(BaseSettings):
     # --- Matching: fusion weights ---
     MATCH_W_TEXT: float = 0.5
     MATCH_W_IMAGE: float = 0.5
+    #  Raw CLIP cosine is NOT a 0..1 similarity. Its embeddings occupy a narrow
+    #  cone, so two completely unrelated photos still score ~0.65-0.71 (measured
+    #  on this corpus), while the same object re-shot scores ~0.96. Feeding the
+    #  raw number into fusion means an unrelated photo *adds* ~0.7 of apparent
+    #  evidence and pushes weak text matches over the persist threshold.
+    #  Rescaling from this floor to 1.0 restores the discrimination: 0.69 -> 0.11,
+    #  0.96 -> 0.89. Raise it if unrelated photos still surface.
+    MATCH_IMAGE_SIM_FLOOR: float = 0.65
     #  Blended into the text score. Embeddings capture meaning but blur exact
     #  tokens: "iPhone 14 Pro" and "iPhone 13 Pro" are near-identical vectors.
     #  Postgres FTS (migration 0005) knows they differ, so a lexical term rescues

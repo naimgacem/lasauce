@@ -37,6 +37,7 @@ from app.models.item import Item
 from app.models.item_image import ItemImage
 from app.models.user import User, UserRole
 from app.repositories.item import ItemRepository
+from app.services.queue import JobQueue
 from app.storage import get_storage
 
 logger = get_logger(__name__)
@@ -108,10 +109,11 @@ def _normalise(data: bytes, filename: str) -> bytes:
 
 
 class ImageService:
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession, queue: JobQueue | None = None) -> None:
         self.session = session
         self.items = ItemRepository(session)
         self.storage = get_storage()
+        self.queue = queue or JobQueue(None)
 
     @staticmethod
     def _assert_can_manage(item: Item, user: User) -> None:
@@ -190,6 +192,9 @@ class ImageService:
 
         for image in created:
             await self.session.refresh(image)
+            #  After the commit: the job reads this row from its own session, so
+            #  enqueuing earlier would race an uncommitted insert.
+            await self.queue.embed_image(image.id)
         return created
 
     async def delete_image(
@@ -209,4 +214,8 @@ class ImageService:
         # is recoverable, a row pointing at a missing file renders as a broken
         # image for every visitor.
         await self.storage.delete(key)
+        #  Existing suggestions may have been scored on the photo just removed;
+        #  without a re-match they keep an image_score derived from evidence
+        #  that no longer exists.
+        await self.queue.run_matching(item_id)
         logger.info("item_image_deleted", extra={"item_id": str(item_id), "key": key})

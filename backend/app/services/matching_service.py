@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.ml import scoring
+from app.ml.image import best_pair_similarity
 from app.models.item import Item, ItemType
 from app.models.match import Match
 from app.models.notification import NotificationType
@@ -47,8 +48,30 @@ class MatchingService:
         candidates = await self.matches.retrieve_candidates(
             item=item, embedding=item.text_embedding
         )
+
+        #  Second, independent route into the candidate set: items whose photos
+        #  resemble ours but whose wording never surfaced them. This is what
+        #  rescues a good photograph attached to a two-word description.
+        own_vectors = [img.image_embedding for img in item.images if img.image_embedding is not None]
+        image_only_ids = await self.matches.retrieve_image_candidates(
+            item=item, embeddings=own_vectors
+        )
+        image_only_ids -= {c.item_id for c in candidates}
+        if image_only_ids:
+            candidates += await self.matches.score_specific(
+                item=item, embedding=item.text_embedding, item_ids=sorted(image_only_ids)
+            )
+
         if not candidates:
-            logger.info("matching_no_candidates", extra={"item_id": str(item_id)})
+            #  Retract here too: an item whose whole candidate pool disappeared
+            #  (every counterpart closed, or the date window moved) must not keep
+            #  showing the suggestions it had last time.
+            expired = await self.matches.expire_stale(item_id=item.id, keep=set())
+            await self.session.commit()
+            logger.info(
+                "matching_no_candidates",
+                extra={"item_id": str(item_id), "expired": expired},
+            )
             return 0
 
         candidate_items = await self.matches.load_items([c.item_id for c in candidates])
@@ -61,9 +84,23 @@ class MatchingService:
                 continue
             lost, found = self._orient(item, other)
             text_score = scoring.blend_lexical(candidate.vector_sim, candidate.lexical_sim)
-            #  image_score stays None until the CLIP phase; fusion then collapses
-            #  to text alone rather than penalising the missing modality.
-            scored.append((other, scoring.score_pair(lost=lost, found=found, text_score=text_score)))
+            #  None when either side has no photo — fusion then collapses to text
+            #  alone rather than penalising the missing modality.
+            image_score = best_pair_similarity(
+                own_vectors,
+                [img.image_embedding for img in other.images if img.image_embedding is not None],
+            )
+            scored.append(
+                (
+                    other,
+                    scoring.score_pair(
+                        lost=lost,
+                        found=found,
+                        text_score=text_score,
+                        image_score=image_score,
+                    ),
+                )
+            )
 
         #  Distinctiveness is relative, so it can only be applied once the whole
         #  field is scored.
@@ -78,6 +115,14 @@ class MatchingService:
         existing = await self.matches.get_existing(
             [tuple(i.id for i in self._orient(item, other)) for other, _ in keepers]
         )
+
+        #  Anything this pass no longer supports is retracted, so a re-score can
+        #  withdraw a suggestion and not just add one.
+        keep_pairs = {
+            (lost.id, found.id)
+            for lost, found in (self._orient(item, other) for other, _ in keepers)
+        }
+        expired = await self.matches.expire_stale(item_id=item.id, keep=keep_pairs)
 
         persisted = 0
         for other, score in keepers:
@@ -105,6 +150,7 @@ class MatchingService:
                 "item_id": str(item_id),
                 "candidates": len(candidates),
                 "persisted": persisted,
+                "expired": expired,
             },
         )
         return persisted

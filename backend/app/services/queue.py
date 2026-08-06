@@ -17,6 +17,7 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 EMBED_ITEM = "embed_item"
+EMBED_IMAGE = "embed_image"
 RUN_MATCHING = "run_matching"
 
 
@@ -46,6 +47,10 @@ class JobQueue:
         here delays matching rather than losing it permanently.
         """
         return await self.enqueue(EMBED_ITEM, str(item_id))
+
+    async def embed_image(self, image_id: uuid.UUID) -> bool:
+        """Queue CLIP encoding for one uploaded photo, which then re-matches."""
+        return await self.enqueue(EMBED_IMAGE, str(image_id))
 
     async def run_matching(self, item_id: uuid.UUID) -> bool:
         """Re-match without re-embedding — for a forced rematch."""
