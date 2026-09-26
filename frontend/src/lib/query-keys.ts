@@ -38,3 +38,17 @@ export const matchKeys = {
   forItem: (itemId: string) => [...matchKeys.all, "item", itemId] as const,
   detail: (id: string) => [...matchKeys.all, "detail", id] as const,
 };
+
+export const billingKeys = {
+  all: ["billing"] as const,
+  packs: () => [...billingKeys.all, "packs"] as const,
+  /**
+   * Invalidated by every unlock and every settled payment. `matchKeys` is
+   * invalidated alongside it — the balance and the cards it gates are one piece
+   * of state to the user, and refreshing only half of it shows a card that
+   * opened next to a chip that still says zero.
+   */
+  entitlements: () => [...billingKeys.all, "entitlements"] as const,
+  payments: () => [...billingKeys.all, "payments"] as const,
+  payment: (id: string) => [...billingKeys.all, "payment", id] as const,
+};

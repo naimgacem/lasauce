@@ -79,6 +79,30 @@ export function formatConfidence(score: number, locale = "fr"): string {
   }).format(score);
 }
 
+/**
+ * 200 → "200 DZD" — prices for the paid matching tier.
+ *
+ * `currencyDisplay: "code"` rather than the default symbol: `Intl` renders DZD
+ * as "DA" in French and "د.ج" in Arabic, so the same price reads as three
+ * different things across the three locales the app ships. A price the customer
+ * cannot compare between tabs is a price they distrust.
+ *
+ * No fraction digits: Chargily settles DZD in whole dinars, so a decimal place
+ * here would advertise a precision the payment rail does not have.
+ */
+export function formatPrice(
+  amount: number,
+  currency = "dzd",
+  locale = "fr",
+): string {
+  return new Intl.NumberFormat(intlLocale(locale), {
+    style: "currency",
+    currency: currency.toUpperCase(),
+    currencyDisplay: "code",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export function titleCase(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }

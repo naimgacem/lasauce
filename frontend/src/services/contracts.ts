@@ -11,6 +11,13 @@ import type {
   RegisterPayload,
   User,
 } from "@/types/auth";
+import type {
+  Checkout,
+  CreditPack,
+  Entitlements,
+  Payment,
+  UnlockResult,
+} from "@/types/billing";
 import type { Category } from "@/types/category";
 import type { Claim, CreateClaimPayload } from "@/types/claim";
 import type {
@@ -67,11 +74,34 @@ export interface NotificationsApi {
 export interface MatchesApi {
   forItem(itemId: string): Promise<MatchSuggestions>;
   get(id: string): Promise<MatchSuggestion>;
+  /**
+   * Spend a credit (or the free allowance) to reveal one suggestion.
+   * Idempotent — unlocking an already-open match charges nothing.
+   * Throws a 402 `ApiError` when the balance is short; that is the signal to
+   * open the paywall, and the only one that should.
+   */
+  unlock(id: string): Promise<UnlockResult>;
   confirm(id: string): Promise<MatchSuggestion>;
   reject(id: string): Promise<MatchSuggestion>;
   feedback(id: string, payload: MatchFeedbackPayload): Promise<void>;
-  /** Re-embed and re-match. Returns once queued, not once finished. */
+  /** Re-embed and re-match. Returns once queued, not once finished. Free. */
   rematch(itemId: string): Promise<void>;
+}
+
+export interface BillingApi {
+  /** The price ladder. Static per deploy. */
+  packs(): Promise<CreditPack[]>;
+  entitlements(): Promise<Entitlements>;
+  checkout(payload: { pack_id: string; locale: string }): Promise<Checkout>;
+  payments(): Promise<Payment[]>;
+  /**
+   * One payment — polled by the return page. The authoritative status, as
+   * opposed to whatever the gateway's redirect URL claims: that URL can be
+   * retyped, shared, or reached with the Back button.
+   */
+  payment(id: string): Promise<Payment>;
+  /** Dev-only: settle a `manual` payment. Refused when APP_ENV=production. */
+  simulate(id: string): Promise<Payment>;
 }
 
 export interface ClaimsApi {
@@ -96,4 +126,5 @@ export interface Api {
   notifications: NotificationsApi;
   matches: MatchesApi;
   claims: ClaimsApi;
+  billing: BillingApi;
 }

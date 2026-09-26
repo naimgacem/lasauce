@@ -1,0 +1,228 @@
+// ERD source for dbdiagram.io. This describes the implemented PostgreSQL schema;
+// it contains no real user data, passwords, API keys, or database credentials.
+
+Enum user_role {
+  user
+  admin
+}
+
+Enum user_status {
+  active
+  suspended
+  deleted
+}
+
+Enum item_type {
+  lost
+  found
+}
+
+Enum item_status {
+  open
+  matched
+  claimed
+  closed
+}
+
+Enum item_closed_reason {
+  recovered
+  expired
+  withdrawn
+  duplicate
+}
+
+Table users {
+  id uuid [pk, not null]
+  email citext [not null, unique]
+  password_hash varchar [not null]
+  full_name varchar [not null]
+  phone varchar
+  role user_role [not null, default: 'user']
+  status user_status [not null, default: 'active']
+  avatar_url varchar
+  is_verified boolean [not null, default: false]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table refresh_tokens {
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  token_hash varchar [not null, unique]
+  expires_at timestamptz [not null]
+  revoked_at timestamptz
+  replaced_by uuid
+  user_agent varchar
+  ip inet
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table categories {
+  id uuid [pk, not null]
+  parent_id uuid
+  name varchar(120) [not null]
+  slug varchar(160) [not null, unique]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table items {
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  type item_type [not null]
+  status item_status [not null, default: 'open']
+  processing_status varchar(20) [not null, default: 'pending', note: 'pending | embedding | matching | ready | failed']
+  title varchar(255) [not null]
+  description text [not null]
+  search_vector tsvector [note: 'Generated PostgreSQL full-text search column']
+  category_id uuid
+  color varchar(80)
+  brand varchar(120)
+  location_text varchar(500)
+  wilaya_code smallint
+  latitude float
+  longitude float
+  lost_or_found_at timestamptz [not null]
+  claim_questions jsonb [not null, note: 'Verification questions']
+  closed_reason item_closed_reason
+  closed_at timestamptz
+  text_embedding vector(384) [note: 'AI embedding']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table item_images {
+  id uuid [pk, not null]
+  item_id uuid [not null]
+  image_path varchar(1024) [not null]
+  image_embedding vector(512) [note: 'AI image embedding']
+  blur_preview text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table notifications {
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  type varchar(32) [not null, note: 'match_found | match_confirmed | item_claimed | item_closed | system']
+  title varchar(255) [not null]
+  body text [not null]
+  is_read boolean [not null, default: false]
+  item_id uuid
+  match_id uuid [note: 'Not enforced as a database foreign key']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table claims {
+  id uuid [pk, not null]
+  item_id uuid [not null]
+  claimant_id uuid [not null]
+  status varchar(16) [not null, default: 'pending', note: 'pending | approved | rejected | withdrawn']
+  message text
+  answers jsonb [not null]
+  resolved_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (item_id, claimant_id) [unique, name: 'uq_claims_open_per_claimant', note: 'Unique only while status is pending']
+  }
+}
+
+Table matches {
+  id uuid [pk, not null]
+  lost_item_id uuid [not null]
+  found_item_id uuid [not null]
+  status varchar(16) [not null, default: 'suggested', note: 'pending | suggested | confirmed | rejected | expired']
+  text_score float [not null]
+  image_score float
+  combined_score float [not null]
+  confidence float [not null, note: 'Range: 0 to 1']
+  explanation jsonb [not null]
+  resolved_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (lost_item_id, found_item_id) [unique]
+  }
+}
+
+Table match_feedback {
+  id uuid [pk, not null]
+  match_id uuid [not null]
+  user_id uuid [not null]
+  is_correct boolean [not null]
+  comment text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (match_id, user_id) [unique]
+  }
+}
+
+Table payments {
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  pack_id varchar(32) [not null]
+  credits int [not null]
+  amount int [not null]
+  currency varchar(3) [not null, default: 'dzd']
+  status varchar(16) [not null, default: 'pending', note: 'pending | paid | failed | canceled | expired']
+  provider varchar(32) [not null]
+  provider_ref varchar(255)
+  checkout_url varchar(2048)
+  provider_payload jsonb [not null]
+  failure_reason varchar(255)
+  paid_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table credit_ledger {
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  delta int [not null, note: 'Signed credit movement; never zero']
+  reason varchar(16) [not null, note: 'purchase | unlock | grant | refund']
+  payment_id uuid
+  match_id uuid
+  note varchar(255)
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table match_unlocks {
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  match_id uuid [not null]
+  source varchar(16) [not null, default: 'credit', note: 'credit | free_allowance | grant']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (user_id, match_id) [unique]
+  }
+}
+
+Ref: refresh_tokens.user_id > users.id
+Ref: categories.parent_id > categories.id
+Ref: items.user_id > users.id
+Ref: items.category_id > categories.id
+Ref: item_images.item_id > items.id
+Ref: notifications.user_id > users.id
+Ref: notifications.item_id > items.id
+Ref: claims.item_id > items.id
+Ref: claims.claimant_id > users.id
+Ref: matches.lost_item_id > items.id
+Ref: matches.found_item_id > items.id
+Ref: match_feedback.match_id > matches.id
+Ref: match_feedback.user_id > users.id
+Ref: payments.user_id > users.id
+Ref: credit_ledger.user_id > users.id
+Ref: credit_ledger.payment_id > payments.id
+Ref: credit_ledger.match_id > matches.id
+Ref: match_unlocks.user_id > users.id
+Ref: match_unlocks.match_id > matches.id

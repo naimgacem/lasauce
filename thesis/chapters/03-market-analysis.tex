@@ -1,0 +1,394 @@
+\chapter{STRATEGIC MARKET ANALYSIS}
+\label{ch:market}
+
+\section{The market segment}
+
+\subsection{The potential market}
+
+The service addresses anyone who can lose a personal object and reach a web
+platform to say so. In Algeria that population is large and, more importantly,
+almost entirely connected.
+
+\begin{table}[htbp]
+\centering
+\caption{Addressable population in Algeria}
+\label{tab:market-size}
+\small
+\begin{tabularx}{\textwidth}{@{}X r l@{}}
+\toprule
+\textbf{Indicator} & \textbf{Value} & \textbf{Source} \\
+\midrule
+Population (Q2 2025 estimate)            & 47.40 M  & ARPCE~\cite{arpce2025} \\
+Internet users (January 2025)            & 36.20 M  & DataReportal~\cite{datareportal2025} \\
+Internet penetration                     & 76.9\,\% & DataReportal~\cite{datareportal2025} \\
+Internet subscriptions (Q2 2025)         & 59.10 M  & ARPCE~\cite{arpce2025} \\
+\quad of which mobile                    & 88.71\,\% & ARPCE~\cite{arpce2025} \\
+\quad of which fixed-line                & 11.29\,\% & ARPCE~\cite{arpce2025} \\
+Mobile lines                             & 54.80 M  & ARPCE~\cite{arpce2025} \\
+Mobile penetration rate                  & 115.77\,\% & ARPCE~\cite{arpce2025} \\
+Urban population                         & $\approx$ 66.8\,\% & Macrotrends~\cite{macrotrends2025} \\
+University students (2024--2025)         & $>$ 1.80 M & MESRS~\cite{mesrs2025} \\
+Higher-education institutions            & $>$ 130   & MESRS~\cite{mesrs2025} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Three features of this market shape the product directly.
+
+\paragraph{It is mobile-first, decisively.} Nearly nine internet subscriptions
+in ten are mobile~\cite{arpce2025}. A citizen who has just lost a wallet is
+standing in the street with a telephone, not sitting at a desk. This is why the
+platform is a responsive web application requiring no installation rather than a
+store-distributed app: at the moment of loss, the friction of downloading
+anything is the friction that loses the report.
+
+\paragraph{It is urban.} Roughly two thirds of Algerians live in urban
+areas~\cite{macrotrends2025}, and loss events concentrate further still --- in
+transport, markets, campuses and commercial centres. Density matters more than
+national totals for this product, because matching only works where both a loss
+and a discovery occur within the same place and period.
+
+\paragraph{It is multilingual.} Arabic, French and English circulate together,
+frequently inside a single sentence. Any system that compares reports by
+keyword fragments this market into non-communicating sub-pools. The multilingual
+encoder described in Chapter~\ref{ch:prototype} is a response to this market
+structure, not a technical preference.
+
+\subsection{The target market}
+
+The potential market is not the market to launch into. Matching produces value
+only at density: one thousand reports concentrated in a single wilaya are worth
+far more than ten thousand spread across the country. The go-to-market therefore
+narrows deliberately, as shown in Figure~\ref{fig:market-funnel}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+
+  \node[draw=uamobblue, fill=uamobblue!8, rounded corners=2pt, align=center,
+        font=\footnotesize, text width=12.4cm, inner sep=6pt] (tam) at (0,4)
+    {\textbf{TAM --- Total addressable market}\\
+     36.2 million internet users in Algeria~\cite{datareportal2025}};
+
+  \node[draw=uamobblue, fill=uamobblue!16, rounded corners=2pt, align=center,
+        font=\footnotesize, text width=9.4cm, inner sep=6pt] (sam) at (0,2.2)
+    {\textbf{SAM --- Serviceable available market}\\
+     urban connected population, $\approx$ 24 million\\
+     {\scriptsize(internet users $\times$ 66.8\,\% urban share)}};
+
+  \node[draw=uamobblue, fill=uamobblue!30, rounded corners=2pt, align=center,
+        font=\footnotesize, text width=6.4cm, inner sep=6pt] (som) at (0,0.4)
+    {\textbf{SOM --- Serviceable obtainable market}\\
+     pilot wilayas and partner campuses\\
+     {\scriptsize(year one: Bouira, then Algiers)}};
+
+  \draw[flowarrow] (tam.south) -- (sam.north);
+  \draw[flowarrow] (sam.south) -- (som.north);
+
+\end{tikzpicture}
+\caption{Market funnel. The serviceable available market is an approximation
+obtained by applying the national urban share to the connected population; it is
+indicative rather than surveyed.}
+\label{fig:market-funnel}
+\end{figure}
+
+The launch segment is therefore \textbf{connected urban residents of dense
+wilayas, reached first through institutions rather than individually}. Three
+characteristics define it:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Students and campus staff.} More than 1.8 million students study
+        across over 130 institutions~\cite{mesrs2025}. A campus is a bounded
+        space with high object turnover, an existing lost-property desk, and a
+        population already comfortable with digital services --- the ideal pilot
+        ground, and the reason the first deployment targets Akli Mohand Oulhadj
+        University of Bouira.
+  \item \textbf{Users of public transport and commercial centres}, where loss
+        events cluster and where operators already hold unsearchable registers.
+  \item \textbf{People who already report losses online}, in social-media
+        groups. They have demonstrated the behaviour the platform needs; what
+        they lack is a system that does the comparing.
+\end{itemize}
+
+\section{Competitor analysis}
+
+\subsection{Direct competitors}
+
+\paragraph{Social-media groups.} Dedicated Facebook groups for lost and found
+objects exist in most Algerian cities and are, in practice, the incumbent. Their
+strength is real: they are free, already populated, and require nothing new from
+the user. Their limitation is structural rather than incidental. A post is
+unstructured text in a reverse-chronological feed; it is not indexed, cannot be
+filtered by category, place or date, and --- decisively --- nobody rereads last
+month's posts against today's. The comparison work is left entirely to human
+attention, which does not scale and does not persist.
+
+\paragraph{Classified-ads platforms.} General marketplaces such as Ouedkniss
+carry occasional lost-and-found listings. They provide structure and search, but
+they are built for a seller who wants to be found by a buyer who knows what they
+are looking for. Lost property inverts that: neither party knows the other
+exists, and neither can formulate the query that would surface the other.
+
+\paragraph{Institutional lost-property desks.} Universities, transport
+operators and municipalities each hold objects and each keeps a register. These
+are not really competitors --- they are the intended partners of
+Chapter~\ref{ch:organization}. But as things stand they compete for the same
+event, and they fail at it: the registers are private, local, paper-based, and
+searchable only by physically visiting during opening hours.
+
+\subsection{Indirect competitors}
+
+\paragraph{Bluetooth trackers.} Devices such as Apple AirTag or Samsung
+SmartTag locate an object that has been prepared in advance. They work well for
+what they cover and cannot cover most of the problem: the tracker must be bought
+and attached \emph{before} the loss, one per object, and it does nothing for a
+wallet, a set of identity papers, a document folder or a piece of jewellery.
+They also locate an object without connecting the finder to the owner.
+
+\paragraph{Device-level recovery features.} \dq{Find My Device} functionality is
+built into modern phones and is the correct tool for a lost phone. It applies to
+exactly one category of object, and only while the device retains power and
+connectivity.
+
+\paragraph{Insurance and replacement.} Replacing what was lost is the substitute
+of last resort. It is slow for administrative documents, expensive for
+electronics, and impossible for anything of sentimental value.
+
+\paragraph{Doing nothing.} The realistic default, and the true incumbent. Most
+losses are never reported anywhere, because the perceived probability of
+recovery does not justify the effort. This is the behaviour the product must
+change, and it sets the standard the interface has to meet: reporting must take
+less effort than giving up.
+
+\begin{table}[htbp]
+\centering
+\caption{Strengths and weaknesses of the competition}
+\label{tab:competitors}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.1cm} X X@{}}
+\toprule
+\textbf{Competitor} & \textbf{Strengths} & \textbf{Weaknesses} \\
+\midrule
+Social-media groups
+  & Free; already populated; no new habit to learn; strong local reach
+  & No structure, no index, no filtering; posts scroll out of sight in hours;
+    no comparison of old reports against new; contact details exposed publicly \\
+\addlinespace
+Institutional desks
+  & Physically hold the objects; trusted; already exist
+  & One private register per desk; local only; in-person and office hours;
+    no cross-institution search \\
+\addlinespace
+Classified-ads platforms
+  & Structured listings; search; national audience
+  & Built for a known-item query; neither party can formulate the search;
+    lost property is a marginal use case with no dedicated workflow \\
+\addlinespace
+Bluetooth trackers
+  & Reliable for a prepared object; precise location
+  & Must be purchased and attached before the loss; one device per object;
+    useless for papers, wallets, keyrings without a tag; does not connect
+    finder to owner \\
+\addlinespace
+Doing nothing
+  & Costs no effort
+  & Recovers nothing \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Positioning}
+
+Two axes separate these options, and together they leave a quadrant empty.
+The first is \textbf{who performs the search} --- the user, or the system. The
+second is whether the solution \textbf{works on any object without preparation
+before the loss}. Figure~\ref{fig:positioning} places the alternatives.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+
+  \fill[uamobblue!7, rounded corners=2pt] (0.15,0.15) rectangle (5.9,3.9);
+
+  \draw[->, thick, draw=rulegray] (0,0) -- (6.2,0)
+    node[right, font=\scriptsize, align=left] {search performed\\by the system};
+  \draw[->, thick, draw=rulegray] (0,0) -- (0,4.2)
+    node[above, font=\scriptsize, align=center] {works on any object,\\no preparation};
+
+  \node[font=\scriptsize, anchor=north east] at (6.2,-0.15) {automatic};
+  \node[font=\scriptsize, anchor=north west] at (0,-0.15) {manual};
+
+  \node[draw=rulegray, fill=white, rounded corners=2pt, font=\tiny,
+        align=center, inner sep=3pt] at (1.35,3.15)
+    {Social-media\\groups};
+  \node[draw=rulegray, fill=white, rounded corners=2pt, font=\tiny,
+        align=center, inner sep=3pt] at (1.35,2.05)
+    {Institutional\\desks};
+  \node[draw=rulegray, fill=white, rounded corners=2pt, font=\tiny,
+        align=center, inner sep=3pt] at (2.5,1.15)
+    {Classified\\ads};
+  \node[draw=rulegray, fill=white, rounded corners=2pt, font=\tiny,
+        align=center, inner sep=3pt] at (4.75,0.75)
+    {Bluetooth\\trackers};
+  \node[draw=rulegray, fill=white, rounded corners=2pt, font=\tiny,
+        align=center, inner sep=3pt] at (4.75,0.05)
+    {\dq{Find My}\\device};
+
+  \node[draw=uamobblue, fill=uamobblue!25, thick, rounded corners=2pt,
+        font=\scriptsize\bfseries, align=center, inner sep=4pt] at (4.7,3.2)
+    {\projectname};
+
+\end{tikzpicture}
+\caption{Competitive positioning. The upper-right quadrant --- automatic search
+that works on any object without prior preparation --- is unoccupied.}
+\label{fig:positioning}
+\end{figure}
+
+\section{SWOT analysis}
+
+\subsection{Purpose of the SWOT analysis}
+
+The analysis serves two purposes here. It states plainly what the project can
+rely on and what it cannot, and it forces the weaknesses to be named before a
+jury or an investor names them. The most consequential entry below is not a
+strength: it is the cold-start problem, which determines whether the platform
+works at all in its first year, and which the go-to-market of
+Section~\ref{sec:marketing} is built specifically to answer.
+
+\subsection{SWOT matrix}
+
+\begin{table}[htbp]
+\centering
+\caption{SWOT matrix}
+\label{tab:swot}
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries}p{2.3cm} X@{}}
+\toprule
+Strengths &
+\begin{itemize}[leftmargin=1em,nosep,topsep=2pt]
+  \item Multimodal matching engine combining semantic text and image similarity,
+        already implemented and working
+  \item Genuinely multilingual --- the same pool serves Arabic, French and
+        English reports without fragmenting
+  \item Privacy-preserving claim workflow: a match never exposes contact details
+  \item No per-request AI cost; inference runs locally on open models, which is
+        what makes free access sustainable
+  \item Explained confidence rather than opaque ranking
+  \item Built on open-source infrastructure with no licence fees
+\end{itemize} \\
+\midrule
+Weaknesses &
+\begin{itemize}[leftmargin=1em,nosep,topsep=2pt]
+  \item \textbf{Cold start.} The platform is worth little until both pools are
+        populated, and the found side is the scarcer one
+  \item No revenue from the primary user, by design --- monetisation is indirect
+        and unproven
+  \item Scoring constants are hand-tuned; calibration awaits real feedback data
+  \item Small team with no operational track record
+  \item Dependent on voluntary honesty; verification questions mitigate but do
+        not eliminate fraudulent claims
+  \item Matching quality has been validated on a demonstration corpus, not in
+        the field
+\end{itemize} \\
+\midrule
+Opportunities &
+\begin{itemize}[leftmargin=1em,nosep,topsep=2pt]
+  \item 76.9\,\% internet penetration and a 115.77\,\% mobile penetration
+        rate~\cite{datareportal2025,arpce2025} --- the audience is already
+        connected
+  \item No incumbent occupies the automatic-matching quadrant
+        (Figure~\ref{fig:positioning})
+  \item Institutions already hold unsearchable registers and gain from
+        publishing them
+  \item National Startup Label and ANADE financing mechanisms actively support
+        ventures of this kind~\cite{startupdz,anade2025}
+  \item Over 1.8 million students~\cite{mesrs2025} concentrated in bounded
+        campuses --- dense, reachable pilot grounds
+  \item The same engine extends to adjacent categories (documents, vehicle
+        papers, pets) with no architectural change
+\end{itemize} \\
+\midrule
+Threats &
+\begin{itemize}[leftmargin=1em,nosep,topsep=2pt]
+  \item A social-media platform adding structured lost-and-found features
+  \item Abuse: fraudulent claims, spam reports, or use of the platform to locate
+        people rather than objects
+  \item Personal-data obligations around photographs and identity information
+  \item Network effects favour whoever reaches density first --- being second is
+        close to being absent
+  \item Infrastructure costs scaling with image storage before revenue does
+  \item Low trust in online handovers between strangers
+\end{itemize} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{The marketing strategy}
+\label{sec:marketing}
+
+\subsection{Marketing strategy for the company}
+
+The distinguishing feature of this market is that \textbf{demand is
+event-driven}. Nobody seeks a lost-property service until the moment they lose
+something, and at that moment they search rather than remember. Sustained
+brand advertising is therefore poorly matched to the product; being present in
+the search result, and being already populated when the user arrives, is what
+converts.
+
+The strategy follows from that, and from the cold-start weakness named above.
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=4pt]
+  \item \textbf{Seed supply before demand.} Sign institutional partners first
+        and publish their existing registers into the pool. A user arriving
+        after a loss must find something to match against; an empty platform
+        converts nobody and is never revisited.
+  \item \textbf{Concentrate geographically.} Saturate one campus, then one
+        wilaya, before widening. Match rate depends on density, and a thin
+        national presence produces no matches anywhere.
+  \item \textbf{Own the moment of search.} Optimise for the queries people
+        actually type after a loss, in all three languages.
+  \item \textbf{Be present where losses happen.} Physical signage at
+        lost-property desks, transport hubs and campus buildings, carrying a
+        direct link --- the cheapest acquisition channel available, placed
+        exactly where the trigger occurs.
+  \item \textbf{Lead with recovered objects.} Each successful recovery is the
+        only marketing asset that convinces a sceptic, and it is free to
+        produce.
+\end{enumerate}
+
+\subsection{The marketing mix (7P)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=4pt]
+  \item \textbf{Product.} A trilingual web platform that automatically compares
+        every loss report against every discovery report, on text and images at
+        once, and protects the handover behind a verification handshake.
+
+  \item \textbf{Price.} Free for citizens, on both sides, permanently. This is a
+        strategic constraint rather than a promotional one: charging the person
+        who just lost their identity papers would suppress precisely the reports
+        the engine needs, and charging the finder would suppress the scarcer
+        side of the market outright. Revenue comes from institutions and
+        partnerships instead --- see Chapter~\ref{ch:finance}.
+
+  \item \textbf{Place.} The web, reachable from any smartphone browser without
+        installation; and physically, the partner institutions where objects are
+        handed in.
+
+  \item \textbf{Promotion.} Search visibility in Arabic, French and English;
+        signage at lost-property desks and transport hubs; campus partnerships;
+        recovered-object stories; institutional press.
+
+  \item \textbf{People.} A small technical team, with moderation and support
+        capacity growing alongside claim volume --- disputes are handled by
+        people, not by the algorithm.
+
+  \item \textbf{Process.} Report, automatic matching, notification, verified
+        claim, approved handover, closure. Each step is instrumented, and the
+        outcome of each claim feeds the learning loop.
+
+  \item \textbf{Physical evidence.} The interface itself; notifications;
+        published recovery statistics; and the visible presence of the service
+        at partner desks, which is what transfers institutional trust to a new
+        platform.
+\end{itemize}

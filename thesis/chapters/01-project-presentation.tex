@@ -1,0 +1,285 @@
+\chapter{Project Presentation}
+\label{ch:presentation}
+
+\section{The Project Idea}
+
+Losing a personal object is an ordinary event with a disproportionate cost. A
+wallet contains identity papers whose replacement takes weeks; a phone carries
+years of photographs; a set of keys can lock a family out of its own home. The
+object itself is rarely the largest loss.
+
+What makes this problem tractable is that the information needed to solve it
+usually already exists. In a large share of cases somebody \emph{did} pick the
+object up, and would return it. The two halves of the solution --- a person
+searching and a person holding --- are both present, often within the same city
+and the same week. What is missing is any mechanism that compares them.
+
+In Algeria today, recovery relies on three channels, and each fails in the same
+structural way:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Physical lost-property desks} at transport hubs, universities
+        and municipalities. Each keeps its own register, none of them shared, so
+        the search space a citizen can actually cover is one desk at a time, in
+        person, during opening hours.
+  \item \textbf{Social-media groups}, where a report is a piece of unstructured
+        text that scrolls out of visibility within hours. Nothing indexes it,
+        nothing filters it by category or place, and nobody rereads last month's
+        posts against today's.
+  \item \textbf{Word of mouth}, which does not scale beyond a neighbourhood.
+\end{itemize}
+
+The common failure is not a shortage of goodwill or of information. It is that
+no actor in the system is \emph{responsible for comparing} a loss report against
+a discovery report. Two matching descriptions can coexist, at the same moment,
+in the same city, and never meet.
+
+\projectname{} takes on exactly that responsibility. Users report a lost or a
+found item through one guided form --- a description in their own language, a
+category, a colour, a brand, a wilaya, a date, and photographs --- and the
+platform searches the opposite pool on their behalf, continuously and
+automatically. The comparison is performed by artificial intelligence on two
+channels at once: the \emph{meaning} of the written descriptions, and the
+\emph{visual appearance} of the photographs. Each candidate pair receives a
+confidence score together with the reasons that produced it, and when a pair is
+strong enough both people are notified.
+
+Two design commitments distinguish the result from a simple classified-ads
+board. First, matching is \textbf{multilingual by construction}: a description
+written in Arabic is comparable with one written in French or English, because
+the underlying language model encodes meaning rather than words --- an
+indispensable property in a country where all three languages circulate freely
+and often within a single sentence. Second, \textbf{a match never reveals
+anybody's contact details}. Recovery passes through a verification handshake in
+which the person who reported the item sets the questions, reviews the answers,
+and decides. Identities are exchanged only after that approval.
+
+The conditions for such a service exist. Algeria counted 36.2~million internet
+users at the start of 2025, a penetration of 76.9\%~\cite{datareportal2025},
+and the market is decisively mobile: of 59.10~million internet subscriptions
+recorded by the regulator in the second quarter of 2025, 88.71\% were mobile
+against 11.29\% fixed~\cite{arpce2025}. A web platform reachable from any
+smartphone browser, with no installation, addresses that population directly.
+
+\section{Proposed Values}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=5pt]
+  \item \textbf{Recovery instead of search.} The citizen stops being responsible
+        for canvassing desks and groups. One report enters a pool that is
+        searched automatically, in both directions, for as long as the report
+        stays open.
+
+  \item \textbf{Comparison across languages.} A loss described in Arabic and a
+        discovery described in French are matched on meaning. No user is
+        penalised for the language they are most comfortable writing in.
+
+  \item \textbf{Comparison without words.} A photograph is evidence in its own
+        right. A finder who writes three words but attaches a clear picture
+        still surfaces to the right owner.
+
+  \item \textbf{Explained suggestions rather than opaque ranking.} Every
+        suggestion carries a confidence percentage and the reasons behind it, so
+        the user applies judgement the system does not have.
+
+  \item \textbf{Privacy by default.} No telephone number, address or e-mail is
+        ever exposed by a match. Contact is the outcome of an approved claim,
+        never of an algorithm.
+
+  \item \textbf{National coverage.} Every wilaya is supported, and proximity is
+        part of the matching signal. A platform for lost property is worth
+        little if it only works in the capital.
+
+  \item \textbf{Accessibility.} The service is free to report and free to
+        search, works on an ordinary smartphone browser with no installation,
+        and is designed to remain usable on a modest connection --- which
+        matters in a market where nine subscriptions in ten are mobile.
+
+  \item \textbf{Cost structure that permits free access.} All inference runs
+        locally on open pre-trained models, so serving one more user costs
+        infrastructure only. There is no per-request charge to any external AI
+        provider, which is what makes a free-to-citizen service sustainable.
+\end{itemize}
+
+\section{The Team}
+
+\subsection{Student 1: \thesisstudentone}
+
+Master~2 student in Computer Science, specialty \thesisspecialty{}, at Akli
+Mohand Oulhadj University of Bouira, with a focus on full-stack web development
+and applied machine learning.
+
+Main roles and competencies:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item Designed the overall system architecture --- the modular-monolith
+        backend, the separation of model inference onto a background worker, and
+        the choice to hold vectors in the primary database alongside relational
+        data.
+  \item Implemented the backend: a versioned REST API over FastAPI, the
+        asynchronous data layer, seven database migrations, authentication with
+        rotating refresh tokens, and the image ingestion pipeline.
+  \item Designed and implemented the multimodal matching engine: embedding
+        generation, two-route candidate retrieval, score fusion, similarity
+        calibration and the confidence model.
+  \item Built the front-end application in Next.js and TypeScript, including the
+        trilingual interface and its right-to-left layout.
+  \item Packaged the system for deployment with Docker Compose and defined the
+        storage abstraction that carries it from local disk to object storage.
+\end{itemize}
+
+\towrite{If you worked as a team, duplicate this subsection for each member and
+divide the responsibilities above honestly between you --- the list currently
+attributes all of them to one person. Update
+\code{\textbackslash thesisstudenttwo} and
+\code{\textbackslash thesisstudentthree} in \code{preamble/macros.tex} so the
+title page matches, and adjust the singular pronouns in this chapter.}
+
+\section{Project Objectives}
+
+\subsection{Short-term objectives (first 12 months)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=4pt]
+  \item \textbf{Put the platform into production and run a pilot.} Deploy
+        publicly and operate a supervised pilot on one campus --- Akli Mohand
+        Oulhadj University of Bouira --- before opening nationally. A university
+        is the right first ground: it concentrates thousands of people in a
+        bounded space where objects are lost daily and where a lost-property
+        desk already exists to partner with.
+
+  \item \textbf{Solve the cold-start problem deliberately.} A matching platform
+        has no value until both pools are populated, and the found side is
+        always the scarcer one. The first year therefore prioritises
+        \emph{supply}: signing institutional partners whose existing registers
+        seed the found pool, rather than advertising to individuals who have
+        nothing to match against yet.
+
+  \item \textbf{Reach an operational volume of reports.} Target a first-year
+        volume sufficient for matching to produce suggestions routinely rather
+        than occasionally, concentrated in the pilot wilayas so that density ---
+        not raw national totals --- carries the match rate.
+
+  \item \textbf{Measure real matching quality.} Instrument confirmation and
+        rejection rates, precision at the notification threshold, and the
+        proportion of reports that end in a recorded recovery. These are the
+        figures that justify the product, and none of them can be obtained from
+        a demonstration corpus.
+
+  \item \textbf{Replace hand-tuned scoring with learned scoring.} Use the
+        confirmations and rejections accumulated during the pilot to fit the
+        fusion weights and calibrate confidence into a true probability, as
+        described in Chapter~\ref{ch:prototype}.
+
+  \item \textbf{Obtain the national Startup Label} granted under Executive
+        Decree No.~20-254~\cite{startupdz}, which opens access to the support
+        and financing mechanisms described in Chapter~\ref{ch:finance}.
+
+  \item \textbf{Build presence at the moment of loss.} Demand for this service
+        is event-driven: nobody looks for a lost-property platform until
+        something is lost. Search visibility therefore matters more than
+        sustained advertising.
+\end{itemize}
+
+\subsection{Long-term objectives (two to five years)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=4pt]
+  \item \textbf{Extend coverage across the wilayas}, prioritising the dense
+        urban ones where loss events and population concentrate, and where the
+        66.8\% of Algerians living in urban areas are found.
+
+  \item \textbf{Integrate institutional registers.} Move partner lost-property
+        desks --- universities, transport operators, airports, municipalities
+        --- from private registers onto the shared pool, so that a citizen's
+        single report is compared against institutional holdings automatically.
+
+  \item \textbf{Ship a native mobile application}, enabling a report to be filed
+        from the camera at the moment of discovery, which is when a finder is
+        most willing to act.
+
+  \item \textbf{Extend the matching engine to new categories} --- documents,
+        vehicle papers, and eventually lost pets --- each of which shifts the
+        balance between the textual and visual signals and benefits from the
+        per-category weighting already provisioned.
+
+  \item \textbf{Become the reference platform for lost property in Algeria},
+        measured not by user count but by the number of objects actually
+        returned to their owners.
+
+  \item \textbf{Sustain the service financially} without charging the citizen
+        who has just lost their papers, through the institutional and
+        partnership revenue analysed in Chapter~\ref{ch:finance}.
+\end{itemize}
+
+\section{Project implementation schedule}
+
+The platform was built in incremental milestones, each one shippable and
+demonstrable on its own, so that a working system existed at every point rather
+than only at the end. Figure~\ref{fig:schedule} shows the schedule actually
+followed: architecture and design first, then infrastructure, authentication and
+item management --- at which point the product already functions as a
+classified-ads board --- and only then the embedding pipeline and the matching
+engine that give it its value.
+
+The ordering is deliberate. The artificial intelligence is the last thing built,
+not the first, because it operates on data the rest of the system produces. An
+embedding pipeline with no items to embed cannot be tested, and a matching
+engine with no corpus cannot be evaluated.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{ganttchart}[
+    hgrid, vgrid,
+    x unit=0.52cm,
+    y unit title=0.62cm,
+    y unit chart=0.52cm,
+    title height=1,
+    canvas/.append style={fill=none, draw=rulegray, line width=0.4pt},
+    bar/.append style={fill=uamobblue!55, draw=uamobblue, rounded corners=1pt},
+    bar height=0.55,
+    group/.append style={fill=uamobblue, draw=uamobblue},
+    group right shift=0, group left shift=0,
+    milestone/.append style={fill=todoborder, draw=todoborder},
+    title label font=\scriptsize,
+    bar label font=\scriptsize,
+    group label font=\scriptsize\bfseries,
+    milestone label font=\scriptsize\itshape,
+  ]{1}{16}
+
+  \gantttitle{June}{4}
+  \gantttitle{July}{4}
+  \gantttitle{August}{4}
+  \gantttitle{September}{4} \\
+  \gantttitlelist{1,...,16}{1} \\
+
+  \ganttgroup{Design}{1}{3} \\
+  \ganttbar{M0 --- Architecture and data model}{1}{3} \\
+
+  \ganttgroup{Foundation}{3}{8} \\
+  \ganttbar{M1 --- Infrastructure, Docker, migrations}{3}{5} \\
+  \ganttbar{M2 --- Authentication and accounts}{5}{7} \\
+  \ganttbar{M3 --- Items, images, browse and search}{6}{8} \\
+
+  \ganttgroup{Intelligence}{8}{12} \\
+  \ganttbar{M4 --- Embedding pipeline (worker)}{8}{10} \\
+  \ganttbar{M5 --- Matching engine}{9}{11} \\
+  \ganttbar{M6 --- Notifications and claims}{10}{12} \\
+
+  \ganttgroup{Delivery}{11}{16} \\
+  \ganttbar{M7 --- Administration and moderation}{11}{13} \\
+  \ganttbar{M8 --- Hardening, testing, deployment}{12}{15} \\
+  \ganttbar{Thesis writing and defence preparation}{12}{16} \\
+
+  \ganttmilestone{Working prototype}{12} \\
+  \ganttmilestone{Defence}{16}
+\end{ganttchart}%
+}
+\caption{Project implementation schedule, by milestone}
+\label{fig:schedule}
+\end{figure}
+
+\towrite{Adjust the month labels and bar positions to your real calendar before
+printing --- the phase \emph{order} above reflects how the system was actually
+built, but the dates are the ones you must be able to defend. If your jury
+expects a forward-looking business schedule here rather than a development one,
+keep this figure and add a second chart covering the twelve months after
+launch, aligned with the short-term objectives above.}

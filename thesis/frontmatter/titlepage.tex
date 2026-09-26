@@ -1,0 +1,56 @@
+%  Reproduces the department title page from the reference thesis.
+%  Names/title/supervisor come from preamble/macros.tex — edit them there.
+%  Drop university/faculty logos into figures/ as logo-uamob.png and
+%  logo-faculty.png and they appear automatically.
+\begin{titlepage}
+\begin{center}
+\setstretch{1.15}
+
+{\large People's Democratic Republic of Algeria}\\[2pt]
+{\large Ministry of Higher Education and Scientific Research}\\[16pt]
+
+\IfFileExists{figures/logo-uamob.png}{%
+  \begin{minipage}{0.28\textwidth}\centering
+    \includegraphics[height=2.6cm]{figures/logo-uamob.png}
+  \end{minipage}\hfill
+  \begin{minipage}{0.4\textwidth}\centering\end{minipage}\hfill
+  \begin{minipage}{0.28\textwidth}\centering
+    \IfFileExists{figures/logo-faculty.png}
+      {\includegraphics[height=2.6cm]{figures/logo-faculty.png}}{}
+  \end{minipage}\\[16pt]
+}{}
+
+{\Large\bfseries AKLI MOHAND OULHADJ UNIVERSITY OF BOUIRA}\\[10pt]
+{\large Faculty of Exact Sciences}\\[4pt]
+{\large Department of Computer Science}\\[26pt]
+
+{\color{rulegray}\rule{0.75\textwidth}{0.6pt}}\\[14pt]
+{\LARGE\bfseries Master's Thesis}\\[8pt]
+{\large Specialty: \thesisspecialty}\\[10pt]
+{\color{rulegray}\rule{0.75\textwidth}{0.6pt}}\\[28pt]
+
+{\Large\bfseries Theme}\\[14pt]
+
+\begin{minipage}{0.86\textwidth}\centering
+  {\LARGE\bfseries\color{uamobblue}\setstretch{1.25}\thesistitle\par}
+\end{minipage}\\[34pt]
+
+\vfill
+
+\begin{minipage}[t]{0.46\textwidth}\raggedright
+  {\large\bfseries Supervised by:}\\[6pt]
+  {\large $\bullet$~\thesissupervisor}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.46\textwidth}\raggedright
+  {\large\bfseries Prepared by:}\\[6pt]
+  {\large $\bullet$~\thesisstudentone}\\
+  \ifx\thesisstudenttwo\empty\else{\large $\bullet$~\thesisstudenttwo}\\\fi
+  \ifx\thesisstudentthree\empty\else{\large $\bullet$~\thesisstudentthree}\\\fi
+\end{minipage}
+
+\vspace{28pt}
+{\large\bfseries \thesisyear}
+
+\end{center}
+\end{titlepage}

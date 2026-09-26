@@ -18,6 +18,7 @@ every byte is treated as hostile:
 
 from __future__ import annotations
 
+import base64
 import io
 import uuid
 
@@ -53,6 +54,14 @@ MAGIC_SIGNATURES: tuple[tuple[bytes, str], ...] = (
 # Pillow decompression-bomb ceiling (pixels). ~1.8x a 24MP photo.
 Image.MAX_IMAGE_PIXELS = 50_000_000
 
+# Longest edge of the blurred preview shown on a locked (unpaid) match card.
+# 16px is chosen to be *destructive*: it survives as colour and gross shape —
+# enough that the card reads as a real photograph behind frosted glass — while
+# text, faces, logos and serial numbers are gone before the bytes leave the
+# server. Raising it starts giving away the thing the paywall sells.
+BLUR_PREVIEW_MAX_DIMENSION = 16
+BLUR_PREVIEW_QUALITY = 40
+
 
 def _sniff_content_type(head: bytes) -> str | None:
     for signature, mime in MAGIC_SIGNATURES:
@@ -84,11 +93,43 @@ async def _read_capped(upload: UploadFile, limit: int) -> bytes:
     return b"".join(chunks)
 
 
-def _normalise(data: bytes, filename: str) -> bytes:
+def make_blur_preview(img: Image.Image) -> str | None:
+    """A ~16px WebP of `img`, inlined as a `data:` URI. None if it can't be made.
+
+    This is the photo a locked match card shows, and it is deliberately a
+    *stored derivative* rather than a CSS filter over the real file. A blur
+    applied in the browser is applied to bytes the browser already has: anyone
+    who declined to pay can read the original out of the network tab, and the
+    paywall becomes decoration. Downsampling to 16px destroys the identifying
+    detail server-side, so what the client receives is all the client can have.
+
+    Rendered at ~200 bytes, which is why it travels inline in the match response
+    instead of costing a second request per locked card.
+    """
+    try:
+        preview = img.copy()
+        preview.thumbnail(
+            (BLUR_PREVIEW_MAX_DIMENSION, BLUR_PREVIEW_MAX_DIMENSION),
+            Image.Resampling.LANCZOS,
+        )
+        buffer = io.BytesIO()
+        preview.save(buffer, format="WEBP", quality=BLUR_PREVIEW_QUALITY, method=4)
+        encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+        return f"data:image/webp;base64,{encoded}"
+    except (OSError, ValueError):
+        #  A photo without a preview degrades to a plain placeholder on the
+        #  locked card. Never worth failing an upload over.
+        logger.warning("blur_preview_failed")
+        return None
+
+
+def _normalise(data: bytes, filename: str) -> tuple[bytes, str | None]:
     """Decode, apply EXIF orientation, downscale, re-encode as WebP.
 
-    Returns fresh bytes built from decoded pixels — the original file is never
-    stored, so nothing hidden inside it survives.
+    Returns `(stored_bytes, blur_preview)` — fresh bytes built from decoded
+    pixels, so the original file is never stored and nothing hidden inside it
+    survives. The preview is derived here, inside the one decode we already pay
+    for, rather than by re-opening the result later.
     """
     try:
         with Image.open(io.BytesIO(data)) as img:
@@ -101,9 +142,12 @@ def _normalise(data: bytes, filename: str) -> bytes:
                 (settings.IMAGE_MAX_DIMENSION, settings.IMAGE_MAX_DIMENSION),
                 Image.Resampling.LANCZOS,
             )
+            #  Before the WebP round-trip, so the preview is derived from the
+            #  same pixels the visitor would have seen.
+            blur_preview = make_blur_preview(img)
             out = io.BytesIO()
             img.save(out, format="WEBP", quality=settings.IMAGE_WEBP_QUALITY, method=4)
-            return out.getvalue()
+            return out.getvalue(), blur_preview
     except (UnidentifiedImageError, OSError, ValueError) as exc:
         raise ValidationError(f"'{filename}' is not a readable image") from exc
 
@@ -159,12 +203,14 @@ class ImageService:
                         f"(JPEG, PNG or WebP)"
                     )
 
-                normalised = _normalise(raw, upload.filename or "image")
+                normalised, blur_preview = _normalise(raw, upload.filename or "image")
                 key = f"items/{item.id}/{uuid.uuid4().hex}.webp"
                 await self.storage.save(key, normalised, "image/webp")
                 stored_keys.append(key)
 
-                image = ItemImage(item_id=item.id, image_path=key)
+                image = ItemImage(
+                    item_id=item.id, image_path=key, blur_preview=blur_preview
+                )
                 self.session.add(image)
                 created.append(image)
 

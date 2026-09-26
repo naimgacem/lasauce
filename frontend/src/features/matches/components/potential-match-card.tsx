@@ -26,9 +26,15 @@ import { cn } from "@/lib/utils";
 import type { MatchSuggestion } from "@/types/match";
 
 /**
- * PotentialMatchCard — the product's flagship surface, and the one the paid
- * tier is sold on. Foil hairline, confidence dial, photo, and plain-language
- * reasons for why the engine believes these belong together.
+ * PotentialMatchCard — an **unlocked** suggestion. Foil hairline, confidence
+ * dial, photo, and plain-language reasons for why the engine believes these
+ * belong together.
+ *
+ * The locked counterpart is `LockedMatchCard`. They are separate components
+ * rather than one with a `locked` prop for a reason: a single component holding
+ * both states would have to receive the candidate's details in order to hide
+ * them, and the whole design of the paid tier is that it never receives them.
+ * Two components make that impossible to get wrong by accident.
  */
 export function PotentialMatchCard({
   match,
@@ -56,6 +62,12 @@ export function PotentialMatchCard({
   const reasons = match.explanation
     .map((reason) => ({ code: reason.code, text: renderReason(reason) }))
     .filter((r) => r.text);
+
+  // A locked match carries no candidate — the API omits it rather than sending
+  // it for the client to hide. Callers route those to `LockedMatchCard`, so
+  // reaching here with a null candidate means a caller got the branch wrong;
+  // rendering nothing is the only safe answer, and never leaks a partial card.
+  if (!candidate) return null;
 
   // The user has already answered — the card reports that answer instead of
   // asking again. Driven by the match's own status, so it survives a reload

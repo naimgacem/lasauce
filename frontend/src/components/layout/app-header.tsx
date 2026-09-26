@@ -5,6 +5,7 @@ import { ChevronDown, Plus } from "lucide-react";
 
 import { Logo } from "@/components/layout/logo";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { CreditBalance } from "@/features/billing/components/credit-balance";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
@@ -82,6 +83,10 @@ export function AppHeader() {
         </nav>
 
         <div className="ms-auto flex items-center gap-1">
+          {/* Left of the icon cluster: it is a value, not a control, and
+              sitting among the icon buttons would invite it to be read as one.
+              Renders nothing when the paywall is off or the viewer is an admin. */}
+          <CreditBalance className="me-1 hidden sm:inline-flex" />
           <NotificationBell />
           <LanguageSwitcher />
           <ThemeToggle />

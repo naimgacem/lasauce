@@ -1,0 +1,51 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\markboth{ABSTRACT}{ABSTRACT}
+
+Every day, personal belongings --- phones, wallets, identity papers, keys, bags
+--- are lost in public spaces, and the mechanisms available to reunite them
+with their owners remain largely informal. In Algeria, recovery today depends
+on physical lost-property desks with no shared registry, or on social-media
+groups where a report is a piece of unstructured text that scrolls out of sight
+within hours. The consequence is structural rather than accidental: a lost
+report and the corresponding found report may both exist, at the same moment,
+and still never meet, because nothing in the system is responsible for
+comparing them.
+
+This thesis presents \projectname, a web platform that makes that comparison
+automatic. Users report a lost or a found item through a single guided form ---
+title, free-text description, category, colour, brand, wilaya, date, and up to
+five photographs --- and the platform searches the opposite pool on their
+behalf. Matching is \emph{multimodal}. Each report is encoded into a
+384-dimensional multilingual sentence embedding, so that a description written
+in Arabic, French or English is comparable with one written in either of the
+other two; each photograph is encoded into a 512-dimensional CLIP vector, so
+that two people photographing the same object from different angles produce
+neighbouring points in vector space. Both vectors are stored in PostgreSQL
+through the \code{pgvector} extension, which allows approximate nearest
+neighbour retrieval and relational filtering --- opposite report type, open
+status, plausible date window --- to be expressed in a single query. Retrieved
+candidates are then scored by a fusion function that blends the semantic text
+similarity with a lexical full-text score, calibrates the raw image similarity,
+redistributes weight over whichever modalities are actually present, and adds
+small bounded boosts for independent corroborating metadata. The result is a
+confidence value, presented to the user as a percentage together with a list of
+machine-generated reasons explaining why the suggestion was made.
+
+The system is implemented as a modular monolith: a FastAPI backend exposing a
+versioned REST API, an \code{arq} background worker that owns all model
+inference so that reporting an item never waits on a neural network, a
+PostgreSQL~16 database with \code{pgvector}, Redis as queue and cache, and a
+Next.js frontend serving three fully localised interfaces (English, French and
+right-to-left Arabic). Contact details are never exposed by a match alone: a
+separate claim workflow requires the claimant to answer verification questions
+chosen by the reporter, and identities are exchanged only after the reporter
+approves. The prototype covers the complete cycle --- registration,
+reporting, embedding, matching, notification, claim, and recovery --- and the
+labelled outcome of every confirmed or rejected suggestion is persisted as
+training signal for a future calibrated ranking model.
+
+\vspace{0.8cm}
+\noindent\textbf{Keywords:} lost and found, semantic search, sentence
+embeddings, CLIP, multimodal matching, vector database, pgvector, approximate
+nearest neighbour, FastAPI, Next.js, multilingual information retrieval.

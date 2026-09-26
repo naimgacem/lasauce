@@ -15,6 +15,12 @@ export function useSampleMatch(): MatchSuggestion {
 
   return {
     match_id: "sample-match",
+    //  Shown unlocked on purpose: this is the dashboard's advertisement for the
+    //  tier, and the job of an advertisement is to show what you get, not what
+    //  you are missing. The blurred state has its own home on the item page,
+    //  where it is answering a question the user actually asked.
+    locked: false,
+    preview: null,
     candidate_item: {
       id: "sample-candidate",
       type: "found",

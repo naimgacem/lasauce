@@ -1,4 +1,5 @@
 import type { User } from "@/types/auth";
+import type { CreditPack, Entitlements } from "@/types/billing";
 import type { Category, CategorySummary } from "@/types/category";
 import type { Item } from "@/types/item";
 import type { MatchSuggestions } from "@/types/match";
@@ -217,35 +218,125 @@ export const MOCK_NOTIFICATIONS: AppNotification[] = [
 ];
 
 /** Stand-in AI suggestions so the match UI is demoable without a worker. */
+/**
+ * The catalogue, mirroring `app/core/pricing.py`. Duplicated rather than
+ * fetched because mock mode has no backend at all — but the numbers must match,
+ * or a demo quotes a price the live app does not charge.
+ */
+export const MOCK_PACKS: CreditPack[] = [
+  {
+    id: "single",
+    credits: 1,
+    amount: 200,
+    currency: "dzd",
+    unit_amount: 200,
+    savings_percent: 0,
+    highlighted: false,
+  },
+  {
+    id: "trio",
+    credits: 3,
+    amount: 500,
+    currency: "dzd",
+    unit_amount: 166.67,
+    savings_percent: 16,
+    highlighted: true,
+  },
+  {
+    id: "ten",
+    credits: 10,
+    amount: 1200,
+    currency: "dzd",
+    unit_amount: 120,
+    savings_percent: 40,
+    highlighted: false,
+  },
+];
+
+/** Starts at zero credits with the free unlock intact — the real new-user state. */
+export const MOCK_ENTITLEMENTS: Entitlements = {
+  balance: 0,
+  free_unlocks_remaining: 1,
+  unlock_cost: 1,
+  paywall_enabled: true,
+};
+
+/**
+ * A real 16px WebP, base64'd — the same artefact the backend generates for a
+ * locked card. Hand-built here rather than faked with a CSS gradient so the mock
+ * exercises the actual `<img src="data:...">` path, blur radius and aspect
+ * handling. If the locked card looks wrong in mock mode, it looks wrong live.
+ */
+const MOCK_BLUR_PREVIEW =
+  "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAAAQAgCdASoQAAwAA4BaJYwCdAEPUpHhGoQAAP7gpudckVcUQXSF2PFAm8cKRrekKmj8kQBffndDsZbch3vyWUAA";
+
+/**
+ * Locked, deliberately.
+ *
+ * The mock mirrors what the API actually sends a viewer who has not paid:
+ * `candidate_item` is **null**, the scores are null, and only the reason codes
+ * that describe match *strength* survive. Populating the candidate here and
+ * hiding it in the component would let the demo drift from the product — and
+ * would quietly teach whoever reads this file that the blur is cosmetic.
+ */
 export const MOCK_MATCHES: Record<string, MatchSuggestions> = {
   "i-wallet": {
     item: { id: "i-wallet", type: "lost", title: "Black leather wallet" },
     processing_status: "ready",
+    locked_count: 1,
+    entitlements: MOCK_ENTITLEMENTS,
     matches: [
       {
         match_id: "m-1",
-        candidate_item: {
-          id: "i-found-wallet",
-          type: "found",
-          title: "Dark bifold wallet, found at bus stop",
-          primary_image_url: "https://picsum.photos/seed/lf-wallet-found/800/600",
-          location_text: "Main St bus stop",
-          wilaya_code: 16,
-          event_date: daysAgo(1).slice(0, 10),
+        locked: true,
+        candidate_item: null,
+        preview: {
+          blur_preview: MOCK_BLUR_PREVIEW,
+          has_photo: true,
+          //  same_category, time_close and same_wilaya are withheld: each one
+          //  narrows the public browse page toward the answer.
+          hidden_reason_count: 3,
         },
-        text_score: 0.83,
-        image_score: 0.91,
-        combined_score: 0.88,
+        text_score: null,
+        image_score: null,
+        combined_score: null,
         confidence: 0.86,
         status: "suggested",
         created_at: daysAgo(1),
-        explanation: [
-          { code: "same_category", params: { name: "Wallets & Purses" } },
-          { code: "text_strong" },
-          { code: "time_close", params: { days: 1 } },
-          { code: "same_wilaya", params: { wilaya_code: 16 } },
-        ],
+        explanation: [{ code: "text_strong" }],
       },
     ],
   },
+};
+
+/**
+ * What `m-1` becomes once unlocked. The mock `unlock` swaps this in, so the
+ * demo shows the real reveal — blurred card to full card — rather than a
+ * component that was holding the answer the whole time.
+ */
+export const MOCK_UNLOCKED_MATCH: MatchSuggestions["matches"][number] = {
+  match_id: "m-1",
+  locked: false,
+  candidate_item: {
+    id: "i-found-wallet",
+    type: "found",
+    title: "Dark bifold wallet, found at bus stop",
+    primary_image_url: "https://picsum.photos/seed/lf-wallet-found/800/600",
+    location_text: "Main St bus stop",
+    wilaya_code: 16,
+    event_date: daysAgo(1).slice(0, 10),
+  },
+  preview: null,
+  text_score: 0.83,
+  image_score: 0.91,
+  combined_score: 0.88,
+  confidence: 0.86,
+  status: "suggested",
+  created_at: daysAgo(1),
+  explanation: [
+    { code: "same_category", params: { name: "Wallets & Purses" } },
+    { code: "text_strong" },
+    { code: "time_close", params: { days: 1 } },
+    { code: "same_wilaya", params: { wilaya_code: 16 } },
+  ],
 };

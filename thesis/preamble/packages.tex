@@ -1,0 +1,63 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Packages. Everything here ships with a standard TeX Live / Overleaf image.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% --- Encoding & language -------------------------------------------------
+%  `english` last => English is the main language; the French Résumé opens a
+%  `french` block locally. Arabic is NOT loaded: it needs XeLaTeX/LuaLaTeX and
+%  would force an engine change for two pages. See thesis/README.md.
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french,english]{babel}
+\usepackage{csquotes}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Page geometry -------------------------------------------------------
+\usepackage[a4paper,left=3cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% --- Graphics & colour ---------------------------------------------------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{xcolor}
+\usepackage{float}
+
+% --- Tables --------------------------------------------------------------
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+
+% --- Maths ---------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% --- Lists, captions, headings ------------------------------------------
+\usepackage{enumitem}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+% --- Code listings -------------------------------------------------------
+\usepackage{listings}
+
+% --- Diagrams ------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.multipart,
+                calc,fit,backgrounds,matrix,chains}
+
+%  Gantt chart (Chapter 1) and plots (Chapter 6).
+\usepackage{pgfgantt}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{fillbetween}
+
+% --- Rotation (wide tables/figures) -------------------------------------
+\usepackage{rotating}
+
+% --- Links (load late) ---------------------------------------------------
+\usepackage[hidelinks,bookmarksnumbered]{hyperref}
+\usepackage{url}

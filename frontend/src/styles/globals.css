@@ -241,6 +241,46 @@
       0 12px 28px -18px hsl(var(--premium-to) / 0.45);
   }
 
+  /* ── LOCKED (UNPAID) MATCH ────────────────────────────────────────────
+     The photo on a locked card is already a 16px image from the server — the
+     detail is gone before the bytes arrive, and no filter here is what hides
+     it. What these rules do is make that honestly-tiny image *read* as a
+     photograph behind frosted glass instead of as a broken thumbnail.
+
+     `scale(1.1)` with `overflow:hidden` on the parent: upscaling a 16px source
+     leaves soft edges where the blur runs out, and cropping the overflow is
+     what removes them. */
+  .blur-locked {
+    filter: blur(8px) saturate(1.15);
+    transform: scale(1.1);
+  }
+
+  /* Frosted overlay above the preview. Warm rather than neutral grey — grey
+     over a photo reads as "disabled", and a locked match is the opposite of
+     disabled: it is the thing we most want clicked. */
+  .veil-locked {
+    background:
+      linear-gradient(
+        135deg,
+        hsl(var(--premium-via) / 0.10) 0%,
+        hsl(var(--premium-to) / 0.14) 100%
+      ),
+      hsl(var(--background) / 0.30);
+    backdrop-filter: blur(2px);
+  }
+
+  /* Redaction bars standing in for the withheld title and metadata. Two stops
+     of the same ink, so the block reads as covered text rather than as a
+     loading skeleton — a skeleton implies something is coming, and here it
+     isn't, not until the user pays. */
+  .bar-redacted {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--foreground) / 0.13) 0%,
+      hsl(var(--foreground) / 0.08) 100%
+    );
+  }
+
   /* ── SURFACE TREATMENTS ──────────────────────────────────────────────── */
 
   /* Faint dotted texture for empty media slots. */

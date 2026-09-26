@@ -20,3 +20,7 @@ python-multipart==0.0.20
 # at 1600px brings them to ~150-250 KB, which is the difference between ~250 and
 # ~5,000 photos on a 1 GB free-tier bucket.
 Pillow==11.1.0
+# Async HTTP client for the payment gateway (Chargily Pay v2). Already present
+# transitively via FastAPI's TestClient; pinned here because the checkout path
+# is runtime code, not test code.
+httpx==0.28.1

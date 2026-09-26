@@ -176,22 +176,48 @@ class MatchingService:
         return not scoring.is_notifiable(previous.confidence)
 
     async def _notify_pair(self, *, lost: Item, found: Item, confidence: float) -> None:
-        """Tell both owners. Self-matches (same reporter) notify once."""
+        """Tell both owners. Self-matches (same reporter) notify once.
+
+        The counterpart's title is withheld while the paywall is on. It is the
+        single most identifying field on a suggestion — quoting it into a
+        notification would hand over, for free and by email, exactly the thing
+        the locked card exists to sell. Each recipient still sees *their own*
+        item named (it is theirs) and the confidence figure, which is the hook.
+
+        With `MATCHING_PAYWALL_ENABLED=false` the fuller wording returns: there
+        is nothing to protect, and the specific copy is better.
+        """
         percent = round(confidence * 100)
-        recipients = {
-            lost.user_id: (
-                "Possible match for your lost item",
-                f'We found a "{found.title}" that may be your "{lost.title}" '
-                f"— {percent}% confidence.",
-                lost.id,
-            ),
-            found.user_id: (
-                "Someone may be looking for what you found",
-                f'A lost "{lost.title}" looks like the "{found.title}" you found '
-                f"— {percent}% confidence.",
-                found.id,
-            ),
-        }
+        if settings.MATCHING_PAYWALL_ENABLED:
+            recipients = {
+                lost.user_id: (
+                    "Possible match for your lost item",
+                    f'Someone reported a found item that may be your "{lost.title}" '
+                    f"— {percent}% confidence. Open the match to see it.",
+                    lost.id,
+                ),
+                found.user_id: (
+                    "Someone may be looking for what you found",
+                    f'A lost-item report closely resembles the "{found.title}" you '
+                    f"found — {percent}% confidence. Open the match to see it.",
+                    found.id,
+                ),
+            }
+        else:
+            recipients = {
+                lost.user_id: (
+                    "Possible match for your lost item",
+                    f'We found a "{found.title}" that may be your "{lost.title}" '
+                    f"— {percent}% confidence.",
+                    lost.id,
+                ),
+                found.user_id: (
+                    "Someone may be looking for what you found",
+                    f'A lost "{lost.title}" looks like the "{found.title}" you found '
+                    f"— {percent}% confidence.",
+                    found.id,
+                ),
+            }
         for user_id, (title, body, item_id) in recipients.items():
             await self.notifications.create(
                 user_id=user_id,

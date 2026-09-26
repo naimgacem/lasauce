@@ -1,0 +1,85 @@
+\chapter*{CONCLUSION}
+\addcontentsline{toc}{chapter}{Conclusion}
+\markboth{CONCLUSION}{CONCLUSION}
+
+This thesis set out from an ordinary observation: when an object is lost, the
+information needed to recover it usually already exists, split between two
+people who have no way of finding each other. The channels available today ---
+unconnected lost-property desks, social-media groups where a report survives a
+few hours, word of mouth --- fail for one structural reason rather than through
+any lack of goodwill. Nothing in them is responsible for comparing a loss report
+against a discovery report.
+
+\projectname{} assigns that responsibility to software. We designed and built a
+platform on which a single guided report enters a national pool that is searched
+automatically and continuously, in both directions. The comparison is multimodal
+and multilingual: descriptions are encoded by a multilingual sentence model, so
+that a report written in Arabic is comparable with one written in French or
+English, and photographs are encoded by a vision-language model and searched as
+an independent channel, so that a clear picture attached to three words of text
+still reaches the right owner. Both vector spaces live inside PostgreSQL through
+the \code{pgvector} extension, which allows approximate nearest-neighbour
+retrieval and relational filtering to be expressed as one query rather than
+stitched together in application code.
+
+Building the engine taught more than designing it did. The instructive failure
+was silent: raw similarities returned by the vision model are not calibrated
+probabilities, and two entirely unrelated photographs still score around $0.7$
+--- enough, when fed directly into a weighted average, to push unrelated objects
+in front of users while every unit test continued to pass. Correcting it
+required rescaling the similarity against a measured floor, redistributing
+fusion weights over the modalities actually present so that a missing photograph
+is never read as a dissimilar one, and blending a lexical term so that
+\dq{iPhone~14} and \dq{iPhone~13} stop being interchangeable. Each of those
+corrections came from examining outputs rather than from reading documentation.
+
+The other conclusion is that accuracy alone would not have produced a usable
+product. A high-confidence match is a hypothesis about two objects, not an
+authorisation to disclose a person's telephone number, and the platform
+therefore separates the two completely: recovery passes through verification
+questions set by the reporter, answered by the claimant, and judged by the
+reporter, with contact details exchanged only after approval. Users are shown
+not just a percentage but the reasons behind it, translated into their own
+language, so that they can apply judgement the system does not have. These are
+product decisions rather than machine-learning ones, and they determine whether
+anyone is willing to report a found object at all.
+
+Developed within the framework of the university, this project is presented both
+as an engineering result and as a viable startup, whose market, organisation and
+financial structure are analysed in the preceding chapters.
+
+\section*{Future work}
+\addcontentsline{toc}{section}{Future work}
+
+Several directions remain open, and the system was built to accommodate them
+without structural change:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=4pt]
+  \item \textbf{Learned scoring.} Every confirmed or rejected suggestion is
+        already persisted as a labelled example alongside the scores that
+        produced it. That dataset is exactly what is needed to replace the
+        hand-set weights and boosts with a calibrated model, learned globally
+        and per category --- photographs should dominate for bags and luggage,
+        text for documents and keys.
+
+  \item \textbf{Cross-modal matching.} Comparing the words of one report against
+        the photograph of another, which the vision-language model already
+        supports and which would rescue pairs where one side has only text and
+        the other only an image.
+
+  \item \textbf{Field validation.} Deploying with a pilot institution and
+        measuring real recovery rates, which is the only measurement that
+        ultimately matters and cannot be obtained from a demonstration corpus.
+
+  \item \textbf{Institutional integration.} Allowing partner lost-property desks
+        to publish their registers directly into the shared pool.
+
+  \item \textbf{Native mobile application}, enabling a report to be filed from
+        the camera at the moment of discovery.
+
+  \item \textbf{Trust and safety at scale.} Reputation signals and moderation
+        tooling for disputed claims, which become necessary as volume grows.
+\end{itemize}
+
+\towrite{Adjust this list so it matches the future vision in
+Chapter~\ref{ch:innovation} --- the jury will notice if the two disagree.}

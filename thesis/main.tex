@@ -1,0 +1,57 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Master's thesis — AI-Powered Lost & Found Platform
+%  Akli Mohand Oulhadj University of Bouira (UAMOB)
+%
+%  ENGINE: pdfLaTeX.  On Overleaf: Menu > Settings > Compiler > pdfLaTeX.
+%  BUILD:  latexmk -pdf main.tex
+%
+%  Structure mirrors the startup-format thesis used by the department:
+%  7 chapters (project / innovation / market / organization / prototype /
+%  finance / business model), then a conclusion and bibliography.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt,a4paper,oneside]{book}
+
+\input{preamble/packages}
+\input{preamble/style}
+\input{preamble/macros}
+
+%  Set to \showtodosfalse before the final print to hide every "TO WRITE" box.
+\showtodostrue
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% front matter
+\frontmatter
+\pagestyle{plain}
+
+\input{frontmatter/titlepage}
+\input{frontmatter/acknowledgments}
+\input{frontmatter/dedication}
+\input{frontmatter/abstract}
+\input{frontmatter/resume}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% body
+\mainmatter
+\pagestyle{fancy}
+
+\input{chapters/01-project-presentation}
+\input{chapters/02-innovative-aspects}
+\input{chapters/03-market-analysis}
+\input{chapters/04-production-organization}
+\input{chapters/05-experimental-prototype}
+\input{chapters/06-financial-plan}
+\input{chapters/07-business-model}
+
+\input{chapters/conclusion}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% back matter
+\backmatter
+\bibliographystyle{plain}
+\bibliography{bibliography/references}
+\addcontentsline{toc}{chapter}{Bibliography}
+
+\end{document}

@@ -1,0 +1,151 @@
+\chapter{INNOVATIVE ASPECTS}
+\label{ch:innovation}
+
+\section{Nature of the innovations}
+
+The innovation in \projectname{} is not the idea of a lost-and-found register,
+which is old, nor the use of a neural network, which is now ordinary. It is the
+\textbf{inversion of responsibility} that the two combined make possible: the
+work of comparing a loss against a discovery moves from the citizen, who can
+only ever search a fraction of the space, to a system that searches all of it,
+continuously, in both directions, and across three languages.
+
+Three properties support that inversion, and none of them is available in the
+channels people use today.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=5pt]
+  \item \textbf{Semantic rather than lexical comparison.} A keyword register can
+        only match reports that happen to share vocabulary. Two people
+        describing the same object almost never do. Encoding descriptions as
+        vectors of meaning makes \dq{black leather wallet with bank cards} and
+        \dq{dark billfold containing papers} close to each other, which is what
+        the problem actually requires.
+
+  \item \textbf{Cross-lingual comparison.} Because the encoder is multilingual,
+        a description written in Arabic and a description of the same object
+        written in French land near each other in the same vector space. This is
+        a structural fit to the Algerian context rather than a feature: a
+        monolingual system would fragment the pool into three
+        non-communicating sub-pools, and would fail precisely on the reports
+        that mix languages, which are common.
+
+  \item \textbf{Visual comparison as an independent channel.} A photograph
+        carries identifying detail that no description captures --- a scratch, a
+        keyring, a case. Encoding photographs and searching them independently
+        of the text means a finder who writes almost nothing but photographs
+        well is still matched correctly.
+\end{itemize}
+
+\section{Areas of innovation}
+
+\subsection{New features}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=4pt]
+  \item \textbf{Automatic bidirectional matching.} Every new report is compared
+        against the existing opposite pool immediately, and simultaneously
+        enters the pool against which future reports will be compared.
+
+  \item \textbf{Explained confidence.} Suggestions are presented as a percentage
+        accompanied by the reasons that produced it --- same category, same
+        wilaya, strongly similar photographs, plausible interval between the two
+        dates. The user is given the grounds for a decision instead of an
+        unexplained ranking.
+
+  \item \textbf{Verification-gated recovery.} The reporter sets verification
+        questions when publishing; a claimant answers them; contact details are
+        exchanged only after the reporter approves. A similarity score, however
+        high, never opens that door on its own. This directly addresses the
+        objection that makes people reluctant to post a found item publicly in
+        the first place.
+
+  \item \textbf{Genuine trilingual operation.} Interface, wilaya names, and even
+        the machine-generated match explanations are localised in English,
+        French and Arabic, with a mirrored right-to-left layout.
+
+  \item \textbf{A learning loop provisioned from the start.} Every confirmation
+        and rejection is stored as a labelled example alongside the scores that
+        produced the suggestion, so the platform accumulates the exact dataset
+        needed to improve its own ranking.
+\end{itemize}
+
+\subsection{A new model of service}
+
+Lost property today is handled on an \textbf{institution-centred} model. The
+object is held by whoever received it; the register belongs to that desk; the
+search space is that desk alone; and the burden of searching falls entirely on
+the citizen, who must guess which institution to approach, travel there, and ask
+during opening hours --- once per institution. The model is not merely
+inefficient. It is structurally incapable of connecting a loss to a discovery
+that occurred two kilometres away, because no desk has any visibility of any
+other desk.
+
+\projectname{} inverts that into a \textbf{citizen-centred, continuously
+searched pool}. The object stays physically wherever it is; what becomes shared
+is the \emph{information} about it. One report enters one national pool, and the
+comparison against every counterpart report is performed by the system, over and
+over, for as long as the report remains open.
+
+\begin{table}[htbp]
+\centering
+\caption{Shift in the service model}
+\label{tab:model-shift}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.1cm} X X@{}}
+\toprule
+ & \textbf{Institution-centred (today)} & \textbf{\projectname{} (proposed)} \\
+\midrule
+Who searches      & The citizen, desk by desk & The system, continuously \\
+Search space      & One register per institution & One national pool \\
+Availability      & Opening hours, in person & Any time, from a browser \\
+Comparison basis  & Human memory and keywords & Semantic and visual similarity \\
+Languages         & Whichever the clerk wrote in & Arabic, French and English, compared to each other \\
+Direction         & Owner must think of asking & Both sides are notified \\
+Contact           & Face to face at the counter & Verified claim, then disclosure \\
+Record            & Paper, private & Searchable, with restitution history \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+For a university or a transport operator, adopting the model changes four
+concrete things, and it is worth being precise about them because
+Chapter~\ref{ch:organization} depends on these partners agreeing:
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
+  \item \textbf{The register stops being a dead archive.} Items published into
+        the pool are matched automatically against loss reports from anywhere in
+        the country, instead of waiting for the right person to walk in and ask
+        the right question.
+  \item \textbf{Counter load falls.} A citizen can check before travelling, so
+        speculative visits --- the majority of them, since most searches end in
+        nothing --- stop arriving at the desk at all.
+  \item \textbf{Verification is handled by the platform.} The staff member no
+        longer has to judge, in the moment and face to face, whether a claimant
+        is genuine. The verification questions and the claim record do that
+        work, and leave an audit trail.
+  \item \textbf{Restitution becomes measurable.} The institution gains a record
+        of what it received and what it returned --- evidence of service
+        quality that a paper ledger never produced.
+\end{enumerate}
+
+None of this requires the institution to change how it physically handles
+objects, buy software, or train staff on anything beyond filling in the same
+form a citizen fills in. That low adoption cost is deliberate: it is what makes
+the partnership realistic rather than aspirational.
+
+\subsection{Future vision}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Learned scoring.} Replacing the hand-set weights and boosts with
+        a model calibrated on accumulated feedback, per category --- photographs
+        should dominate for bags, text for documents.
+  \item \textbf{Cross-modal matching.} Comparing the \emph{words} of one report
+        against the \emph{photograph} of another, which the vision-language
+        model already makes possible.
+  \item \textbf{Institutional integration.} Letting partner desks publish their
+        registers into the same pool.
+  \item \textbf{Native mobile application}, with reporting from the camera at
+        the moment of discovery.
+\end{itemize}
+
+\towrite{Extend this list with anything you intend to defend as a roadmap, and
+keep it consistent with the Future Work section of the conclusion.}

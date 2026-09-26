@@ -1,0 +1,16 @@
+# latexmk configuration.
+#
+# Overleaf reads this file automatically. Locally: `latexmk -pdf main.tex`.
+
+# pdfLaTeX (not XeLaTeX/LuaLaTeX) — see thesis/README.md for why.
+$pdf_mode = 1;
+
+# BibTeX for the bibliography (the .bib uses the `plain` style).
+$bibtex_use = 2;
+
+# -shell-escape is deliberately NOT enabled: nothing here needs it.
+$pdflatex = 'pdflatex -interaction=nonstopmode -file-line-error -synctex=1 %O %S';
+
+# Keep build artefacts out of the source tree when building locally.
+# (Overleaf ignores this and manages its own output directory.)
+$clean_ext = 'synctex.gz run.xml bbl fls fdb_latexmk';

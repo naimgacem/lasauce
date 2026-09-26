@@ -1,0 +1,59 @@
+\begin{otherlanguage}{french}
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+\markboth{RÉSUMÉ}{RÉSUMÉ}
+
+Chaque jour, des effets personnels --- téléphones, portefeuilles, papiers
+d'identité, clés, sacs --- sont égarés dans l'espace public, et les moyens
+permettant de les restituer à leurs propriétaires demeurent largement
+informels. En Algérie, la récupération repose aujourd'hui sur des bureaux des
+objets trouvés dépourvus de registre commun, ou sur des groupes de réseaux
+sociaux où une annonce n'est qu'un texte non structuré qui disparaît du fil en
+quelques heures. La conséquence est structurelle et non accidentelle: une
+déclaration de perte et la déclaration de découverte correspondante peuvent
+coexister, au même instant, sans jamais se rencontrer, faute d'un dispositif
+chargé de les comparer.
+
+Ce mémoire présente \projectname, une plateforme web qui automatise cette
+comparaison. L'utilisateur déclare un objet perdu ou trouvé au moyen d'un
+formulaire unique --- intitulé, description libre, catégorie, couleur, marque,
+wilaya, date et jusqu'à cinq photographies --- et la plateforme interroge pour
+lui l'ensemble opposé. L'appariement est \emph{multimodal}. Chaque déclaration
+est encodée en un vecteur de phrase multilingue de dimension~384, de sorte
+qu'une description rédigée en arabe, en français ou en anglais reste comparable
+à une description rédigée dans l'une des deux autres langues~; chaque
+photographie est encodée en un vecteur CLIP de dimension~512, de sorte que deux
+personnes photographiant le même objet sous des angles différents produisent
+des points voisins dans l'espace vectoriel. Les deux vecteurs sont stockés dans
+PostgreSQL via l'extension \code{pgvector}, ce qui permet d'exprimer dans une
+seule requête la recherche approximative des plus proches voisins et le
+filtrage relationnel --- type de déclaration opposé, statut ouvert, fenêtre
+temporelle plausible. Les candidats retenus sont ensuite évalués par une
+fonction de fusion qui combine la similarité sémantique textuelle et un score
+lexical plein texte, calibre la similarité visuelle brute, redistribue les
+poids sur les seules modalités effectivement présentes, et ajoute de faibles
+bonus bornés en cas de concordance de métadonnées indépendantes. Il en résulte
+un indice de confiance, présenté à l'utilisateur sous forme de pourcentage
+accompagné des raisons ayant motivé la suggestion.
+
+Le système est réalisé sous la forme d'un monolithe modulaire: une API REST
+versionnée développée avec FastAPI, un worker d'arrière-plan \code{arq} qui
+concentre l'ensemble des inférences afin que la déclaration d'un objet
+n'attende jamais un réseau de neurones, une base PostgreSQL~16 dotée de
+\code{pgvector}, Redis comme file d'attente et cache, et une interface Next.js
+entièrement localisée en trois langues (anglais, français et arabe en écriture
+de droite à gauche). Les coordonnées personnelles ne sont jamais divulguées par
+un simple appariement: une procédure de réclamation distincte impose au
+demandeur de répondre à des questions de vérification définies par le
+déclarant, et l'échange d'identités n'intervient qu'après approbation. Le
+prototype couvre le cycle complet --- inscription, déclaration, encodage,
+appariement, notification, réclamation et restitution --- et le résultat
+étiqueté de chaque suggestion confirmée ou rejetée est conservé comme signal
+d'apprentissage en vue d'un futur modèle de classement calibré.
+
+\vspace{0.8cm}
+\noindent\textbf{Mots-clés:} objets perdus et trouvés, recherche sémantique,
+plongements de phrases, CLIP, appariement multimodal, base de données
+vectorielle, pgvector, recherche approximative des plus proches voisins,
+FastAPI, Next.js, recherche d'information multilingue.
+\end{otherlanguage}

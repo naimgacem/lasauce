@@ -1,0 +1,343 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Bibliography.
+%
+%  NOTE: the `plain` style only prints entries that are actually \cite'd.
+%  Anything you add here and never cite will silently not appear.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ============================ Sentence embeddings ============================
+
+@inproceedings{reimers2019sbert,
+  author    = {Nils Reimers and Iryna Gurevych},
+  title     = {{Sentence-BERT}: Sentence Embeddings using Siamese
+               {BERT}-Networks},
+  booktitle = {Proceedings of the 2019 Conference on Empirical Methods in
+               Natural Language Processing (EMNLP-IJCNLP)},
+  pages     = {3982--3992},
+  year      = {2019},
+}
+
+@inproceedings{reimers2020multilingual,
+  author    = {Nils Reimers and Iryna Gurevych},
+  title     = {Making Monolingual Sentence Embeddings Multilingual using
+               Knowledge Distillation},
+  booktitle = {Proceedings of the 2020 Conference on Empirical Methods in
+               Natural Language Processing (EMNLP)},
+  pages     = {4512--4525},
+  year      = {2020},
+}
+
+@inproceedings{devlin2019bert,
+  author    = {Jacob Devlin and Ming-Wei Chang and Kenton Lee and
+               Kristina Toutanova},
+  title     = {{BERT}: Pre-training of Deep Bidirectional Transformers for
+               Language Understanding},
+  booktitle = {Proceedings of the 2019 Conference of the North American Chapter
+               of the Association for Computational Linguistics (NAACL-HLT)},
+  pages     = {4171--4186},
+  year      = {2019},
+}
+
+@inproceedings{vaswani2017attention,
+  author    = {Ashish Vaswani and Noam Shazeer and Niki Parmar and
+               Jakob Uszkoreit and Llion Jones and Aidan N. Gomez and
+               Lukasz Kaiser and Illia Polosukhin},
+  title     = {Attention Is All You Need},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2017},
+}
+
+% ============================ Vision and multimodal ==========================
+
+@inproceedings{radford2021clip,
+  author    = {Alec Radford and Jong Wook Kim and Chris Hallacy and
+               Aditya Ramesh and Gabriel Goh and Sandhini Agarwal and
+               Girish Sastry and Amanda Askell and Pamela Mishkin and
+               Jack Clark and Gretchen Krueger and Ilya Sutskever},
+  title     = {Learning Transferable Visual Models From Natural Language
+               Supervision},
+  booktitle = {Proceedings of the 38th International Conference on Machine
+               Learning (ICML)},
+  pages     = {8748--8763},
+  year      = {2021},
+}
+
+@inproceedings{dosovitskiy2021vit,
+  author    = {Alexey Dosovitskiy and Lucas Beyer and Alexander Kolesnikov and
+               Dirk Weissenborn and Xiaohua Zhai and Thomas Unterthiner and
+               Mostafa Dehghani and Matthias Minderer and Georg Heigold and
+               Sylvain Gelly and Jakob Uszkoreit and Neil Houlsby},
+  title     = {An Image is Worth 16x16 Words: Transformers for Image
+               Recognition at Scale},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021},
+}
+
+% ===================== Embedding geometry and calibration ====================
+%  These underpin Section 5.4.3: raw cosine similarities from contrastively
+%  trained encoders are not calibrated, because the representations occupy a
+%  narrow cone rather than the whole sphere.
+
+@inproceedings{ethayarajh2019anisotropy,
+  author    = {Kawin Ethayarajh},
+  title     = {How Contextual are Contextualized Word Representations?
+               Comparing the Geometry of {BERT}, {ELMo}, and {GPT-2}
+               Embeddings},
+  booktitle = {Proceedings of the 2019 Conference on Empirical Methods in
+               Natural Language Processing (EMNLP-IJCNLP)},
+  pages     = {55--65},
+  year      = {2019},
+}
+
+@inproceedings{liang2022modalitygap,
+  author    = {Victor Weixin Liang and Yuhui Zhang and Yongchan Kwon and
+               Serena Yeung and James Zou},
+  title     = {Mind the Gap: Understanding the Modality Gap in Multi-modal
+               Contrastive Representation Learning},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2022},
+}
+
+@inproceedings{guo2017calibration,
+  author    = {Chuan Guo and Geoff Pleiss and Yu Sun and
+               Kilian Q. Weinberger},
+  title     = {On Calibration of Modern Neural Networks},
+  booktitle = {Proceedings of the 34th International Conference on Machine
+               Learning (ICML)},
+  pages     = {1321--1330},
+  year      = {2017},
+}
+
+@inproceedings{zadrozny2002calibration,
+  author    = {Bianca Zadrozny and Charles Elkan},
+  title     = {Transforming Classifier Scores into Accurate Multiclass
+               Probability Estimates},
+  booktitle = {Proceedings of the 8th ACM SIGKDD International Conference on
+               Knowledge Discovery and Data Mining (KDD)},
+  pages     = {694--699},
+  year      = {2002},
+}
+
+% ======================= Approximate nearest neighbours ======================
+
+@article{malkov2020hnsw,
+  author  = {Yury A. Malkov and Dmitry A. Yashunin},
+  title   = {Efficient and Robust Approximate Nearest Neighbor Search Using
+             Hierarchical Navigable Small World Graphs},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {42},
+  number  = {4},
+  pages   = {824--836},
+  year    = {2020},
+}
+
+@article{johnson2021faiss,
+  author  = {Jeff Johnson and Matthijs Douze and Herv{\'e} J{\'e}gou},
+  title   = {Billion-Scale Similarity Search with {GPU}s},
+  journal = {IEEE Transactions on Big Data},
+  volume  = {7},
+  number  = {3},
+  pages   = {535--547},
+  year    = {2021},
+}
+
+% ============================ Tools and platforms ============================
+
+@misc{pgvector,
+  author       = {Andrew Kane},
+  title        = {pgvector: Open-source vector similarity search for
+                  {PostgreSQL}},
+  howpublished = {Available at: \url{https://github.com/pgvector/pgvector}},
+  year         = {2025},
+}
+
+@misc{postgresql,
+  author       = {{The PostgreSQL Global Development Group}},
+  title        = {{PostgreSQL} 16 Documentation},
+  howpublished = {Available at: \url{https://www.postgresql.org/docs/16/}},
+  year         = {2025},
+}
+
+@misc{sentencetransformers,
+  author       = {Nils Reimers and Iryna Gurevych},
+  title        = {{SentenceTransformers} Documentation},
+  howpublished = {Available at: \url{https://www.sbert.net}},
+  year         = {2025},
+}
+
+@misc{fastapi,
+  author       = {Sebasti{\'a}n Ram{\'\i}rez},
+  title        = {{FastAPI} Documentation},
+  howpublished = {Available at: \url{https://fastapi.tiangolo.com}},
+  year         = {2025},
+}
+
+@misc{nextjs,
+  author       = {{Vercel}},
+  title        = {{Next.js} Documentation},
+  howpublished = {Available at: \url{https://nextjs.org/docs}},
+  year         = {2025},
+}
+
+@misc{sqlalchemy,
+  author       = {Michael Bayer},
+  title        = {{SQLAlchemy} 2.0 Documentation},
+  howpublished = {Available at: \url{https://docs.sqlalchemy.org}},
+  year         = {2025},
+}
+
+@misc{redis,
+  author       = {{Redis Ltd.}},
+  title        = {{Redis} Documentation},
+  howpublished = {Available at: \url{https://redis.io/docs/}},
+  year         = {2025},
+}
+
+@misc{arq,
+  author       = {Samuel Colvin},
+  title        = {{arq}: Fast job queues and {RPC} in Python with asyncio and
+                  {Redis}},
+  howpublished = {Available at: \url{https://arq-docs.helpmanual.io}},
+  year         = {2025},
+}
+
+@misc{docker,
+  author       = {{Docker Inc.}},
+  title        = {{Docker} Documentation},
+  howpublished = {Available at: \url{https://docs.docker.com}},
+  year         = {2025},
+}
+
+@misc{tailwind,
+  author       = {{Tailwind Labs}},
+  title        = {{Tailwind CSS} Documentation},
+  howpublished = {Available at: \url{https://tailwindcss.com/docs}},
+  year         = {2025},
+}
+
+@misc{owasp2021,
+  author       = {{OWASP Foundation}},
+  title        = {{OWASP} Top Ten Web Application Security Risks},
+  howpublished = {Available at: \url{https://owasp.org/www-project-top-ten/}},
+  year         = {2021},
+}
+
+@misc{argon2rfc,
+  author       = {Alex Biryukov and Daniel Dinu and Dmitry Khovratovich and
+                  Simon Josefsson},
+  title        = {{RFC} 9106: {Argon2} Memory-Hard Function for Password
+                  Hashing and Proof-of-Work Applications},
+  howpublished = {Available at: \url{https://www.rfc-editor.org/rfc/rfc9106}},
+  year         = {2021},
+}
+
+% ============================ Context and statistics =========================
+%  Sources backing the market figures in Chapter 3 and the cost model in
+%  Chapter 6. Re-check the figures before the defence: telecom and population
+%  statistics are revised quarterly, and cloud prices change.
+
+@misc{arpce2025,
+  author       = {{Autorit\'e de R\'egulation de la Poste et des Communications
+                   \'Electroniques (ARPCE)}},
+  title        = {Observatoire du march\'e de l'Internet et de la t\'el\'ephonie
+                  mobile en Alg\'erie, 2\textsuperscript{e} trimestre 2025},
+  howpublished = {Available at: \url{https://www.arpce.dz}},
+  year         = {2025},
+  note         = {59.10 million internet subscriptions (88.71\% mobile,
+                  11.29\% fixed); 54.80 million mobile lines; mobile
+                  penetration 115.77\% on a population of 47.40 million},
+}
+
+@misc{datareportal2025,
+  author       = {Simon Kemp},
+  title        = {Digital 2025: {A}lgeria},
+  howpublished = {DataReportal. Available at:
+                  \url{https://datareportal.com/reports/digital-2025-algeria}},
+  year         = {2025},
+  note         = {36.2 million internet users; 76.9\% internet penetration in
+                  January 2025},
+}
+
+@misc{macrotrends2025,
+  author       = {{Macrotrends}},
+  title        = {Algeria Urban Population 1960--2025},
+  howpublished = {Available at:
+                  \url{https://www.macrotrends.net/global-metrics/countries/dza/algeria/urban-population}},
+  year         = {2025},
+}
+
+@misc{mesrs2025,
+  author       = {{Minist\`ere de l'Enseignement Sup\'erieur et de la Recherche
+                   Scientifique (MESRS)}},
+  title        = {Rentr\'ee universitaire 2024--2025},
+  howpublished = {Available at: \url{https://www.mesrs.dz}},
+  year         = {2025},
+  note         = {More than 1.8 million students across more than 130
+                  higher-education institutions},
+}
+
+@misc{wilayas2025,
+  author       = {{Journal Officiel de la R\'epublique Alg\'erienne}},
+  title        = {Cr\'eation de onze nouvelles wilayas},
+  howpublished = {Announced 16 November 2025; see also
+                  \url{https://en.wikipedia.org/wiki/Provinces_of_Algeria}},
+  year         = {2025},
+  note         = {Raises the number of wilayas from 58 (in force since
+                  18 December 2019) to 69},
+}
+
+@misc{startupdz,
+  author       = {{Minist\`ere de l'\'Economie de la Connaissance, des Start-up
+                   et des Micro-entreprises}},
+  title        = {Label ``Startup'' --- D\'ecret ex\'ecutif
+                  n\textsuperscript{o} 20-254},
+  howpublished = {Portail national des startups. Available at:
+                  \url{https://startup.dz}},
+  year         = {2020},
+}
+
+@misc{anade2025,
+  author       = {{Agence Nationale d'Appui et de D\'eveloppement de
+                   l'Entrepreneuriat (ANADE)}},
+  title        = {Dispositifs de financement des micro-entreprises},
+  howpublished = {Available at: \url{https://www.anade.dz}},
+  year         = {2025},
+  note         = {Interest-free financing schemes reaching up to
+                  10 million DZD},
+}
+
+@misc{selfhost2026,
+  author       = {{SelfHost.dev}},
+  title        = {{AWS} {RDS} vs {Hetzner} Cloud Cost Analysis},
+  howpublished = {Available at:
+                  \url{https://selfhost.dev/blog/aws-rds-vs-hetzner-cloud-cost/}},
+  year         = {2026},
+  note         = {Hetzner CCX23 (2 vCPU, 16 GB RAM, 160 GB NVMe) at
+                  approximately 31 EUR per month},
+}
+
+@misc{worldsalaries2025,
+  author       = {{WorldSalaries}},
+  title        = {Average Software Developer Salary in Algeria},
+  howpublished = {Available at:
+                  \url{https://worldsalaries.com/average-software-developer-salary-in-algeria/}},
+  year         = {2025},
+  note         = {Reported range 1\,224\,800--3\,432\,600 DZD per year;
+                  average 2\,281\,800 DZD},
+}
+
+@misc{railway2026,
+  author       = {{Railway}},
+  title        = {Railway Pricing and Managed {PostgreSQL}},
+  howpublished = {Available at: \url{https://railway.com}},
+  year         = {2026},
+}
+
+@misc{xe2026,
+  author       = {{Exchange-Rates.org}},
+  title        = {{US} Dollar to Algerian Dinar Exchange Rate History, 2026},
+  howpublished = {Available at:
+                  \url{https://www.exchange-rates.org/exchange-rate-history/usd-dzd-2026}},
+  year         = {2026},
+  note         = {2026 average: 1 USD = 129.79 DZD},
+}

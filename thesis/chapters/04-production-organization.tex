@@ -1,0 +1,255 @@
+\chapter{PRODUCTION STRATEGY AND ORGANIZATION PLAN}
+\label{ch:organization}
+
+\section{The process of obtaining the service}
+
+The service is delivered entirely online, and its production is therefore not
+manufacturing but operation: keeping a platform available, keeping the matching
+engine accurate, and arbitrating the human steps that software cannot decide.
+Figure~\ref{fig:service-process} shows how the three actors converge.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+
+  \node[boxnode, text width=3.4cm] (loser)  at (-4.6,6.0) {\textbf{Person who lost}\\an object};
+  \node[boxnode, text width=3.4cm] (finder) at ( 0.0,6.0) {\textbf{Person who found}\\an object};
+  \node[boxnode, text width=3.4cm] (inst)   at ( 4.6,6.0) {\textbf{Partner institution}\\lost-property desk};
+
+  \node[storenode, text width=3.4cm] (rlost)  at (-4.6,4.3) {Files a \emph{lost} report\\{\scriptsize description, photos, wilaya, date}};
+  \node[storenode, text width=3.4cm] (rfound) at ( 0.0,4.3) {Files a \emph{found} report\\{\scriptsize + verification questions}};
+  \node[storenode, text width=3.4cm] (rinst)  at ( 4.6,4.3) {Publishes its register\\{\scriptsize as found reports}};
+
+  \node[boxnode, text width=12.6cm] (engine) at (0,2.4)
+    {\textbf{Platform} --- embed $\rightarrow$ retrieve $\rightarrow$ score $\rightarrow$ rank\\
+     {\scriptsize automatic, bidirectional, continuous}};
+
+  \node[storenode, text width=12.6cm] (sugg) at (0,0.9)
+    {Ranked suggestions with confidence and explanations; both owners notified above threshold};
+
+  \node[storenode, text width=12.6cm] (claim) at (0,-0.6)
+    {Claim submitted --- the claimant answers the verification questions set by the reporter};
+
+  \node[storenode, text width=12.6cm] (approve) at (0,-2.1)
+    {\textbf{The reporter} reviews the answers and approves or rejects};
+
+  \node[boxnode, text width=12.6cm] (done) at (0,-3.6)
+    {Contact details exchanged $\rightarrow$ handover $\rightarrow$ both reports closed as \emph{recovered}\\
+     {\scriptsize the outcome is stored as labelled feedback for the matching engine}};
+
+  \draw[flowarrow] (loser)  -- (rlost);
+  \draw[flowarrow] (finder) -- (rfound);
+  \draw[flowarrow] (inst)   -- (rinst);
+  \draw[flowarrow] (rlost.south)  |- ($(engine.north)+(0,0.35)$) -- (engine.north);
+  \draw[flowarrow] (rfound.south) -- ($(engine.north)+(0,0.35)$) -- (engine.north);
+  \draw[flowarrow] (rinst.south)  |- ($(engine.north)+(0,0.35)$) -- (engine.north);
+  \draw[flowarrow] (engine)  -- (sugg);
+  \draw[flowarrow] (sugg)    -- (claim);
+  \draw[flowarrow] (claim)   -- (approve);
+  \draw[flowarrow] (approve) -- (done);
+
+\end{tikzpicture}
+\caption{Delivery of the service: three entry points, one automatic comparison,
+and a human decision before any identity is disclosed.}
+\label{fig:service-process}
+\end{figure}
+
+\subsection{For the person who lost an object}
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
+  \item Creates an account and files a report describing the object, in the
+        language of their choice, with photographs if any exist.
+  \item Receives ranked suggestions with confidence and explanations as soon as
+        matching runs, and a notification whenever a strong new match appears.
+  \item Submits a claim on a promising found report, answering the verification
+        questions set by the finder.
+  \item On approval, receives the finder's contact details and arranges the
+        handover.
+  \item Closes the report as recovered, which supplies the labelled feedback the
+        matching engine learns from.
+\end{enumerate}
+
+Nothing in this sequence requires the user to search. That is the point: the
+comparison work that social-media groups leave to human attention is performed
+by the platform, continuously, for as long as the report stays open.
+
+\subsection{For the person who found an object}
+
+The path mirrors the one above, with one difference that determines whether the
+platform works at all. Found reports are the scarce side of this market: people
+hesitate to publish that they are holding something valuable, because doing so
+in a public group means exposing themselves to every opportunist who reads it.
+
+The platform answers that objection structurally rather than with reassurance:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{No contact details are ever published.} A found report shows the
+        object, not the finder.
+  \item \textbf{The finder sets the verification questions} when publishing
+        --- \dq{which side is it, left or right?}, \dq{what is on the
+        lock screen?} --- and chooses questions only the true owner can answer.
+  \item \textbf{The finder alone decides} who is genuine. A high confidence
+        score is a suggestion to the finder, never an instruction, and never an
+        authorisation to disclose anything.
+  \item \textbf{Claims cannot be used to harass.} Only one pending claim per
+        person per item is permitted, so a rejected claimant cannot flood the
+        finder with retries.
+\end{itemize}
+
+A finder is therefore never more exposed than they choose to be, which is the
+minimum condition for the found pool to grow at all.
+
+\subsection{For partner institutions}
+
+Universities, transport operators, municipalities and commercial centres already
+accumulate lost property, and already keep registers of it. What they lack is
+any way to make those registers findable. A citizen who lost something must
+guess which desk to visit, travel there, and ask during opening hours ---
+repeated once per institution.
+
+The proposed arrangement is simple: the institution receives an account, its
+staff publish found items into the shared pool as they are handed in, and claims
+arrive through the same verification workflow that protects individual finders.
+What the institution gains:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item A searchable register replacing a paper one, at no licence cost.
+  \item Fewer speculative counter visits, because citizens can check before
+        travelling.
+  \item Automatic matching against loss reports, instead of waiting for the
+        owner to think of asking.
+  \item A record of restitutions, which is evidence of service quality.
+\end{itemize}
+
+For the platform, these partnerships are not merely a channel --- they are the
+answer to the cold-start problem identified in Chapter~\ref{ch:market}. An
+institutional register seeds the found pool on day one, so that the first
+individual user to arrive after a loss finds something to match against.
+
+\section{Procurement}
+
+The stack is built entirely on open-source components --- PostgreSQL, Redis,
+FastAPI, Next.js --- and on pre-trained models used under permissive licences
+and run locally. Procurement is therefore infrastructure and services; there are
+no software licences to buy, and, critically, \textbf{no per-request charge to
+any external AI provider}. Every embedding is computed on the project's own
+CPU, which is what allows the service to be free at the point of use.
+
+\begin{table}[htbp]
+\centering
+\caption{Procurement requirements}
+\label{tab:procurement}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.5cm} X p{3.1cm}@{}}
+\toprule
+\textbf{Item} & \textbf{Why it is needed} & \textbf{Reference offer} \\
+\midrule
+Application compute
+  & Runs the API and the embedding worker; the worker needs memory for the two
+    models, not a GPU
+  & Hetzner CCX23, 2~vCPU / 16~GB / 160~GB NVMe, $\approx$~31~EUR per
+    month~\cite{selfhost2026} \\
+\addlinespace
+Managed PostgreSQL with \code{pgvector}
+  & Relational data, full-text search and vector indexes in one engine
+  & Railway managed Postgres, \$10--40 per month by
+    size~\cite{railway2026} \\
+\addlinespace
+Object storage and bandwidth
+  & Photographs; the dominant variable cost, since every report may carry up to
+    five images
+  & S3-compatible storage, billed per GB stored and transferred \\
+\addlinespace
+Domain and certificates
+  & Public presence and TLS
+  & Annual domain registration; certificates free via Let's Encrypt \\
+\addlinespace
+Transactional e-mail
+  & Account verification, password reset, match notifications by e-mail
+  & Free tier sufficient at pilot volume \\
+\addlinespace
+Error monitoring and logs
+  & Operating a background worker blind is not viable
+  & Free tier sufficient at pilot volume \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Two architectural decisions keep this list short and its total low. Image
+uploads are re-encoded to WebP at a bounded resolution before storage, cutting a
+typical phone photograph by roughly 95\,\% and pushing back the point at which
+storage becomes the dominant cost. And the API can run without Redis, which
+allows the browsing and reporting surface to be deployed as a single service
+during the pilot, with the worker added only when matching volume requires it.
+
+\section{Workforce}
+
+The team required is small, because the product's marginal cost is
+computational rather than human. What does scale with volume is moderation:
+every disputed claim is arbitrated by a person, and claim volume grows with
+reports.
+
+\begin{table}[htbp]
+\centering
+\caption{Personnel headcount estimation over five years}
+\label{tab:headcount}
+\small
+\begin{tabular}{@{}l c c c c c@{}}
+\toprule
+\textbf{Role} & \textbf{Y1} & \textbf{Y2} & \textbf{Y3} & \textbf{Y4} & \textbf{Y5} \\
+\midrule
+Full-stack developer          & 2 & 2 & 3 & 4 & 5 \\
+Machine-learning engineer     & --- & 1 & 1 & 1 & 2 \\
+Moderation and user support   & --- & 1 & 2 & 3 & 4 \\
+Partnerships and business     & --- & 1 & 1 & 2 & 2 \\
+Marketing and communication   & --- & --- & 1 & 1 & 2 \\
+\midrule
+\textbf{Total}                & \textbf{2} & \textbf{5} & \textbf{8} & \textbf{11} & \textbf{15} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In year one the founding team performs every role; the figures above assume no
+salaried hire before the platform has demonstrated recovery volume. The first
+two hires are deliberate: a machine-learning engineer once enough labelled
+feedback exists to train on, and a moderator once claim volume exceeds what the
+founders can arbitrate while still building.
+
+\towrite{Confirm these headcounts against the salary assumptions in
+Chapter~\ref{ch:finance} --- the two tables must agree, and a jury will check.}
+
+\section{Key partners}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=5pt]
+  \item \textbf{Universities.} The pilot ground. Akli Mohand Oulhadj University
+        of Bouira first, then the wider network of more than 130
+        institutions~\cite{mesrs2025}. They contribute a bounded population with
+        high object turnover and an existing lost-property desk; they receive a
+        searchable register and fewer counter visits.
+
+  \item \textbf{Public transport operators} --- metro, tramway, rail and bus
+        networks --- where loss events concentrate most heavily. They contribute
+        volume on the scarce found side; they receive automated matching against
+        national loss reports.
+
+  \item \textbf{Airports and stations}, which already operate formal
+        lost-property procedures and legal retention periods, and for whom an
+        online register reduces counter load.
+
+  \item \textbf{Municipalities and communal services}, extending coverage beyond
+        institutional spaces into the street.
+
+  \item \textbf{Commercial centres and large retailers}, which hold objects
+        found on their premises and gain a visible customer service.
+
+  \item \textbf{The university incubator and Algeria Venture}, the national
+        public accelerator supporting labelled startups~\cite{startupdz}, for
+        mentoring, credibility and access to the financing mechanisms of
+        Chapter~\ref{ch:finance}.
+
+  \item \textbf{ANADE}, whose interest-free financing schemes for young ventures
+        reach up to 10 million dinars~\cite{anade2025}.
+
+  \item \textbf{Hosting and infrastructure providers}, whose free and low tiers
+        make the pilot phase possible at negligible cost.
+\end{itemize}

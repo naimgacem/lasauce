@@ -52,3 +52,16 @@ class ValidationError(AppError):
 
     status_code = 422
     code = "VALIDATION_ERROR"
+
+
+class PaymentRequiredError(AppError):
+    """The caller is authenticated and authorised, but out of credits.
+
+    Deliberately its own status (402) rather than a 403: the client must be able
+    to tell "you may never do this" from "you may do this once you top up", and
+    only the second one should open the paywall. `details` carries the current
+    balance and the cost, so the dialog can be rendered from the error alone.
+    """
+
+    status_code = 402
+    code = "PAYMENT_REQUIRED"

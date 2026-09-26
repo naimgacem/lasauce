@@ -1,0 +1,74 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Document macros.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% --- Project metadata — EDIT THESE, they feed the title page -------------
+\newcommand{\thesistitle}{An AI-Powered Lost and Found Platform: Multimodal
+  Matching of Item Reports Using Text and Image Embeddings}
+\newcommand{\thesisspecialty}{GSI/ISIL}
+\newcommand{\thesissupervisor}{TODO --- Supervisor name}
+\newcommand{\thesisstudentone}{TODO --- Your full name}
+\newcommand{\thesisstudenttwo}{}          % leave empty if working alone
+\newcommand{\thesisstudentthree}{}        % leave empty if working alone
+\newcommand{\thesisyear}{2025/2026}
+\newcommand{\projectname}{LaSauce}
+
+% --- "TO WRITE" boxes ----------------------------------------------------
+%  Visible placeholders for the sections that cannot come from the codebase.
+%  Flip \showtodosfalse in main.tex to hide every one of them at once.
+\newif\ifshowtodos
+\newcommand{\towrite}[1]{%
+  \ifshowtodos
+    \par\medskip\noindent
+    \fcolorbox{todoborder}{todobg}{%
+      \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+        \small\setstretch{1.15}%
+        \textbf{\textcolor{todoborder}{TO WRITE.}}\ #1
+      \end{minipage}%
+    }%
+    \par\medskip
+  \fi
+}
+
+%  Lightweight variant for table cells, where the boxed version's \par and
+%  \medskip would fight with the cell's own paragraph handling.
+\newcommand{\tofill}[1][to fill in]{%
+  \ifshowtodos\textcolor{todoborder}{\small\itshape #1}\fi
+}
+
+% --- Figures -------------------------------------------------------------
+%  Renders the real image once it exists in figures/, and a labelled grey box
+%  until then — so the document always compiles and every gap is visible.
+\newcommand{\figplaceholder}[2][\linewidth]{%
+  \begingroup
+  \setlength{\fboxsep}{0pt}%
+  \fcolorbox{rulegray}{black!4}{%
+    \begin{minipage}[c][0.24\textheight][c]{\dimexpr#1-2\fboxrule\relax}
+      \centering
+      {\ttfamily\small figures/#2}\\[0.8em]
+      {\itshape\small screenshot not added yet}
+    \end{minipage}%
+  }%
+  \endgroup
+}
+
+%  \screenshot[width]{file.png}{Caption}{label}  ->  \ref{fig:label}
+\newcommand{\screenshot}[4][0.88\linewidth]{%
+  \begin{figure}[htbp]
+    \centering
+    \IfFileExists{figures/#2}%
+      {\includegraphics[width=#1]{figures/#2}}%
+      {\figplaceholder[#1]{#2}}%
+    \caption{#3}
+    \label{fig:#4}
+  \end{figure}%
+}
+
+% --- Inline shorthands ---------------------------------------------------
+%  \code steps down one size to compensate for the larger x-height of the
+%  typewriter face in running text. Inside an already-small context (a
+%  \scriptsize or \tiny diagram node) that step *up* to \small would overflow
+%  the box, so diagrams use \dcode, which inherits the surrounding size.
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\dcode}[1]{\texttt{#1}}
+\newcommand{\dq}[1]{\enquote{#1}}

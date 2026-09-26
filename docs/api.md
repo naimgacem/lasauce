@@ -59,26 +59,69 @@ Access token TTL ~15 min; refresh TTL ~30 days with rotation + reuse detection.
 in prod the API returns short-lived **signed S3 URLs** instead.
 
 ### `GET /items/{id}/matches` — response shape
+
+Matches are the **paid tier**. Two independent gates apply, and they answer
+different questions:
+
+* **Authorisation** — may you see this pair at all? Owner-only, and unpriced.
+  No amount of money buys a view of a stranger's match.
+* **Entitlement** — have you unlocked *this* suggestion? Below.
+
+An **unlocked** match (paid, free-allowance, or `status=confirmed`):
 ```jsonc
 {
   "item": { "id": "…", "type": "lost", "title": "Black leather wallet" },
+  "processing_status": "ready",
+  "locked_count": 0,
+  "entitlements": { "balance": 2, "free_unlocks_remaining": 0,
+                    "unlock_cost": 1, "paywall_enabled": true },
   "matches": [
     {
       "match_id": "…",
+      "locked": false,
       "candidate_item": { "id": "…", "type": "found", "title": "…",
                           "primary_image_url": "…", "location_text": "…",
-                          "event_date": "2026-06-07" },
+                          "wilaya_code": 16, "event_date": "2026-06-07" },
+      "preview": null,
       "text_score": 0.83,
       "image_score": 0.91,
       "combined_score": 0.88,
       "confidence": 0.86,          // shown as 86%
       "status": "suggested",
-      "explanation": ["same category", "image strongly similar",
-                      "found 1 day after lost"]
+      "explanation": [{ "code": "same_category", "params": { "name": "Wallets" } }]
     }
   ]
 }
 ```
+
+A **locked** match. Note that the identifying fields are *absent from the
+response*, not flagged — sending them and blurring in CSS would put the answer
+one network-tab click away from anyone who declined to pay:
+```jsonc
+{
+  "match_id": "…",
+  "locked": true,
+  "candidate_item": null,          // title, photo, place, date never leave the server
+  "preview": {
+    "blur_preview": "data:image/webp;base64,…",   // ~16px derivative, ~200 bytes
+    "has_photo": true,
+    "hidden_reason_count": 3
+  },
+  "text_score": null,              // raw features withheld
+  "image_score": null,
+  "combined_score": null,
+  "confidence": 0.86,              // the hook — identifies nothing on its own
+  "status": "suggested",
+  "explanation": [{ "code": "text_strong", "params": {} }]
+}
+```
+
+Reason codes describing **match strength** (`text_strong`, `image_strong`,
+`stands_out`) survive redaction. Codes describing **the item** — `same_category`,
+`same_color`, `same_brand`, `same_wilaya`, `time_close` — do not: combined with
+the public browse pages they narrow the search to a handful of rows, and a
+paywall you can walk around is not one.
+
 Ordered by `confidence` desc.
 
 ---
@@ -87,10 +130,40 @@ Ordered by `confidence` desc.
 
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
-| GET | `/matches/{id}` | owner | Single match detail (both items + scores). |
-| POST | `/matches/{id}/confirm` | owner | Confirm. Match `status=confirmed`, both items → `claimed`, writes positive `match_feedback`, notifies counterpart. (Either owner then calls `/items/{id}/resolve` to close as recovered.) |
-| POST | `/matches/{id}/reject` | owner | `status=rejected`, writes negative `match_feedback`. |
-| POST | `/matches/{id}/feedback` | owner | `is_correct, comment?` explicit feedback for the learning loop. |
+| GET | `/matches/{id}` | owner | Single match detail. Redacted unless unlocked. |
+| POST | `/matches/{id}/unlock` | owner | Spend a credit (or the free allowance) to reveal. **Idempotent** — re-unlocking charges nothing. Returns `402 PAYMENT_REQUIRED` with `{balance, cost}` when short, which is the client's signal to open the paywall. |
+| POST | `/matches/{id}/confirm` | owner + unlocked | Confirm. Match `status=confirmed`, both items → `matched`, writes positive `match_feedback`, notifies counterpart **and grants them a free unlock** (one connection is sold once, not twice). `403` while locked — nobody can vouch for a match they haven't seen. |
+| POST | `/matches/{id}/reject` | owner | `status=rejected`. Allowed while locked: clearing your own panel shouldn't cost money. A blind dismissal writes **no** `match_feedback` — the user rejected an offer, not a match, and filing that as "the engine was wrong" would poison calibration. |
+| POST | `/matches/{id}/feedback` | owner + unlocked | `is_correct, comment?` explicit feedback for the learning loop. |
+| POST | `/items/{id}/rematch` | owner | Free. Re-running the engine reveals nothing. |
+
+---
+
+## Billing — `/billing`
+
+Credit packs for match unlocks. Amounts are **whole Algerian dinars** — Chargily
+settles DZD in the main unit, so nothing is scaled to centimes.
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| GET | `/billing/packs` | **public** | Price ladder. Static per deploy (`app/core/pricing.py`). Public because a price list is not a secret, and because the paywall must still render prices while an access token is refreshing. Packs carry an `id`, never a name — the client translates `billing.packs.<id>`, as with match reason codes. |
+| GET | `/billing/entitlements` | user | `{balance, free_unlocks_remaining, unlock_cost, paywall_enabled}`. Also embedded in every `/items/{id}/matches` response, so the panel needs no second request. |
+| POST | `/billing/checkout` | user | `{pack_id, locale}` → `{payment_id, checkout_url, …}`. Snapshots price and credits onto the `payments` row *before* calling the gateway. |
+| GET | `/billing/payments` | user | Purchase history, newest first. |
+| GET | `/billing/payments/{id}` | user | Polled by the return page. **The authoritative status** — a `success_url` redirect proves only that a browser followed a link. |
+| POST | `/billing/payments/{id}/simulate` | user | Settles a `manual` payment with no gateway. `403` when `APP_ENV=production`. |
+| POST | `/billing/webhook` | **none** | Gateway callback. Unauthenticated by necessity — Chargily holds no token of ours — so the HMAC-SHA256 `signature` header over the **raw body** is the only thing between the credit ledger and anyone who can guess the URL. Unverified → bare `403`. Verified-but-uninteresting → `200`, because a non-2xx makes the gateway retry forever. |
+
+**Idempotency.** Webhooks are at-least-once. Two database indexes make a replay
+free rather than merely unlikely: `uq_credit_ledger_purchase_payment` (at most
+one credit grant per payment) and `uq_match_unlocks_user_match` (at most one
+unlock per person per suggestion). Neither depends on getting a read-then-write
+right. Concurrent unlocks of *different* matches are serialised by a
+`SELECT … FOR UPDATE` on the user row taken before the balance is read.
+
+**The balance is a ledger, not a counter.** There is no `users.credits` column;
+the balance is `SUM(delta)` over `credit_ledger`, so every unit a customer holds
+traces to the payment that created it or the match that consumed it.
 
 ---
 
@@ -145,6 +218,7 @@ All require `admin`; every mutating call writes an `admin_actions` audit row.
 |----------------|------------------|---------|
 | `/auth` | users, refresh_tokens | `auth_service` |
 | `/items`, `/items/{id}/images` | items, item_images, categories | `item_service`, `image_service` |
-| `/items/{id}/matches`, `/matches` | matches, match_feedback | `matching_service` |
+| `/items/{id}/matches`, `/matches` | matches, match_feedback | `match_service`, `matching_service` |
+| `/matches/{id}/unlock`, `/billing/*` | payments, credit_ledger, match_unlocks | `billing_service` |
 | `/notifications` | notifications | `notification_service` |
 | `/admin/*` | users, items, matches, admin_actions | `admin_service` |

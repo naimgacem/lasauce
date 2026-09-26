@@ -1,0 +1,128 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Visual style — reproduces the department's thesis look from the reference
+%  PDF: "N Chapter" above the chapter title, and a running header reading
+%  "CHAPTER N. TITLE".
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% --- Palette -------------------------------------------------------------
+\definecolor{uamobblue}{RGB}{20,60,110}
+\definecolor{rulegray}{RGB}{120,120,120}
+\definecolor{codebg}{RGB}{247,247,249}
+\definecolor{codekw}{RGB}{20,60,140}
+\definecolor{codestr}{RGB}{140,40,40}
+\definecolor{codecmt}{RGB}{100,110,100}
+\definecolor{todoborder}{RGB}{176,58,46}
+\definecolor{todobg}{RGB}{253,245,244}
+
+% --- Chapter headings ----------------------------------------------------
+\titleformat{\chapter}[display]
+  {\normalfont\filright}
+  {\hfill\Huge\bfseries\color{uamobblue}\thechapter\;\normalfont\Large Chapter}
+  {6pt}
+  {\hfill\Huge\bfseries}
+  [\vspace{4pt}{\color{rulegray}\titlerule[0.8pt]}]
+\titlespacing*{\chapter}{0pt}{10pt}{34pt}
+
+\titleformat{\section}
+  {\normalfont\large\bfseries\color{uamobblue}}{\thesection}{0.8em}{}
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}{\thesubsection}{0.8em}{}
+
+% --- Running headers -----------------------------------------------------
+%  fancyhdr warns if the header box is shorter than its content; 15pt clears
+%  the 12pt body font without leaving a gap.
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\small\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+% --- Table of contents depth --------------------------------------------
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+
+% --- Listings ------------------------------------------------------------
+\lstdefinestyle{thesis}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  commentstyle=\color{codecmt}\itshape,
+  numbers=left,
+  numberstyle=\ttfamily\tiny\color{rulegray},
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{rulegray},
+  framesep=5pt,
+  breaklines=true,
+  breakatwhitespace=false,
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+  columns=fullflexible,
+  keepspaces=true,
+  xleftmargin=14pt,
+  aboveskip=12pt,
+  belowskip=12pt,
+}
+\lstset{style=thesis}
+\renewcommand{\lstlistingname}{Listing}
+
+% --- TikZ shared node styles --------------------------------------------
+\tikzset{
+  boxnode/.style={
+    draw=uamobblue, fill=uamobblue!5, rounded corners=2pt,
+    align=center, font=\footnotesize, inner sep=5pt, minimum height=9mm,
+  },
+  storenode/.style={
+    draw=rulegray, fill=black!3, rounded corners=2pt,
+    align=center, font=\footnotesize, inner sep=5pt, minimum height=9mm,
+  },
+  flowarrow/.style={-{Stealth[length=5pt]}, draw=rulegray, thick},
+  edgelabel/.style={font=\scriptsize\itshape, fill=white, inner sep=1.5pt},
+  % --- entity-relationship diagram (Chapter 5) ---
+  entity/.style={
+    draw=uamobblue, fill=uamobblue!7, rounded corners=2pt, align=left,
+    font=\scriptsize, inner sep=4pt, text width=30mm,
+  },
+  weakentity/.style={entity, draw=rulegray, fill=black!3},
+  relline/.style={draw=rulegray, thick},
+  card/.style={font=\tiny, fill=white, inner sep=1pt},
+  % --- use-case diagram (Chapter 5) ---
+  %  Stick-figure actor, drawn rather than imported so no font or image is
+  %  needed. Place with:  \pic (name) at (x,y) {actor};
+  actor/.pic={
+    \draw[thick, draw=uamobblue] (0,0) circle (2.2mm);
+    \draw[thick, draw=uamobblue] (0,-2.2mm) -- (0,-8mm);
+    \draw[thick, draw=uamobblue] (-3.5mm,-4.6mm) -- (3.5mm,-4.6mm);
+    \draw[thick, draw=uamobblue] (0,-8mm) -- (-3mm,-13mm);
+    \draw[thick, draw=uamobblue] (0,-8mm) -- (3mm,-13mm);
+  },
+  usecase/.style={
+    draw=uamobblue, fill=uamobblue!5, ellipse, align=center,
+    font=\tiny, inner sep=2pt, minimum width=26mm, minimum height=7mm,
+  },
+  systemframe/.style={draw=rulegray, dashed, rounded corners=3pt},
+  % --- sequence diagram (Chapter 5) ---
+  lifeline/.style={draw=rulegray, dashed},
+  actorbox/.style={
+    draw=uamobblue, fill=uamobblue!7, rounded corners=2pt,
+    font=\scriptsize, inner sep=3pt, minimum width=20mm, align=center,
+  },
+  activation/.style={draw=uamobblue, fill=uamobblue!20, minimum width=2.4mm},
+  msg/.style={-{Stealth[length=4pt]}, draw=uamobblue!80},
+  retmsg/.style={-{Stealth[length=4pt]}, draw=rulegray, dashed},
+  msglabel/.style={font=\tiny, above, inner sep=1.5pt},
+  % --- business model canvas (Chapter 7) ---
+  bmcblock/.style={
+    draw=rulegray, fill=uamobblue!4, align=left, font=\tiny,
+    inner sep=3pt, text width=28mm, minimum height=30mm, anchor=north west,
+  },
+  bmctitle/.style={font=\tiny\bfseries\color{uamobblue}},
+}

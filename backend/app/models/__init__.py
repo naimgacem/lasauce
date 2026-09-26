@@ -6,6 +6,12 @@ Models are imported here so that Alembic's autogenerate (which targets
 
 from app.models.category import Category
 from app.models.claim import Claim, ClaimStatus
+from app.models.credit import (
+    CreditLedger,
+    LedgerReason,
+    MatchUnlock,
+    UnlockSource,
+)
 from app.models.item import (
     Item,
     ItemClosedReason,
@@ -16,6 +22,7 @@ from app.models.item import (
 from app.models.item_image import ItemImage
 from app.models.match import Match, MatchFeedback, MatchStatus
 from app.models.notification import Notification, NotificationType
+from app.models.payment import Payment, PaymentStatus
 from app.models.refresh_token import RefreshToken
 from app.models.user import User, UserRole, UserStatus
 
@@ -38,4 +45,10 @@ __all__ = [
     "Match",
     "MatchStatus",
     "MatchFeedback",
+    "Payment",
+    "PaymentStatus",
+    "CreditLedger",
+    "LedgerReason",
+    "MatchUnlock",
+    "UnlockSource",
 ]

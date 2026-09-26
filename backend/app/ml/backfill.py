@@ -3,6 +3,7 @@
     python -m app.ml.backfill            # embed whatever is missing a vector
     python -m app.ml.backfill --all      # re-embed everything (model change)
     python -m app.ml.backfill --rematch  # re-score only (weights/thresholds changed)
+    python -m app.ml.backfill --blur     # generate missing locked-card previews
 
 Needed because embeddings are written by a job that only fires on create/update:
 without this, every report filed before the pipeline shipped stays invisible to
@@ -115,6 +116,62 @@ async def _embed_images(*, force: bool) -> int:
         return done
 
 
+async def _blur_previews(*, force: bool) -> int:
+    """Generate the tiny blurred derivative shown on locked match cards.
+
+    Photos uploaded before the paid tier existed have no preview, so their
+    locked cards fall back to a plain placeholder — correct, but it is the
+    weakest version of the paywall. This reads each stored WebP back, produces
+    the ~16px derivative, and stores it inline.
+
+    Pure image work, no model loading: fast enough to run against the whole
+    corpus in one pass, unlike the embedding backfills above.
+    """
+    import io
+
+    from PIL import Image, UnidentifiedImageError
+
+    from app.services.image_service import make_blur_preview
+    from app.storage import get_storage
+
+    storage = get_storage()
+    async with AsyncSessionLocal() as session:
+        conditions = [] if force else [ItemImage.blur_preview.is_(None)]
+        result = await session.execute(select(ItemImage).where(*conditions))
+        images = list(result.scalars().all())
+        if not images:
+            print("No photos need a blur preview.")
+            return 0
+
+        print(f"Generating {len(images)} blur preview(s)...")
+        done = 0
+        for index, image in enumerate(images, start=1):
+            try:
+                blob = await storage.open(image.image_path)
+            except FileNotFoundError:
+                #  Skip rather than abort: one missing object must not strand
+                #  the rest of the corpus without previews.
+                logger.warning("backfill_blur_missing", extra={"key": image.image_path})
+                continue
+            try:
+                with Image.open(io.BytesIO(blob)) as img:
+                    preview = make_blur_preview(img.convert("RGB"))
+            except (UnidentifiedImageError, OSError, ValueError):
+                logger.warning("backfill_blur_unreadable", extra={"key": image.image_path})
+                continue
+            if preview is None:
+                continue
+            await session.execute(
+                update(ItemImage).where(ItemImage.id == image.id).values(blur_preview=preview)
+            )
+            done += 1
+            if index % 50 == 0 or index == len(images):
+                await session.commit()
+                print(f"  {index}/{len(images)}")
+        await session.commit()
+        return done
+
+
 async def _match_all(items: list[Item]) -> None:
     """Match only after every vector exists.
 
@@ -152,9 +209,16 @@ async def _load_open_items() -> list[Item]:
         return list(result.scalars().all())
 
 
-async def main(force: bool, rematch_only: bool = False) -> None:
+async def main(force: bool, rematch_only: bool = False, blur_only: bool = False) -> None:
     configure_logging("INFO")
     try:
+        if blur_only:
+            #  Independent of embeddings and scores — it touches only the
+            #  presentation of a locked card, so it never needs a re-match.
+            count = await _blur_previews(force=force)
+            print(f"Done. {count} preview(s) written.")
+            return
+
         if rematch_only:
             #  Embeddings describe the items; scores describe the *policy*
             #  applied to them. Tuning weights or thresholds invalidates every
@@ -194,5 +258,10 @@ if __name__ == "__main__":
         action="store_true",
         help="skip embedding and re-score everything (after a weight/threshold change)",
     )
+    parser.add_argument(
+        "--blur",
+        action="store_true",
+        help="generate blurred previews for locked match cards (no model loading)",
+    )
     args = parser.parse_args()
-    asyncio.run(main(force=args.all, rematch_only=args.rematch))
+    asyncio.run(main(force=args.all, rematch_only=args.rematch, blur_only=args.blur))

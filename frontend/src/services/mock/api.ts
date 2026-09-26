@@ -6,6 +6,7 @@
 import { useAuthStore } from "@/store/auth.store";
 import { ApiError, type Paginated } from "@/types/api";
 import type { AuthResponse, User } from "@/types/auth";
+import type { Entitlements, Payment } from "@/types/billing";
 import type { Claim } from "@/types/claim";
 import type { Item, ItemImage } from "@/types/item";
 import type { AppNotification } from "@/types/notification";
@@ -15,9 +16,12 @@ import {
   delay,
   findCategory,
   MOCK_CATEGORIES,
+  MOCK_ENTITLEMENTS,
   MOCK_ITEMS,
   MOCK_MATCHES,
   MOCK_NOTIFICATIONS,
+  MOCK_PACKS,
+  MOCK_UNLOCKED_MATCH,
   MOCK_USER,
 } from "./data";
 
@@ -30,6 +34,30 @@ function findMatch(id: string) {
     .find((m) => m.match_id === id);
   if (!suggestion) throw notFound("Match");
   return suggestion;
+}
+
+/**
+ * Session-scoped billing state for mock mode.
+ *
+ * Mutable module state, deliberately: the demo has to survive navigating away
+ * from the match panel and back, and a per-call constant would re-lock a card
+ * the visitor already opened.
+ */
+const billingState = {
+  entitlements: { ...MOCK_ENTITLEMENTS } as Entitlements,
+  payments: [] as Payment[],
+};
+
+/** Replace the locked stub with the full record, in place. */
+function revealMockMatch(id: string) {
+  const panel = Object.values(MOCK_MATCHES).find((s) =>
+    s.matches.some((m) => m.match_id === id),
+  );
+  if (!panel) throw notFound("Match");
+  const index = panel.matches.findIndex((m) => m.match_id === id);
+  panel.matches[index] = { ...MOCK_UNLOCKED_MATCH, match_id: id };
+  panel.locked_count = panel.matches.filter((m) => m.locked).length;
+  return panel.matches[index];
 }
 
 function paginate<T>(rows: T[], page = 1, pageSize = 20): Paginated<T> {
@@ -346,19 +374,75 @@ export const mockApi: Api = {
   matches: {
     async forItem(itemId) {
       await delay(400);
-      return (
-        MOCK_MATCHES[itemId] ?? {
+      const panel = MOCK_MATCHES[itemId];
+      if (!panel) {
+        return {
           item: { id: itemId, type: "lost", title: "" },
           matches: [],
           //  `ready`, not `pending`: with no worker in mock mode an in-flight
           //  status would leave the panel spinning forever.
           processing_status: "ready",
-        }
-      );
+          locked_count: 0,
+          entitlements: billingState.entitlements,
+        };
+      }
+      //  Always the live balance, never the snapshot baked into the fixture —
+      //  otherwise a purchase made during the demo never reaches the panel.
+      return { ...panel, entitlements: billingState.entitlements };
     },
     async get(id) {
       await delay();
       return findMatch(id);
+    },
+    async unlock(id) {
+      await delay();
+      const match = findMatch(id);
+      if (!match.locked) {
+        //  Already open — idempotent, and free. Mirrors the API.
+        return {
+          match_id: id,
+          source: "credit",
+          entitlements: billingState.entitlements,
+        };
+      }
+
+      const { free_unlocks_remaining, balance, unlock_cost } =
+        billingState.entitlements;
+
+      if (free_unlocks_remaining > 0) {
+        billingState.entitlements = {
+          ...billingState.entitlements,
+          free_unlocks_remaining: free_unlocks_remaining - 1,
+        };
+        revealMockMatch(id);
+        return {
+          match_id: id,
+          source: "free_allowance",
+          entitlements: billingState.entitlements,
+        };
+      }
+
+      if (balance < unlock_cost) {
+        //  Same shape the backend raises, so the paywall opens on the same
+        //  branch in mock mode as it does live.
+        throw new ApiError({
+          message: "You need a match credit to open this suggestion",
+          code: "PAYMENT_REQUIRED",
+          status: 402,
+          details: { balance, cost: unlock_cost },
+        });
+      }
+
+      billingState.entitlements = {
+        ...billingState.entitlements,
+        balance: balance - unlock_cost,
+      };
+      revealMockMatch(id);
+      return {
+        match_id: id,
+        source: "credit",
+        entitlements: billingState.entitlements,
+      };
     },
     async confirm(id) {
       await delay();
@@ -377,6 +461,71 @@ export const mockApi: Api = {
     },
     async rematch() {
       await delay(400);
+    },
+  },
+
+  billing: {
+    async packs() {
+      await delay(200);
+      return MOCK_PACKS;
+    },
+    async entitlements() {
+      await delay(150);
+      return billingState.entitlements;
+    },
+    async checkout({ pack_id, locale }) {
+      await delay(400);
+      const pack = MOCK_PACKS.find((p) => p.id === pack_id);
+      if (!pack) throw notFound("Pack");
+
+      const payment: Payment = {
+        id: `pay-${Date.now()}`,
+        pack_id: pack.id,
+        credits: pack.credits,
+        amount: pack.amount,
+        currency: pack.currency,
+        status: "pending",
+        provider: "manual",
+        checkout_url: `/${locale}/billing/return`,
+        failure_reason: null,
+        created_at: new Date().toISOString(),
+        paid_at: null,
+      };
+      billingState.payments.unshift(payment);
+      return {
+        payment_id: payment.id,
+        //  Straight to the return page: mock mode has no gateway to visit, and
+        //  the page's own "simulate" control drives settlement from there.
+        checkout_url: `/${locale}/billing/return?payment=${payment.id}&simulated=1`,
+        amount: pack.amount,
+        currency: pack.currency,
+        credits: pack.credits,
+        provider: "manual",
+      };
+    },
+    async payments() {
+      await delay(200);
+      return billingState.payments;
+    },
+    async payment(id) {
+      await delay(150);
+      const found = billingState.payments.find((p) => p.id === id);
+      if (!found) throw notFound("Payment");
+      return found;
+    },
+    async simulate(id) {
+      await delay(500);
+      const payment = billingState.payments.find((p) => p.id === id);
+      if (!payment) throw notFound("Payment");
+      if (payment.status !== "pending") return payment;
+
+      payment.status = "paid";
+      payment.paid_at = new Date().toISOString();
+      billingState.entitlements = {
+        ...billingState.entitlements,
+        balance: billingState.entitlements.balance + payment.credits,
+      };
+      return payment;
     },
   },
 };

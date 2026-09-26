@@ -140,6 +140,49 @@ class Settings(BaseSettings):
     CONF_NOTIFY: float = 0.70  # at/above this, notify both users
     CONF_STRONG: float = 0.85  # UI badge "high confidence"
 
+    # --- Paid matching ---
+    #  The paywall covers *match suggestions only*. Reporting, browsing, search
+    #  and claims stay free: the platform is worthless if a finder can't file
+    #  what they picked up, and gating the supply side to sell the demand side
+    #  starves both. What is sold is the engine that finds the needle.
+    MATCHING_PAYWALL_ENABLED: bool = True
+    #  Unlocks granted to every account before the paywall applies. Nobody pays
+    #  200 DZD to discover whether the matcher is any good, so the first result
+    #  is on the house — it converts "is this a scam?" into "that worked".
+    FREE_MATCH_UNLOCKS: int = 1
+    #  Credits spent to reveal one suggestion. A knob, not a constant, so a
+    #  future "reveal all on this item" bundle has somewhere to live.
+    MATCH_UNLOCK_COST: int = 1
+
+    # --- Payments ---
+    #  manual | chargily. `manual` is the offline provider: it mints a local
+    #  return URL and exposes a non-production "mark paid" endpoint, so the whole
+    #  purchase → credit → unlock loop is exercisable before any gateway keys
+    #  exist. Flip to `chargily` once the account is live.
+    PAYMENT_PROVIDER: str = "manual"
+    PAYMENT_CURRENCY: str = "dzd"
+    #  Absolute, publicly-reachable base URL of *this* API. Chargily posts the
+    #  webhook to it from the outside world, so localhost only works behind a
+    #  tunnel (ngrok/cloudflared) — there is no way for the gateway to reach a
+    #  private address.
+    PUBLIC_API_URL: str = "http://localhost:8000"
+
+    # --- Chargily Pay v2 ---
+    #  Test: https://pay.chargily.net/test/api/v2  (keys begin `test_sk_`)
+    #  Live: https://pay.chargily.net/api/v2       (keys begin `live_sk_`)
+    CHARGILY_API_BASE: str = "https://pay.chargily.net/test/api/v2"
+    CHARGILY_SECRET_KEY: str | None = None
+    #  Chargily signs webhooks with the *same* secret key, so this normally
+    #  stays unset and falls through to CHARGILY_SECRET_KEY. It exists only so a
+    #  future rotation, or a gateway that separates the two, needs no code change.
+    CHARGILY_WEBHOOK_SECRET: str | None = None
+    #  edahabia | cib | chargily_app — the method the hosted page opens on. The
+    #  customer can still switch there; this only picks the default tab.
+    CHARGILY_PAYMENT_METHOD: str = "edahabia"
+    #  customer | merchant | split. `merchant` keeps the advertised price honest:
+    #  the buyer pays exactly the number on the pack card.
+    CHARGILY_FEES_ALLOCATION: str = "merchant"
+
     # --- Storage ---
     STORAGE_PROVIDER: str = "local"  # local | s3
     MEDIA_ROOT: str = "/app/media"
@@ -180,6 +223,16 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.APP_ENV.lower() == "production"
+
+    @property
+    def chargily_webhook_secret(self) -> str | None:
+        """Chargily signs with the API secret unless one is configured separately."""
+        return self.CHARGILY_WEBHOOK_SECRET or self.CHARGILY_SECRET_KEY
+
+    @property
+    def is_chargily_live(self) -> bool:
+        """True when pointed at the live gateway rather than the test sandbox."""
+        return "/test/" not in self.CHARGILY_API_BASE
 
 
 @lru_cache

@@ -27,6 +27,14 @@ export const ROUTES = {
   reportFound: "/report/found", // redirects → /report?type=found
   notifications: "/notifications",
   profile: "/profile",
+  /** Pricing + purchase history. */
+  billing: "/billing",
+  /**
+   * Where the payment gateway returns the customer. Authenticated: the page
+   * reads the payment's real status from the API, and that read needs a session
+   * — the URL alone is not evidence anyone paid.
+   */
+  billingReturn: "/billing/return",
 
   // future (feature-flagged)
   matches: (itemId: string) => `/matches/${itemId}`,

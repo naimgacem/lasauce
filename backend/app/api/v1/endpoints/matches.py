@@ -18,6 +18,7 @@ from app.api.deps import get_current_active_user, get_db, get_queue
 from app.core.exceptions import NotFoundError, PermissionDeniedError
 from app.models.user import User, UserRole
 from app.repositories.item import ItemRepository
+from app.schemas.billing import UnlockResult
 from app.schemas.match import MatchFeedbackCreate, MatchRead, MatchSuggestions
 from app.services.match_service import MatchService
 from app.services.queue import JobQueue
@@ -70,6 +71,21 @@ async def get_match(
     db: AsyncSession = Depends(get_db),
 ) -> MatchRead:
     return await MatchService(db).get(user, match_id)
+
+
+@matches_router.post(
+    "/{match_id}/unlock",
+    response_model=UnlockResult,
+    summary="Reveal a suggestion, spending a credit or the free allowance",
+    responses={402: {"description": "Out of credits — the client opens the paywall"}},
+)
+async def unlock_match(
+    match_id: uuid.UUID,
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> UnlockResult:
+    """Idempotent: unlocking an already-open match returns without charging."""
+    return await MatchService(db).unlock(user, match_id)
 
 
 @matches_router.post("/{match_id}/confirm", response_model=MatchRead)

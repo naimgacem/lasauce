@@ -16,6 +16,34 @@ x-backend-env: &backend-env
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
   CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
 
+  # --- Paid matching -------------------------------------------------------
+  # The paywall covers match suggestions only. Reporting, browsing, search and
+  # claims stay free — gating the supply side to sell the demand side starves
+  # both. Set MATCHING_PAYWALL_ENABLED=false to run the whole platform free.
+  MATCHING_PAYWALL_ENABLED: ${MATCHING_PAYWALL_ENABLED:-true}
+  FREE_MATCH_UNLOCKS: ${FREE_MATCH_UNLOCKS:-1}
+  MATCH_UNLOCK_COST: ${MATCH_UNLOCK_COST:-1}
+
+  # --- Payments ------------------------------------------------------------
+  # `manual` (default) drives the full purchase → credit → unlock loop with no
+  # gateway account, via a "simulate payment" control that is refused when
+  # APP_ENV=production. Switch to `chargily` once the merchant account is live.
+  PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-manual}
+  # Where Chargily POSTs the webhook. It calls in from the public internet, so
+  # localhost only works behind a tunnel (`cloudflared tunnel --url ...`).
+  PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+
+  # --- Chargily Pay v2 -----------------------------------------------------
+  # Test: https://pay.chargily.net/test/api/v2  (keys begin test_sk_)
+  # Live: https://pay.chargily.net/api/v2       (keys begin live_sk_)
+  CHARGILY_API_BASE: ${CHARGILY_API_BASE:-https://pay.chargily.net/test/api/v2}
+  CHARGILY_SECRET_KEY: ${CHARGILY_SECRET_KEY:-}
+  CHARGILY_PAYMENT_METHOD: ${CHARGILY_PAYMENT_METHOD:-edahabia}
+  # `merchant` keeps the advertised price honest: the buyer pays exactly the
+  # number printed on the pack card, and we absorb the gateway's cut.
+  CHARGILY_FEES_ALLOCATION: ${CHARGILY_FEES_ALLOCATION:-merchant}
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
