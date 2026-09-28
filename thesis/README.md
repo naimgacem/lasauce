@@ -1,6 +1,6 @@
 # Thesis source (`thesis/`)
 
-Overleaf-ready LaTeX project for the Master's thesis on **LaSauce**, the
+Overleaf-ready LaTeX project for the Master's thesis on **Sabtou**, the
 AI-powered lost & found platform in this repository.
 
 The structure mirrors the department's startup-format thesis: seven chapters

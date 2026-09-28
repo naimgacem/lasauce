@@ -41,7 +41,7 @@ similarity** (Sentence Transformers) into a single ranked confidence score.
 ## Repository layout (target)
 
 ```
-lasauce/
+sabtou/
 ├── README.md
 ├── docs/                       # this Phase 1 design package
 ├── docker-compose.yml          # db, redis, backend, worker, frontend

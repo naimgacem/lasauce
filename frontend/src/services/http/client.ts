@@ -83,6 +83,8 @@ export async function request<T>(
   }
 
   if (!res.ok) throw await parseErrorResponse(res);
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  // Read as text first: 204s and 202s (e.g. /rematch) come back with an empty
+  // body, and res.json() throws on "" rather than returning nothing.
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }

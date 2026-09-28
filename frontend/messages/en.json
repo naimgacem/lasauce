@@ -1,10 +1,10 @@
 {
   "meta": {
-    "siteName": "l'almath",
+    "siteName": "Sabtou",
     "description": "Report lost items, post things you've found, and let AI help reunite people with their things."
   },
   "common": {
-    "appName": "l'almath",
+    "appName": "sabtou",
     "loading": "Loading…",
     "retry": "Try again",
     "cancel": "Cancel",

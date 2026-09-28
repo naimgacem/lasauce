@@ -20,7 +20,7 @@ import os
 # Runs against the API over HTTP so it exercises the real validation and
 # image pipeline. Inside the api container the default is correct.
 API = os.environ.get("SEED_API_URL", "http://localhost:8000/api/v1")
-EMAIL = "demo@lasauce.dz"
+EMAIL = "demo@sabtou.dz"
 PASSWORD = "supersecret123"
 
 # (type, title, description, wilaya_code, category_slug, colour, claim_question, photo_seed)

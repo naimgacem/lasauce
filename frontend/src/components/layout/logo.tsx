@@ -4,9 +4,10 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 /**
- * The mark is the wordmark's own "l’": a stem, and an apostrophe that doubles
- * as a dropped pin. Colours are fixed rather than themed — a logo that inverts
- * with the theme stops being recognisable. Keep in sync with app/icon.svg.
+ * The mark is the "s" of sabtou ("I found it") drawn as one winding trail that
+ * ends at a mint point: the search, and the moment it finds something.
+ * Colours are fixed rather than themed — a logo that inverts with the theme
+ * stops being recognisable. Keep in sync with app/icon.svg and apple-icon.png.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -17,12 +18,15 @@ export function LogoMark({ className }: { className?: string }) {
       focusable="false"
     >
       <rect width="32" height="32" rx="8" fill="#1F4C36" />
-      <rect x="9.2" y="6.5" width="4.6" height="19" rx="2.3" fill="#F7F7F2" />
-      <circle cx="20.2" cy="10" r="2.75" fill="#7FD3A8" />
       <path
-        d="M22.95 10C22.95 13.3 21.3 15.5 18.6 16.7L17.9 15.55C19.5 14.65 20.4 13.45 20.55 12.2Z"
-        fill="#7FD3A8"
+        d="M9 23.5H18.5A3.5 3.5 0 0 0 18.5 16.5H13.5A3.5 3.5 0 0 1 13.5 9.5H17"
+        fill="none"
+        stroke="#F7F7F2"
+        strokeWidth="3.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      <circle cx="22.8" cy="9.5" r="2.5" fill="#7FD3A8" />
     </svg>
   );
 }

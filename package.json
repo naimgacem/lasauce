@@ -1,4 +1,6 @@
 {
+  "name": "sabtou",
+  "private": true,
   "dependencies": {
     "firebase": "^12.16.0"
   }

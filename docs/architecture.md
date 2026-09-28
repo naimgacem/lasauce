@@ -130,7 +130,7 @@ reversed. See [ai-matching.md](ai-matching.md) for the matching internals.
 ## 6. Folder structure
 
 ```
-lasauce/
+sabtou/
 ├── docker-compose.yml
 ├── docker-compose.prod.yml          # overrides for prod (no bind mounts, S3, etc.)
 ├── .env.example

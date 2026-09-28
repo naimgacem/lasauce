@@ -1,10 +1,10 @@
 {
   "meta": {
-    "siteName": "l'almath",
+    "siteName": "Sabtou",
     "description": "أبلغ عمّا فقدته، وانشر ما عثرت عليه، ودع الذكاء الاصطناعي يعيد الأشياء إلى أصحابها."
   },
   "common": {
-    "appName": "l'almath",
+    "appName": "sabtou",
     "loading": "جارٍ التحميل…",
     "retry": "إعادة المحاولة",
     "cancel": "إلغاء",

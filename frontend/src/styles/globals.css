@@ -196,13 +196,6 @@
     font-size: 0.9375rem;
   }
 
-  /* Directional glyphs mirror in RTL. The individual `scale` property composes
-     with Tailwind's `transform` utilities instead of overwriting them, so a
-     hover nudge on the same icon still works. */
-  [dir="rtl"] :is(.lucide-arrow-left, .lucide-arrow-right, .lucide-chevron-left, .lucide-chevron-right) {
-    scale: -1 1;
-  }
-
   /* The skip link lands here; without a tabindex target, focus would stay put. */
   main:focus {
     outline: none;
@@ -368,4 +361,13 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Directional glyphs mirror in RTL. The individual `scale` property composes
+   with Tailwind's `transform` utilities instead of overwriting them, so a
+   hover nudge on the same icon still works.
+   Deliberately outside any @layer: Tailwind drops layered rules whose classes
+   never appear in the source, and lucide adds these class names at runtime. */
+[dir="rtl"] :is(.lucide-arrow-left, .lucide-arrow-right, .lucide-chevron-left, .lucide-chevron-right) {
+  scale: -1 1;
 }

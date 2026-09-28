@@ -1,10 +1,10 @@
 {
   "meta": {
-    "siteName": "l'almath",
+    "siteName": "Sabtou",
     "description": "Signalez ce que vous avez perdu, publiez ce que vous avez trouvé, et laissez l'IA réunir les gens avec leurs affaires."
   },
   "common": {
-    "appName": "l'almath",
+    "appName": "sabtou",
     "loading": "Chargement…",
     "retry": "Réessayer",
     "cancel": "Annuler",
