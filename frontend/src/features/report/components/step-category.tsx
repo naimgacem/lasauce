@@ -1,7 +1,6 @@
 "use client";
 
 import { m } from "framer-motion";
-import { Tag } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { listContainer, listItem } from "@/animations";
@@ -28,7 +27,7 @@ export function StepCategory({
     return (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 rounded-2xl" />
+          <Skeleton key={i} className="h-14 rounded-xl" />
         ))}
       </div>
     );
@@ -57,27 +56,18 @@ export function StepCategory({
               aria-checked={selected}
               onClick={() => onSelect(selected ? undefined : category.id)}
               className={cn(
-                "flex flex-col items-center justify-center gap-2 rounded-2xl border-2 bg-card p-4 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "flex min-h-14 items-center rounded-xl border bg-card px-4 py-3 text-start text-body-sm font-medium leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 selected
-                  ? "border-primary"
-                  : "border-border hover:border-muted-foreground/40",
+                  ? "border-primary bg-accent text-accent-foreground ring-1 ring-primary"
+                  : "hover:border-muted-foreground/40",
               )}
             >
-              <Tag
-                className={cn(
-                  "h-5 w-5",
-                  selected ? "text-primary" : "text-muted-foreground",
-                )}
-                aria-hidden
-              />
-              <span className="text-sm font-medium leading-tight">
-                {category.name}
-              </span>
+              {category.name}
             </m.button>
           );
         })}
       </m.div>
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-caption font-normal text-muted-foreground">
         {t("notSureCategory")}
       </p>
     </div>

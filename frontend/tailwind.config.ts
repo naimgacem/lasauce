@@ -12,6 +12,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
+        /* The Arabic locale swaps in Plex Sans Arabic — see globals.css. */
         sans: ["var(--font-geist-sans)", ...defaultTheme.fontFamily.sans],
       },
 

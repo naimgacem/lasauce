@@ -5,13 +5,6 @@ import { useTranslations } from "next-intl";
 import { Lock, RefreshCw, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Spinner } from "@/components/feedback/loading";
 import { PaywallDialog } from "@/features/billing/components/paywall-dialog";
 import { useUnlockMatch } from "@/features/billing/hooks/use-billing";
@@ -23,6 +16,7 @@ import {
   useRejectMatch,
   useRematch,
 } from "@/features/matches/hooks/use-matches";
+import { cn } from "@/lib/utils";
 import type { Item } from "@/types/item";
 
 /**
@@ -68,38 +62,43 @@ export function MatchPanel({ item, isOwner }: { item: Item; isOwner: boolean }) 
     ["pending", "embedding", "matching"].includes(data?.processing_status ?? "");
   const hasFreeUnlock = (entitlements?.free_unlocks_remaining ?? 0) > 0;
 
+  //  A section, not a card: the suggestions inside are the cards, and gold
+  //  lives on them. Framing the whole panel in foil as well put a card inside a
+  //  card inside a card, and spent the paid cue on a heading.
   return (
-    <div className="ring-premium shadow-premium rounded-2xl">
-      <Card className="rounded-[calc(1rem-1px)] border-0">
-        <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
-          <div className="space-y-2">
-            {/* Small caps over the title rather than an icon beside it. A
-                label states the tier; a glyph decorates it. */}
-            <span className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-premium-ink">
-              {t("tierLabel")}
-            </span>
-            <CardTitle className="text-heading-4">{t("title")}</CardTitle>
-            <CardDescription>{t("subtitle")}</CardDescription>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => rematch.mutate()}
-            disabled={rematch.isPending || searching}
-          >
-            <RefreshCw className="h-4 w-4" />
-            {t("rematch")}
-          </Button>
-        </CardHeader>
+    <section aria-labelledby="matches-heading">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          {/* Small caps over the title rather than an icon beside it. A
+              label states the tier; a glyph decorates it. */}
+          <span className="text-overline uppercase text-premium-ink">
+            {t("tierLabel")}
+          </span>
+          <h2 id="matches-heading" className="mt-1 text-heading-3">
+            {t("title")}
+          </h2>
+          <p className="mt-0.5 text-body-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="shrink-0"
+          onClick={() => rematch.mutate()}
+          disabled={rematch.isPending || searching}
+        >
+          <RefreshCw className={cn("h-4 w-4", rematch.isPending && "animate-spin")} />
+          {t("rematch")}
+        </Button>
+      </div>
 
-        <CardContent className="space-y-4">
+      <div className="space-y-3">
           {searching ? (
-            <div className="flex items-center gap-3 rounded-xl border border-dashed bg-muted/30 p-4 text-body-sm text-muted-foreground">
+            <div className="flex items-center gap-3 rounded-xl border border-dashed p-4 text-body-sm text-muted-foreground">
               <Spinner />
               {t("searching")}
             </div>
           ) : matches.length === 0 ? (
-            <div className="flex items-center gap-3 rounded-xl border border-dashed bg-muted/30 p-4 text-body-sm text-muted-foreground">
+            <div className="flex items-center gap-3 rounded-xl border border-dashed p-4 text-body-sm text-muted-foreground">
               <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
                 <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-processing" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-processing" />
@@ -164,10 +163,9 @@ export function MatchPanel({ item, isOwner }: { item: Item; isOwner: boolean }) 
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       <PaywallDialog open={paywallOpen} onOpenChange={setPaywallOpen} />
-    </div>
+    </section>
   );
 }

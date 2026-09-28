@@ -6,6 +6,7 @@ import { Menu, Plus } from "lucide-react";
 
 import { Logo } from "@/components/layout/logo";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { NavLink } from "@/components/layout/nav-link";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
@@ -45,30 +46,15 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center gap-6">
         <Logo />
 
-        {/* Desktop nav — an animated underline marks the active section. */}
-        <nav className="hidden items-center gap-1 md:flex" aria-label={t("mainNav")}>
+        <nav className="hidden items-center md:flex" aria-label={t("mainNav")}>
           {NAV.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              aria-current={isActive(link.href) ? "page" : undefined}
-              className={cn(
-                "relative rounded-md px-3 py-2 text-body-sm font-medium transition-colors",
-                "after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full",
-                "after:origin-left after:scale-x-0 after:bg-primary after:transition-transform after:duration-200 after:ease-out",
-                "hover:text-foreground hover:after:scale-x-100",
-                "motion-reduce:after:transition-none",
-                isActive(link.href)
-                  ? "text-foreground after:scale-x-100"
-                  : "text-muted-foreground",
-              )}
-            >
+            <NavLink key={link.href} href={link.href} active={isActive(link.href)}>
               {t(link.key)}
-            </Link>
+            </NavLink>
           ))}
         </nav>
 
-        <div className="ms-auto flex items-center gap-2">
+        <div className="ms-auto flex items-center gap-1 sm:gap-2">
           <LanguageSwitcher />
           <ThemeToggle />
 

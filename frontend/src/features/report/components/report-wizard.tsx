@@ -232,7 +232,7 @@ export function ReportWizard() {
 
       {/* Resume banner */}
       {resumed ? (
-        <div className="flex items-center gap-3 rounded-xl border bg-card p-3.5 text-sm">
+        <div className="flex items-center gap-3 rounded-xl border bg-card py-2 pe-2 ps-3.5 text-body-sm">
           <History className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           <p className="flex-1 text-muted-foreground">
             {t("resumedDraft")}
@@ -252,10 +252,8 @@ export function ReportWizard() {
         className="space-y-6"
       >
         <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight md:text-2xl">
-            {headings[step].title}
-          </h1>
-          <p className="text-sm text-muted-foreground">{headings[step].hint}</p>
+          <h1 className="text-heading-2">{headings[step].title}</h1>
+          <p className="text-body-sm text-muted-foreground">{headings[step].hint}</p>
         </div>
 
         {step === 0 ? <StepType value={draft?.type} onSelect={selectType} /> : null}
@@ -280,38 +278,36 @@ export function ReportWizard() {
         {step === 4 ? <StepReview draft={draft ?? {}} type={type} images={images} /> : null}
       </m.div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between border-t pt-5">
-        {step > 0 ? (
+      {/* Navigation. Step 0 advances by choosing a card, so it has none. */}
+      {step > 0 ? (
+        <div className="flex items-center justify-between border-t pt-5">
           <Button variant="ghost" onClick={() => go(step - 1)} disabled={busy}>
             <ArrowLeft className="h-4 w-4" />
             {tc("back")}
           </Button>
-        ) : (
-          <span />
-        )}
 
-        {step === 2 ? (
-          <Button type="submit" form={DETAILS_FORM_ID}>
-            {tc("continue")}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        ) : step === 4 ? (
-          <Button onClick={publish} disabled={busy}>
-            {busy ? <Spinner /> : <Send className="h-4 w-4" />}
-            {upload.isPending
-              ? t("uploadingPhotos", { count: images.length })
-              : create.isPending
-                ? t("publishing")
-                : t("publish")}
-          </Button>
-        ) : step > 0 ? (
-          <Button onClick={() => go(step + 1)}>
-            {tc("continue")}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        ) : null}
-      </div>
+          {step === 2 ? (
+            <Button type="submit" form={DETAILS_FORM_ID}>
+              {tc("continue")}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : step === 4 ? (
+            <Button onClick={publish} disabled={busy}>
+              {busy ? <Spinner /> : <Send className="h-4 w-4" />}
+              {upload.isPending
+                ? t("uploadingPhotos", { count: images.length })
+                : create.isPending
+                  ? t("publishing")
+                  : t("publish")}
+            </Button>
+          ) : (
+            <Button onClick={() => go(step + 1)}>
+              {tc("continue")}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      ) : null}
 
       <p className="sr-only" aria-live="polite">
         {t("stepProgress", { n: step + 1, total: wizardSteps.length, label: wizardSteps[step] })}

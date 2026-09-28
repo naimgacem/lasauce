@@ -3,74 +3,68 @@
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { m } from "framer-motion";
-import { CalendarDays, MapPin } from "lucide-react";
 
-import { cardHover, cardTap, listItem } from "@/animations";
-import { Card, CardContent } from "@/components/ui/card";
+import { listItem } from "@/animations";
 import {
   ItemStatusBadge,
   ItemTypeBadge,
 } from "@/features/items/components/item-badges";
 import { ItemImage } from "@/features/items/components/item-image";
-import { formatLocation } from "@/lib/algeria-wilayas";
-import { formatDate, formatRelative } from "@/lib/format";
+import { wilayaName } from "@/lib/algeria-wilayas";
+import { formatDate } from "@/lib/format";
 import { ROUTES } from "@/lib/routes";
 import type { Item } from "@/types/item";
 
-/** Grid card — photo-led, hover lift per the animation system. */
+/**
+ * Grid card — the photo does the work. The type chip sits on the image so the
+ * text below is only what a scanner needs: what it is, where, when. One hover
+ * response (a slow push into the photo); the border tint covers devices that
+ * can't hover-zoom smoothly.
+ */
 export function ItemCard({ item }: { item: Item }) {
   const t = useTranslations("item");
   const locale = useLocale();
-  const location = formatLocation(item.wilaya_code, item.location_text, locale);
+  const place = wilayaName(item.wilaya_code, locale) ?? item.location_text;
   const typeLabel = item.type === "lost" ? t("lostBadge") : t("foundBadge");
 
   return (
-    <m.div variants={listItem} whileHover={cardHover} whileTap={cardTap}>
+    <m.div variants={listItem} className="h-full">
       <Link
         href={ROUTES.item(item.id)}
-        className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={t("typeTitleAria", { type: typeLabel, title: item.title })}
       >
-        <Card interactive className="h-full overflow-hidden">
+        <article className="flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-colors duration-200 group-hover:border-foreground/20">
           <div className="relative overflow-hidden">
             <ItemImage
               item={item}
-              className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none"
+              className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
             />
-            {/* Bottom scrim keeps the badges legible over busy photos. */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            />
-          </div>
-          <CardContent className="space-y-2.5 p-4">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <ItemTypeBadge type={item.type} />
-                <ItemStatusBadge status={item.status} />
-              </div>
-              <span className="whitespace-nowrap text-caption text-muted-foreground">
-                {formatRelative(item.created_at, locale)}
-              </span>
+            <div className="absolute start-2 top-2 flex flex-wrap gap-1">
+              <ItemTypeBadge type={item.type} />
+              <ItemStatusBadge
+                status={item.status}
+                className="border-transparent bg-background/90 text-foreground"
+              />
             </div>
-            <h3 className="line-clamp-1 text-heading-4 transition-colors group-hover:text-primary">
+          </div>
+          <div className="flex flex-1 flex-col gap-0.5 p-3 sm:p-4">
+            <h3 className="line-clamp-2 text-body-sm font-medium leading-snug sm:line-clamp-1 sm:text-body sm:leading-snug">
               {item.title}
             </h3>
-            <div className="space-y-1 text-caption text-muted-foreground">
-              {location ? (
-                <p className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  <span className="line-clamp-1">{location}</span>
-                </p>
+            <p className="mt-auto truncate pt-0.5 text-caption font-normal text-muted-foreground">
+              {place ? (
+                <>
+                  {place}
+                  <span aria-hidden className="mx-1.5">
+                    ·
+                  </span>
+                </>
               ) : null}
-              <p className="flex items-center gap-1.5">
-                <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                {typeLabel}{" "}
-                {formatDate(item.lost_or_found_at, locale)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              {formatDate(item.lost_or_found_at, locale)}
+            </p>
+          </div>
+        </article>
       </Link>
     </m.div>
   );

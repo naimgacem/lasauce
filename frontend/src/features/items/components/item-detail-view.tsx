@@ -35,7 +35,7 @@ export function ItemDetailView({
 
   if (isPending) {
     return (
-      <div className="container max-w-4xl py-8">
+      <div className="container py-6 md:py-8">
         <DetailSkeleton />
       </div>
     );

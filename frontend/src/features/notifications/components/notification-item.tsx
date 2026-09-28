@@ -75,10 +75,12 @@ export function NotificationItem({
         </span>
 
         <span className="min-w-0 flex-1 space-y-0.5">
-          <span className="flex items-center gap-2">
+          {/* The title wraps rather than truncates: on a phone, truncation
+              cut exactly the part that said what happened. */}
+          <span className="flex items-start gap-2">
             <span
               className={cn(
-                "truncate text-sm",
+                "min-w-0 text-sm",
                 notification.is_read ? "font-medium" : "font-semibold",
               )}
             >
@@ -86,7 +88,7 @@ export function NotificationItem({
             </span>
             {!notification.is_read ? (
               <span
-                className="h-2 w-2 shrink-0 rounded-full bg-primary"
+                className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary"
                 aria-hidden
               />
             ) : null}

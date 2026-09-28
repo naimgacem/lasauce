@@ -103,7 +103,7 @@ export default function NotificationsPage() {
         <div className="space-y-6">
           {groups.map(([label, bucket]) => (
             <section key={label} aria-label={label}>
-              <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h2 className="mb-2 px-1 text-overline uppercase text-muted-foreground">
                 {label}
               </h2>
               <m.ul

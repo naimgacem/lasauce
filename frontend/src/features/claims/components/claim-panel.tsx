@@ -2,18 +2,18 @@
 
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { CheckCircle2, Clock, KeyRound, Lock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 
 import { Spinner } from "@/components/feedback/loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { ClaimDialog } from "@/features/claims/components/claim-dialog";
 import { ContactReveal } from "@/features/claims/components/contact-reveal";
 import { useMyClaims, useWithdrawClaim } from "@/features/claims/hooks/use-claims";
 import { formatRelative } from "@/lib/format";
 import { loginWithNext, ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import type { Item } from "@/types/item";
 
 /**
@@ -36,20 +36,20 @@ export function ClaimPanel({ item }: { item: Item }) {
   const isClosed = item.status === "closed";
   const mine = myClaims?.find((c) => c.item_id === item.id);
 
+  const title = item.type === "found" ? t("panelTitle") : t("didYouFind");
+
   // ── Guest ────────────────────────────────────────────────────────────────
+  // The most common visitor of all: someone who tapped a shared link. Ask
+  // the question first, then say what signing in leads to.
   if (!isAuthed) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center gap-3 p-6 text-center sm:flex-row sm:text-start">
-          <Lock className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
-          <p className="flex-1 text-body-sm text-muted-foreground">
-            {t("guestBody")}
-          </p>
-          <Button asChild size="sm">
-            <Link href={loginWithNext(ROUTES.item(item.id))}>{tc("signIn")}</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <Panel>
+        <h2 className="text-heading-4">{title}</h2>
+        <p className="mt-1 text-body-sm text-muted-foreground">{t("guestBody")}</p>
+        <Button asChild size="lg" className="mt-4 w-full">
+          <Link href={loginWithNext(ROUTES.item(item.id))}>{tc("signIn")}</Link>
+        </Button>
+      </Panel>
     );
   }
 
@@ -67,91 +67,88 @@ export function ClaimPanel({ item }: { item: Item }) {
   // ── Pending ──────────────────────────────────────────────────────────────
   if (mine?.status === "pending") {
     return (
-      <Card className="border-processing/30 bg-processing-muted/40">
-        <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
-          <Clock className="h-5 w-5 shrink-0 text-processing" aria-hidden />
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">{t("pendingTitle")}</p>
-            <p className="text-body-sm text-muted-foreground">
+      <Panel className="border-processing/30 bg-processing-muted/40">
+        <div className="flex items-start gap-3">
+          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-processing" aria-hidden />
+          <div className="min-w-0">
+            <h2 className="text-body font-medium">{t("pendingTitle")}</h2>
+            <p className="mt-0.5 text-body-sm text-muted-foreground">
               {t("pendingBody", { relative: formatRelative(mine.created_at, locale) })}
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => withdraw.mutate(mine.id)}
-            disabled={withdraw.isPending}
-          >
-            {withdraw.isPending ? <Spinner /> : null}
-            {t("withdrawAction")}
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-4"
+          onClick={() => withdraw.mutate(mine.id)}
+          disabled={withdraw.isPending}
+        >
+          {withdraw.isPending ? <Spinner /> : null}
+          {t("withdrawAction")}
+        </Button>
+      </Panel>
     );
   }
 
   // ── Rejected / withdrawn ─────────────────────────────────────────────────
   if (mine && (mine.status === "rejected" || mine.status === "withdrawn")) {
     const rejected = mine.status === "rejected";
+    const canRetry = !rejected && !isClosed && item.status !== "claimed";
     return (
-      <Card>
-        <CardContent className="flex items-center gap-3 p-5">
-          <XCircle className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">
+      <Panel>
+        <div className="flex items-start gap-3">
+          <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+          <div className="min-w-0">
+            <h2 className="text-body font-medium">
               {rejected ? t("notApprovedTitle") : t("withdrewTitle")}
-            </p>
-            <p className="text-body-sm text-muted-foreground">
-              {rejected
-                ? t("rejectedBody")
-                : t("newClaimBody")}
+            </h2>
+            <p className="mt-0.5 text-body-sm text-muted-foreground">
+              {rejected ? t("rejectedBody") : t("newClaimBody")}
             </p>
           </div>
-          {!rejected && !isClosed && item.status !== "claimed" ? (
-            <ClaimDialog item={item} />
-          ) : null}
-        </CardContent>
-      </Card>
+        </div>
+        {canRetry ? <ClaimDialog item={item} className="mt-4 w-full" /> : null}
+      </Panel>
     );
   }
 
   // ── Already settled with someone else ────────────────────────────────────
   if (item.status === "claimed" || isClosed) {
     return (
-      <Card>
-        <CardContent className="flex items-center gap-3 p-5">
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
-          <p className="text-body-sm text-muted-foreground">
-            {t("alreadyClaimed")}
-          </p>
-        </CardContent>
-      </Card>
+      <Panel className="flex items-start gap-3 bg-muted/40">
+        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+        <p className="text-body-sm text-muted-foreground">{t("alreadyClaimed")}</p>
+      </Panel>
     );
   }
 
   // ── Default: invite a claim ──────────────────────────────────────────────
   return (
-    <Card interactive>
-      <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-        <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
-          aria-hidden
-        >
-          <KeyRound className="h-5 w-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-heading-4">
-            {item.type === "found" ? t("panelTitle") : t("didYouFind")}
-          </h3>
-          <p className="mt-0.5 text-body-sm text-muted-foreground">
-            {item.claim_questions.length > 0
-              ? t("answerCount", { count: item.claim_questions.length })
-              : t("tellRightPerson")}
-          </p>
-        </div>
-        <ClaimDialog item={item} />
-      </CardContent>
-    </Card>
+    <Panel>
+      <h2 className="text-heading-4">{title}</h2>
+      <p className="mt-1 text-body-sm text-muted-foreground">
+        {item.claim_questions.length > 0
+          ? t("answerCount", { count: item.claim_questions.length })
+          : t("tellRightPerson")}
+      </p>
+      <ClaimDialog item={item} className="mt-4 w-full" />
+    </Panel>
+  );
+}
+
+/** The claim panel's single surface, so every state sits in the same frame. */
+function Panel({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className={cn("rounded-xl border bg-card p-5", className)}>
+      {children}
+    </section>
   );
 }
 

@@ -6,25 +6,25 @@ import { ROUTES } from "@/lib/routes";
 
 export function SiteFooter() {
   const t = useTranslations("common");
+  const tn = useTranslations("nav");
 
   return (
-    <footer className="border-t py-8">
-      <div className="container flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground sm:flex-row">
-        <div className="flex items-center gap-2">
-          <Logo withWordmark={false} />
-          <span>
-            {t("appName")} — {t("tagline")}
-          </span>
+    <footer className="border-t">
+      <div className="container flex flex-col gap-6 py-8 text-body-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+          <Logo className="text-foreground" />
+          <span className="hidden h-4 w-px bg-border sm:block" aria-hidden />
+          <span>{t("tagline")}</span>
         </div>
-        <nav className="flex items-center gap-4">
-          <Link href={ROUTES.lost} className="hover:text-foreground">
-            {t("lost")}
+        <nav className="flex items-center gap-5" aria-label={tn("footerNav")}>
+          <Link href={ROUTES.lost} className="transition-colors hover:text-foreground">
+            {tn("lostItems")}
           </Link>
-          <Link href={ROUTES.found} className="hover:text-foreground">
-            {t("found")}
+          <Link href={ROUTES.found} className="transition-colors hover:text-foreground">
+            {tn("foundItems")}
           </Link>
-          <Link href={ROUTES.search} className="hover:text-foreground">
-            {t("search")}
+          <Link href={ROUTES.search} className="transition-colors hover:text-foreground">
+            {tn("search")}
           </Link>
         </nav>
       </div>

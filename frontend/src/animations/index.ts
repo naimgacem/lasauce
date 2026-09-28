@@ -3,8 +3,12 @@
  *
  * Ground rules (enforced here, not per-component):
  * - One easing curve for entrances: `EASE_OUT`, a decelerating cubic.
- * - Page transitions: fade + ≤8px upward, 250–350ms.
- * - Cards: 2–4px hover lift, scale ≤1.01, shadow via CSS.
+ * - Nothing that is server-rendered animates in. Content that arrives with the
+ *   HTML must paint with it; an entrance from opacity 0 hides it until
+ *   JavaScript runs. Entrances are for things that arrive later (fetched lists,
+ *   wizard steps).
+ * - Cards: one CSS hover response (border tint, or a slow push into the photo).
+ *   No lift — a card that jumps at the cursor reads as a toy.
  * - Lists: 40–60ms stagger, capped so long lists never crawl.
  * - Dialogs: 0.97 → 1 scale + fade.
  * - Buttons: micro-interactions only (active scale via CSS), no bounce.
@@ -19,7 +23,5 @@
  */
 export { EASE_OUT, DURATION } from "./easing";
 export { pageTransition, pageVariants } from "./page";
-export { cardHover, cardHoverTransition, cardTap } from "./card";
 export { listContainer, listItem, listItemFromLeft, staggerFor } from "./list";
 export { modalContent, modalOverlay } from "./modal";
-export { revealOnce, revealUp } from "./reveal";

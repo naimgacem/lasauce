@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
   [
-    "inline-flex items-center gap-1.5 rounded-full border",
-    "px-2.5 py-0.5 text-caption",
+    "inline-flex h-5 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border",
+    "px-2 text-caption leading-none",
     "transition-colors focus:outline-none",
   ].join(" "),
   {
@@ -54,11 +54,12 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
+/** A `<span>`: badges sit inside links, headings and table cells. */
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+  return <span className={cn(badgeVariants({ variant }), className)} {...props} />;
 }
 
 export { Badge, badgeVariants };

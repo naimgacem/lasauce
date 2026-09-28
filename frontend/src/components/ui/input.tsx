@@ -12,7 +12,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           "ring-offset-background transition-[border-color,box-shadow] duration-200 ease-out",
           "file:border-0 file:bg-transparent file:text-sm file:font-medium",
           "placeholder:text-muted-foreground/80",
-          "hover:border-input/80",
+          "hover:border-muted-foreground/40",
           "focus-visible:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
           // Date inputs render a native picker icon that ignores colour tokens.

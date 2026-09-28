@@ -2,27 +2,10 @@
 
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { m } from "framer-motion";
-import {
-  ArrowLeft,
-  CalendarDays,
-  Clock,
-  MapPin,
-  Palette,
-  Tag,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 
-import { listContainer, listItem } from "@/animations";
 import { Spinner } from "@/components/feedback/loading";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -54,26 +37,27 @@ const CLOSED_REASON_KEY = {
   withdrawn: "closedWithdrawn",
 } as const;
 
-function Fact({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Tag;
-  label: string;
-  value: React.ReactNode;
-}) {
+function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border bg-card p-3.5">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-      <div className="min-w-0">
-        <dt className="text-xs text-muted-foreground">{label}</dt>
-        <dd className="truncate text-sm font-medium">{value}</dd>
-      </div>
+    <div className="flex items-baseline justify-between gap-6 py-2.5">
+      <dt className="shrink-0 text-body-sm text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 text-end text-body-sm font-medium">{value}</dd>
     </div>
   );
 }
 
+/**
+ * Item page — where a link shared in a WhatsApp group lands, so it has to
+ * answer "is this mine, and what do I do?" without scrolling.
+ *
+ * Desktop: photo on the left, the facts and the one action on the right.
+ * Mobile: the same blocks in reading order — photo, what it is, the action.
+ * The grid placement below is what lets one DOM order serve both: the owner's
+ * panels sit under the photo on desktop, and after everything else on a phone.
+ *
+ * No entrance animation: the server already rendered this item, and fading it
+ * in would only hide that work until JavaScript arrived.
+ */
 export function ItemDetail({ item }: { item: Item }) {
   const t = useTranslations("item");
   const locale = useLocale();
@@ -81,124 +65,119 @@ export function ItemDetail({ item }: { item: Item }) {
   const withdraw = useWithdrawItem();
   const isOwner = user?.id === item.user_id;
   const isClosed = item.status === "closed";
+  const closedReason =
+    isClosed && item.closed_reason
+      ? t(
+          CLOSED_REASON_KEY[item.closed_reason as keyof typeof CLOSED_REASON_KEY] ??
+            "statusClosed",
+        )
+      : null;
 
   return (
-    <div className="container max-w-4xl py-8">
-      <m.div
-        variants={listContainer}
-        initial="initial"
-        animate="enter"
-        className="space-y-6"
-      >
-        {/* Top bar */}
-        <m.div variants={listItem} className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={item.type === "lost" ? ROUTES.lost : ROUTES.found}>
-              <ArrowLeft className="h-4 w-4" />
-              {t("backToSearch")}
-            </Link>
-          </Button>
+    <div className="container py-6 md:py-8">
+      <div className="mb-5 flex min-h-9 items-center justify-between gap-4">
+        <Link
+          href={item.type === "lost" ? ROUTES.lost : ROUTES.found}
+          className="group inline-flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft
+            className="h-4 w-4 transition-transform duration-200 ltr:group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5"
+            aria-hidden
+          />
+          {t("backToSearch")}
+        </Link>
 
-          {isOwner && !isClosed ? (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" disabled={withdraw.isPending}>
-                  {withdraw.isPending ? <Spinner /> : <Trash2 className="h-4 w-4" />}
-                  {t("withdrawShort")}
+        {isOwner && !isClosed ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" disabled={withdraw.isPending}>
+                {withdraw.isPending ? <Spinner /> : <Trash2 className="h-4 w-4" />}
+                {t("withdrawShort")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("withdrawConfirmTitle")}</DialogTitle>
+                <DialogDescription>{t("withdrawConfirmBody")}</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="destructive"
+                  onClick={() => withdraw.mutate(item.id)}
+                  disabled={withdraw.isPending}
+                >
+                  {withdraw.isPending ? <Spinner /> : null}
+                  {t("withdraw")}
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{t("withdrawConfirmTitle")}</DialogTitle>
-                  <DialogDescription>
-                    {t("withdrawConfirmBody")}
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button
-                    variant="destructive"
-                    onClick={() => withdraw.mutate(item.id)}
-                    disabled={withdraw.isPending}
-                  >
-                    {withdraw.isPending ? <Spinner /> : null}
-                    {t("withdraw")}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          ) : null}
-        </m.div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ) : null}
+      </div>
 
-        {/* Gallery */}
-        <m.div variants={listItem}>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:gap-y-10 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
           <ItemGallery item={item} />
-        </m.div>
+        </div>
 
-        {/* Item information */}
-        <m.div variants={listItem} className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <ItemTypeBadge type={item.type} />
-            <ItemStatusBadge status={item.status} />
-            <ProcessingBadge status={item.processing_status} />
-            {isClosed && item.closed_reason ? (
-              <span className="text-xs text-muted-foreground">
-                {t("closedReasonPrefix", {
-                  reason: t(CLOSED_REASON_KEY[item.closed_reason as keyof typeof CLOSED_REASON_KEY] ?? "statusClosed"),
-                })}
-              </span>
+        <div className="min-w-0 space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <ItemTypeBadge type={item.type} />
+              <ItemStatusBadge status={item.status} />
+              <ProcessingBadge status={item.processing_status} />
+            </div>
+            {/* A notch below heading-1 on desktop: in a 24rem column the full
+                size turns an ordinary title into three stacked lines. */}
+            <h1 className="text-heading-1 lg:text-[1.875rem]">{item.title}</h1>
+            {closedReason ? (
+              <p className="text-body-sm text-muted-foreground">
+                {t("closedReasonPrefix", { reason: closedReason })}
+              </p>
+            ) : null}
+            {item.description ? (
+              <p className="whitespace-pre-line text-body text-foreground/85">
+                {item.description}
+              </p>
             ) : null}
           </div>
-          <h1 className="text-heading-1">{item.title}</h1>
-          <p className="max-w-prose whitespace-pre-line text-body text-foreground/85">
-            {item.description}
-          </p>
-        </m.div>
 
-        {/* Location + report metadata */}
-        <m.dl
-          variants={listItem}
-          className="grid grid-cols-1 gap-3 sm:grid-cols-2"
-        >
-          <Fact
-            icon={CalendarDays}
-            label={item.type === "lost" ? t("dateLostLabel") : t("dateFoundLabel")}
-            value={formatDate(item.lost_or_found_at, locale)}
-          />
-          <Fact
-            icon={MapPin}
-            label={t("location")}
-            value={wilayaName(item.wilaya_code, locale) ?? t("notSpecified")}
-          />
-          {item.location_text ? (
-            <Fact icon={MapPin} label={t("whereExactly")} value={item.location_text} />
-          ) : null}
-          <Fact icon={Tag} label={t("category")} value={item.category?.name ?? t("uncategorised")} />
-          {item.color ? (
-            <Fact icon={Palette} label={t("colour")} value={item.color} />
-          ) : null}
-          {item.brand ? <Fact icon={Tag} label={t("brand")} value={item.brand} /> : null}
-          <Fact
-            icon={Clock}
-            label={t("reportedLabel")}
-            value={t("reportedRelativeUpdated", {
-              relative: formatRelative(item.created_at, locale),
-              updatedRelative: formatRelative(item.updated_at, locale),
-            })}
-          />
-        </m.dl>
+          <dl className="divide-y border-y">
+            <Fact
+              label={item.type === "lost" ? t("dateLostLabel") : t("dateFoundLabel")}
+              value={formatDate(item.lost_or_found_at, locale)}
+            />
+            <Fact
+              label={t("location")}
+              value={wilayaName(item.wilaya_code, locale) ?? t("notSpecified")}
+            />
+            {item.location_text ? (
+              <Fact label={t("whereExactly")} value={item.location_text} />
+            ) : null}
+            <Fact
+              label={t("category")}
+              value={item.category?.name ?? t("uncategorised")}
+            />
+            {item.color ? <Fact label={t("colour")} value={item.color} /> : null}
+            {item.brand ? <Fact label={t("brand")} value={item.brand} /> : null}
+            <Fact
+              label={t("reportedLabel")}
+              value={formatRelative(item.created_at, locale)}
+            />
+          </dl>
 
-        {/* The core loop: claim it, or review who's claiming yours. */}
-        <m.div variants={listItem}>
-          {isOwner ? <IncomingClaims item={item} /> : <ClaimPanel item={item} />}
-        </m.div>
+          {/* The visitor's one action. The owner's side of the loop lives
+              under the photo instead. */}
+          {!isOwner ? <ClaimPanel item={item} /> : null}
+        </div>
 
-        {/* Potential matches — the flagship slot. Owner-only: the API scopes
-            suggestions to the two people involved, so this renders nothing for
-            anyone else. */}
-        <m.div variants={listItem}>
-          <MatchPanel item={item} isOwner={isOwner} />
-        </m.div>
-      </m.div>
+        {isOwner ? (
+          <div className="min-w-0 space-y-10 lg:col-start-1 lg:row-start-2">
+            <IncomingClaims item={item} />
+            <MatchPanel item={item} isOwner />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

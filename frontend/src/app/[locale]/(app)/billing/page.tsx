@@ -102,7 +102,7 @@ export default function BillingPage() {
       {/* Pricing */}
       <section aria-labelledby="packs-heading" className="space-y-3">
         <div>
-          <h2 id="packs-heading" className="text-lg font-semibold">
+          <h2 id="packs-heading" className="text-heading-4">
             {t("buyCredits")}
           </h2>
           <p className="text-body-sm text-muted-foreground">
@@ -135,7 +135,8 @@ export default function BillingPage() {
 
         <Button
           size="lg"
-          className="w-full bg-premium-gradient text-premium-foreground hover:opacity-90 sm:w-auto"
+          variant="premium"
+          className="w-full sm:w-auto"
           disabled={!selected || checkout.isPending}
           onClick={() => selected && checkout.mutate(selected)}
         >
@@ -146,7 +147,7 @@ export default function BillingPage() {
 
       {/* History */}
       <section aria-labelledby="history-heading" className="space-y-3">
-        <h2 id="history-heading" className="text-lg font-semibold">
+        <h2 id="history-heading" className="text-heading-4">
           {t("history")}
         </h2>
 

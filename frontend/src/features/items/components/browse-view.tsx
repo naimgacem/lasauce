@@ -70,7 +70,7 @@ function BrowseFallback({ title, description }: Omit<BrowseViewProps, "presetTyp
   return (
     <div className="container py-8">
       <PageHeader title={title} description={description} />
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <ItemCardSkeleton key={i} />
         ))}
@@ -158,8 +158,10 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
 
   return (
     <div className="container py-8">
+      {/* The header carries "Report an item" from `sm` up; below that it
+          folds into the menu, so the page offers it instead. */}
       <PageHeader title={title} description={description}>
-        <Button asChild>
+        <Button asChild className="sm:hidden">
           <Link href={ROUTES.report}>{tc("reportItem")}</Link>
         </Button>
       </PageHeader>
@@ -235,8 +237,8 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
       <div className="mt-6 flex gap-8">
         {/* Desktop: sticky filter sidebar */}
         <aside className="hidden w-60 shrink-0 md:block" aria-label={tc("filters")}>
-          <div className="sticky top-24 rounded-2xl border bg-card p-5">
-            <h2 className="mb-4 text-sm font-semibold">{tc("filters")}</h2>
+          <div className="sticky top-24 rounded-xl border bg-card p-5">
+            <h2 className="mb-4 text-body-sm font-semibold">{tc("filters")}</h2>
             <ItemFilters value={filters} onChange={updateFilters} />
           </div>
         </aside>
@@ -245,13 +247,13 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
         <div className="min-w-0 flex-1 space-y-6" aria-busy={isFetching}>
           {isLoading ? (
             view === "grid" ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <ItemCardSkeleton key={i} />
                 ))}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <ItemRowSkeleton key={i} />
                 ))}
@@ -283,7 +285,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
               variants={listContainer}
               initial="initial"
               animate="enter"
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+              className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3"
             >
               {items.map((item) => (
                 <ItemCard key={item.id} item={item} />
@@ -295,7 +297,7 @@ function BrowseViewInner({ presetType, title, description }: BrowseViewProps) {
               variants={listContainer}
               initial="initial"
               animate="enter"
-              className="space-y-3"
+              className="space-y-2"
             >
               {items.map((item) => (
                 <ItemRow key={item.id} item={item} />

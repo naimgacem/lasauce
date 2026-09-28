@@ -45,7 +45,7 @@ export function PreferencesCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("preferences")}</CardTitle>
+        <CardTitle>{t("preferences")}</CardTitle>
         <CardDescription>{t("preferencesDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

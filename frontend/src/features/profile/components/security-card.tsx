@@ -24,7 +24,7 @@ export function SecurityCard({ user }: { user: User }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("security")}</CardTitle>
+        <CardTitle>{t("security")}</CardTitle>
         <CardDescription>{t("securityDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -23,7 +23,7 @@ export default async function LoginPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-xl">{t("loginTitle")}</CardTitle>
+        <CardTitle className="text-heading-3">{t("loginTitle")}</CardTitle>
         <CardDescription>
           {t("loginSubtitle")}
         </CardDescription>

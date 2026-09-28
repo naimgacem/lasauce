@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { m } from "framer-motion";
-import { ImageIcon, Lock, Sparkles, X } from "lucide-react";
+import { Lock, Sparkles, X } from "lucide-react";
 
-import { cardHover, listItem } from "@/animations";
+import { listItem } from "@/animations";
 import { Spinner } from "@/components/feedback/loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,8 +56,8 @@ export function LockedMatchCard({
     .filter((r) => r.text);
 
   return (
-    <m.div variants={listItem} whileHover={cardHover}>
-      <div className="ring-premium shadow-premium rounded-2xl transition-shadow duration-200 hover:shadow-lg">
+    <m.div variants={listItem}>
+      <div className="ring-premium shadow-premium rounded-xl">
         <Card className="overflow-hidden rounded-[calc(1rem-1px)] border-0">
           <CardContent className="p-5">
             <div className="flex items-start justify-between gap-4">
@@ -91,14 +91,8 @@ export function LockedMatchCard({
                     />
                     <div className="veil-locked absolute inset-0" />
                   </>
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                    <ImageIcon
-                      className="h-7 w-7 text-muted-foreground/60"
-                      aria-hidden
-                    />
-                  </div>
-                )}
+                ) : null}
+                {/* Drawn either way. With no preview, the lock is the image. */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="rounded-full bg-background/85 p-2 shadow-sm">
                     <Lock className="h-4 w-4 text-premium-ink" aria-hidden />
@@ -148,13 +142,9 @@ export function LockedMatchCard({
             <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
               <Button
                 size="sm"
+                variant={isFree || canAfford ? "premium" : "default"}
                 onClick={() => onUnlock(match.match_id)}
                 disabled={pending}
-                className={
-                  isFree || canAfford
-                    ? "bg-premium-gradient text-premium-foreground hover:opacity-90"
-                    : undefined
-                }
               >
                 {pending ? (
                   <Spinner />

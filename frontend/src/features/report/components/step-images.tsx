@@ -56,7 +56,7 @@ export function StepImages({
           e.preventDefault();
           addFiles(e.dataTransfer.files);
         }}
-        className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed bg-card p-10 text-center transition-colors hover:border-muted-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed bg-card p-10 text-center transition-colors hover:border-muted-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={t("addPhotos")}
       >
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary">

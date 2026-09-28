@@ -1,36 +1,29 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** Skeletons mirror real component geometry so loading never shifts layout. */
 
 export function ItemCardSkeleton() {
   return (
-    <Card className="overflow-hidden">
+    <div className="overflow-hidden rounded-xl border bg-card">
       <Skeleton className="aspect-[4/3] w-full rounded-none" />
-      <CardContent className="space-y-2.5 p-4">
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-14 rounded-full" />
-          <Skeleton className="h-5 w-16 rounded-full" />
-        </div>
-        <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </CardContent>
-    </Card>
+      <div className="space-y-2 p-3 sm:p-4">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+      </div>
+    </div>
   );
 }
 
 export function ItemRowSkeleton() {
   return (
-    <Card>
-      <CardContent className="flex items-center gap-4 p-4">
-        <Skeleton className="h-16 w-16 shrink-0 rounded-lg" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-5 w-2/3" />
-          <Skeleton className="h-4 w-1/3" />
-        </div>
-        <Skeleton className="h-5 w-14 rounded-full" />
-      </CardContent>
-    </Card>
+    <div className="flex items-center gap-3 rounded-xl border bg-card p-2.5 sm:gap-4 sm:p-3">
+      <Skeleton className="h-14 w-14 shrink-0 rounded-lg" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-3 w-1/3" />
+      </div>
+      <Skeleton className="h-5 w-12 rounded-full" />
+    </div>
   );
 }
 
@@ -46,41 +39,28 @@ export function NotificationSkeleton() {
   );
 }
 
-export function StatCardSkeleton() {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <Skeleton className="h-4 w-20" />
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="h-8 w-12" />
-      </CardContent>
-    </Card>
-  );
-}
-
+/** Mirrors ItemDetail: photo left, facts right; stacked below `lg`. */
 export function DetailSkeleton() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <Skeleton className="h-9 w-32" />
-      <Card className="overflow-hidden">
-        <Skeleton className="aspect-[16/9] w-full rounded-none" />
-        <CardContent className="space-y-4 p-6">
-          <div className="flex gap-2">
+    <div className="space-y-5">
+      <Skeleton className="h-5 w-28" />
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-x-12 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <Skeleton className="aspect-[4/3] w-full rounded-xl lg:aspect-[3/2]" />
+        <div className="space-y-6">
+          <div className="space-y-3">
             <Skeleton className="h-5 w-14 rounded-full" />
-            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-9 w-4/5" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
           </div>
-          <Skeleton className="h-8 w-2/3" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-          <div className="grid grid-cols-2 gap-4 pt-2">
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
+          <div className="space-y-4 border-y py-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
           </div>
-        </CardContent>
-      </Card>
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+      </div>
     </div>
   );
 }

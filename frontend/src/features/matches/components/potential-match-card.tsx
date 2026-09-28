@@ -7,12 +7,12 @@ import { m } from "framer-motion";
 import {
   CalendarDays,
   Check,
-  ImageIcon,
+  ImageOff,
   MapPin,
   X,
 } from "lucide-react";
 
-import { cardHover, listItem } from "@/animations";
+import { listItem } from "@/animations";
 import { Spinner } from "@/components/feedback/loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,15 +41,12 @@ export function PotentialMatchCard({
   onConfirm,
   onReject,
   pending = false,
-  preview = false,
 }: {
   match: MatchSuggestion;
   onConfirm?: (matchId: string) => void;
   onReject?: (matchId: string) => void;
   /** Mutation in flight — disables actions. */
   pending?: boolean;
-  /** Example rendering (dashboard preview) — actions hidden, links disabled. */
-  preview?: boolean;
 }) {
   const t = useTranslations("matches");
   const ti = useTranslations("item");
@@ -90,24 +87,22 @@ export function PotentialMatchCard({
           className="object-cover"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-          <ImageIcon className="h-7 w-7 text-muted-foreground/60" aria-hidden />
+        <div className="flex h-full w-full items-center justify-center">
+          <ImageOff className="h-5 w-5 text-muted-foreground/45" aria-hidden />
         </div>
       )}
     </div>
   );
 
   return (
-    <m.div variants={listItem} whileHover={preview ? undefined : cardHover}>
+    <m.div variants={listItem}>
       {/* A settled card drops the foil edge: gold marks a decision you still
           have to make, and keeping it on an answered card spends the cue on
           nothing. */}
       <div
         className={cn(
-          "rounded-2xl transition-shadow duration-200",
-          settled
-            ? "bg-border p-px"
-            : "ring-premium shadow-premium hover:shadow-lg",
+          "rounded-xl",
+          settled ? "bg-border p-px" : "ring-premium shadow-premium",
         )}
       >
         <Card className="rounded-[calc(1rem-1px)] border-0">
@@ -131,16 +126,12 @@ export function PotentialMatchCard({
             <div className="mt-4 flex gap-4">
               {photo}
               <div className="min-w-0 flex-1 space-y-2">
-                {preview ? (
-                  <h3 className="font-semibold leading-snug">{candidate.title}</h3>
-                ) : (
-                  <Link
-                    href={ROUTES.item(candidate.id)}
-                    className="font-semibold leading-snug underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {candidate.title}
-                  </Link>
-                )}
+                <Link
+                  href={ROUTES.item(candidate.id)}
+                  className="font-semibold leading-snug underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {candidate.title}
+                </Link>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   {candidate.location_text ? (
                     <span className="flex items-center gap-1">
@@ -179,7 +170,7 @@ export function PotentialMatchCard({
             {/* Once the user has answered, the answer IS the state of this
                 card. Showing the same buttons again invites a second click that
                 can only ever fail on the server. */}
-            {!preview && settled ? (
+            {settled ? (
               <div className="mt-4 flex items-start gap-2 border-t pt-4 text-body-sm">
                 {confirmed ? (
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-found" aria-hidden />
@@ -190,7 +181,7 @@ export function PotentialMatchCard({
                   {t(confirmed ? "confirmedNote" : "rejectedNote")}
                 </p>
               </div>
-            ) : !preview && (onConfirm || onReject) ? (
+            ) : onConfirm || onReject ? (
               <div className="mt-4 flex items-center gap-2 border-t pt-4">
                 {onConfirm ? (
                   <Button

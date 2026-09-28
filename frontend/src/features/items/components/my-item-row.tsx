@@ -69,7 +69,7 @@ export function MyItemRow({ item }: { item: Item }) {
   return (
     <m.li variants={listItem}>
       <Card>
-        <CardContent className="flex items-center gap-4 p-4">
+        <CardContent className="flex items-center gap-3 p-2.5 sm:gap-4 sm:p-3">
           <Link
             href={ROUTES.item(item.id)}
             className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -77,19 +77,19 @@ export function MyItemRow({ item }: { item: Item }) {
           >
             <ItemImage
               item={item}
-              className="h-16 w-16 rounded-lg"
-              sizes="64px"
+              className="h-14 w-14 rounded-lg"
+              sizes="56px"
             />
           </Link>
 
           <div className="min-w-0 flex-1 space-y-1">
             <Link
               href={ROUTES.item(item.id)}
-              className="block truncate font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="block truncate text-body-sm font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {item.title}
             </Link>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-caption font-normal text-muted-foreground">
               <span>
                 {item.type === "lost" ? t("lostBadge") : t("foundBadge")}{" "}
                 {formatDate(item.lost_or_found_at, locale)}
@@ -107,11 +107,11 @@ export function MyItemRow({ item }: { item: Item }) {
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <ItemTypeBadge type={item.type} />
+          <div className="flex shrink-0 items-center gap-1.5">
             <span className="hidden sm:inline-flex">
               <ItemStatusBadge status={item.status} />
             </span>
+            <ItemTypeBadge type={item.type} />
 
             {!isClosed ? (
               <DropdownMenu>

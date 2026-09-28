@@ -80,7 +80,8 @@ export function PaywallDialog({
 
         <Button
           size="lg"
-          className="w-full bg-premium-gradient text-premium-foreground hover:opacity-90"
+          variant="premium"
+          className="w-full"
           disabled={!selected || checkout.isPending}
           onClick={() => selected && checkout.mutate(selected)}
         >

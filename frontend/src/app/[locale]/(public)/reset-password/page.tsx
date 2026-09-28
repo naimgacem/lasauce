@@ -66,7 +66,7 @@ function ResetPasswordForm() {
       <Card>
         <CardHeader className="items-center text-center">
           <span
-            className="mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive"
+            className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive"
             aria-hidden
           >
             <ShieldAlert className="h-6 w-6" />
@@ -114,7 +114,7 @@ function ResetPasswordForm() {
     <Card>
       <CardHeader className="text-center">
         <span
-          className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+          className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"
           aria-hidden
         >
           <KeyRound className="h-6 w-6" />

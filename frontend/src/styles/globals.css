@@ -9,12 +9,13 @@
 
    1. BRAND     deep forest green. Chrome, actions, focus. Calm and dark.
    2. SEMANTIC  meaning only, never decoration:
-                  lost = rose · found = emerald · processing = amber
-   3. AI        an indigo→violet gradient used EXCLUSIVELY on AI surfaces.
+                  lost = rose · found = teal · processing = amber
+   3. PREMIUM   a gold foil, used EXCLUSIVELY where money is involved
+                (the paid matching tier, credits, checkout).
 
-   The AI gradient is the only gradient in the product. That is what makes it
-   read as "intelligence" rather than decoration — so it must never be
-   borrowed for ordinary UI, and no other token may drift toward it.
+   Gold is the only gradient in the product. That is what makes it read as
+   "this part is paid" rather than as decoration — so it must never be
+   borrowed for ordinary UI or status, and no other token may drift toward it.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
@@ -167,6 +168,46 @@
     text-wrap: pretty;
   }
 
+  html[lang="ar"] body {
+    font-family: var(--font-arabic), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Arabic is a connected script: any tracking — negative for headings or
+     positive for small caps — pulls joined letters apart. The type scale's
+     tracking is tuned for Latin, so it is neutralised wholesale here rather
+     than per component. Arabic also needs more leading than a tight Latin
+     display setting, or stacked lines collide. */
+  html[lang="ar"] *,
+  html[lang="ar"] *::before,
+  html[lang="ar"] *::after {
+    letter-spacing: 0 !important;
+  }
+  html[lang="ar"] .text-display,
+  html[lang="ar"] .text-heading-1 {
+    line-height: 1.3;
+  }
+  /* Arabic sits visibly smaller than Latin at the same pixel size, and the
+     small end of the scale is where that costs legibility. */
+  html[lang="ar"] .text-overline,
+  html[lang="ar"] .text-caption {
+    font-size: 0.8125rem;
+  }
+  html[lang="ar"] .text-body-sm {
+    font-size: 0.9375rem;
+  }
+
+  /* Directional glyphs mirror in RTL. The individual `scale` property composes
+     with Tailwind's `transform` utilities instead of overwriting them, so a
+     hover nudge on the same icon still works. */
+  [dir="rtl"] :is(.lucide-arrow-left, .lucide-arrow-right, .lucide-chevron-left, .lucide-chevron-right) {
+    scale: -1 1;
+  }
+
+  /* The skip link lands here; without a tabindex target, focus would stay put. */
+  main:focus {
+    outline: none;
+  }
+
   /* Subtle, themed scrollbars — Firefox + WebKit. */
   * {
     scrollbar-width: thin;
@@ -282,16 +323,6 @@
   }
 
   /* ── SURFACE TREATMENTS ──────────────────────────────────────────────── */
-
-  /* Faint dotted texture for empty media slots. */
-  .bg-dotted {
-    background-image: radial-gradient(
-      circle at 1px 1px,
-      hsl(var(--foreground) / 0.14) 1px,
-      transparent 0
-    );
-    background-size: 14px 14px;
-  }
 
   /* Sticky translucent bars. */
   .surface-blur {

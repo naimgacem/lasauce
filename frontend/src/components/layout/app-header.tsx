@@ -7,6 +7,7 @@ import { Logo } from "@/components/layout/logo";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { CreditBalance } from "@/features/billing/components/credit-balance";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { NavLink } from "@/components/layout/nav-link";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ROUTES } from "@/lib/routes";
 import { useTranslations } from "next-intl";
-
-import { cn } from "@/lib/utils";
-
 
 const links = [
   { href: ROUTES.dashboard, key: "dashboard" },
@@ -38,30 +36,20 @@ export function AppHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b surface-blur">
       <div className="container flex h-16 items-center gap-6">
         <Logo href={ROUTES.dashboard} />
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center lg:flex" aria-label={t("mainNav")}>
           {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              aria-current={pathname === link.href ? "page" : undefined}
-              className={cn(
-                "rounded-lg px-3 py-2 text-body-sm font-medium transition-colors",
-                pathname === link.href
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-              )}
-            >
+            <NavLink key={link.href} href={link.href} active={pathname === link.href}>
               {t(link.key)}
-            </Link>
+            </NavLink>
           ))}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" className="ms-2">
+              <Button size="sm" className="ms-3">
                 <Plus className="h-4 w-4" />
                 {t("report")}
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" />

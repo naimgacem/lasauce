@@ -12,7 +12,11 @@ export default function AppLayout({
       <div className="flex min-h-screen flex-col">
         <AppHeader />
         {/* pb clearance for the mobile tab bar */}
-        <main className="container max-w-5xl flex-1 py-6 pb-28 md:py-8 lg:pb-8">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="container max-w-5xl flex-1 py-6 pb-28 md:py-8 lg:pb-8"
+        >
           {children}
         </main>
         <MobileTabBar />

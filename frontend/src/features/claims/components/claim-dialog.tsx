@@ -25,7 +25,14 @@ import type { Item } from "@/types/item";
  * questions. Contact details are never exchanged here; that only happens if the
  * reporter approves.
  */
-export function ClaimDialog({ item }: { item: Item }) {
+export function ClaimDialog({
+  item,
+  className,
+}: {
+  item: Item;
+  /** Applied to the trigger button. */
+  className?: string;
+}) {
   const t = useTranslations("claims");
   const tc = useTranslations("common");
   const [open, setOpen] = React.useState(false);
@@ -56,13 +63,13 @@ export function ClaimDialog({ item }: { item: Item }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg">
+        <Button size="lg" className={className}>
           <KeyRound className="h-4 w-4" />
           {item.type === "found" ? t("thisIsMine") : t("iFoundThis")}
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {item.type === "found" ? t("proveYours") : t("tellFound")}

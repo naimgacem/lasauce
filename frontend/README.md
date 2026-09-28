@@ -33,7 +33,11 @@ real FastAPI backend.
   silent-refresh bootstrap, single-flight 401 refresh, role gate.
 - **Data layer:** typed fetch core → 5 domain clients (auth, items, categories,
   notifications, matches) with mock adapters behind one `api` barrel.
-- **Design tokens:** stone canvas, indigo accent, semantic lost/found/processing
-  colors, AI-only gradient (`.bg-ai-gradient`, `Badge variant="ai"`).
+- **Design tokens:** warm paper canvas, forest-green brand, semantic
+  lost (rose) / found (teal) / processing (amber) colours, and a gold foil
+  reserved for the paid tier (`bg-premium-gradient`, `Badge variant="premium"`).
+  Type scale tokens (`text-display` … `text-caption`) are registered with
+  `tailwind-merge` in `lib/utils.ts` — add new ones there too, or `cn()` will
+  silently drop them. Arabic pages use IBM Plex Sans Arabic.
 - Business pages (browse, wizard, notifications UI, profile) are intentionally
   stubs — they ship next. AI matching ships at M5 against `services/matches`.

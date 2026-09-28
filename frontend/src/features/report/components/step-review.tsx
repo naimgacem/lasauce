@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { CalendarDays, MapPin, Palette, Sparkles, Tag } from "lucide-react";
+import { CalendarDays, MapPin, Palette, ScanSearch, Tag } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -59,7 +59,7 @@ export function StepReview({
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1.5">
               <ItemTypeBadge type={type} />
-              <h3 className="text-lg font-semibold">{draft.title}</h3>
+              <h3 className="text-heading-4">{draft.title}</h3>
             </div>
           </div>
           <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">
@@ -109,7 +109,7 @@ export function StepReview({
       </Card>
 
       <div className="flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
-        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+        <ScanSearch className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
         <p className="text-foreground/80">
           {t("matchingAgainst", { side: type === "lost" ? ti("foundBadge") : ti("lostBadge") })}
         </p>

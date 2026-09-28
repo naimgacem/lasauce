@@ -47,10 +47,10 @@ export function StepType({
             aria-checked={selected}
             onClick={() => onSelect(option.value)}
             className={cn(
-              "flex flex-col items-start gap-3 rounded-2xl border-2 bg-card p-6 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "flex flex-col items-start gap-3 rounded-xl border bg-card p-5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:p-6",
               selected
-                ? "border-primary"
-                : "border-border hover:border-muted-foreground/40",
+                ? "border-primary ring-1 ring-primary"
+                : "hover:border-muted-foreground/40",
             )}
           >
             <span
@@ -64,8 +64,8 @@ export function StepType({
             >
               <option.icon className="h-5 w-5" />
             </span>
-            <span className="text-base font-semibold">{option.title}</span>
-            <span className="text-sm text-muted-foreground">{option.body}</span>
+            <span className="text-body font-semibold">{option.title}</span>
+            <span className="text-body-sm text-muted-foreground">{option.body}</span>
           </m.button>
         );
       })}

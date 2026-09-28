@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ImageIcon } from "lucide-react";
+import { ImageOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { env } from "@/lib/env";
@@ -19,7 +19,11 @@ export function imageUrl(path: string | null | undefined): string | null {
   return `${env.mediaUrl.replace(/\/+$/, "")}/media/${path.replace(/^\/+/, "")}`;
 }
 
-/** Item photo with a designed placeholder when no image exists. */
+/**
+ * Item photo, or a quiet placeholder when there is none. The placeholder is
+ * deliberately plain: in a grid of real photos, a decorated empty slot draws
+ * more attention than the photos do.
+ */
 export function ItemImage({
   item,
   className,
@@ -36,14 +40,13 @@ export function ItemImage({
     return (
       <div
         className={cn(
-          "relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-secondary to-muted",
+          "relative flex items-center justify-center overflow-hidden bg-muted",
           className,
         )}
         role="img"
         aria-label={t("noPhoto")}
       >
-        <div className="bg-dotted absolute inset-0 opacity-40" />
-        <ImageIcon className="relative h-8 w-8 text-muted-foreground/50" aria-hidden />
+        <ImageOff className="h-5 w-5 text-muted-foreground/45" aria-hidden />
       </div>
     );
   }

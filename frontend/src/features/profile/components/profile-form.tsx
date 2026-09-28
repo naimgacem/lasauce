@@ -67,7 +67,7 @@ export function ProfileForm({ user }: { user: User }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle>{t("formTitle")}</CardTitle>
         <CardDescription>{t("formDescription")}</CardDescription>
       </CardHeader>
       <CardContent>

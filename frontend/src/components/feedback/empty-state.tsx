@@ -4,9 +4,9 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Premium empty state: illustration placeholder area + helpful explanation +
- * primary action. The illustration area is a layered token-driven composition
- * (swappable for real artwork later without touching call sites).
+ * Empty state: what's missing, why, and the one thing to do about it. The icon
+ * is a label, not an illustration — an empty list should read as calm, not as
+ * a decorated dead end.
  */
 export function EmptyState({
   icon: Icon,
@@ -26,28 +26,27 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-14 text-center",
+        "flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center",
         className,
       )}
     >
-      {/* Illustration placeholder area */}
-      <div className="relative mb-6 animate-scale-in" aria-hidden>
-        <div className="absolute -inset-5 rounded-full bg-primary/[0.07] blur-2xl" />
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border bg-card shadow-md">
-          <div className="absolute -end-2 -top-2 h-4 w-4 rounded-full bg-secondary" />
-          <div className="absolute -bottom-1.5 -start-2.5 h-3 w-3 rounded-full bg-primary/25" />
-          {Icon ? <Icon className="h-9 w-9 text-muted-foreground" /> : null}
-        </div>
-      </div>
+      {Icon ? (
+        <span
+          className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground"
+          aria-hidden
+        >
+          <Icon className="h-5 w-5" />
+        </span>
+      ) : null}
 
-      <h3 className="text-heading-3">{title}</h3>
+      <h3 className="text-heading-4">{title}</h3>
       {description ? (
-        <p className="mt-2 max-w-sm text-balance text-body-sm text-muted-foreground">
+        <p className="mt-1.5 max-w-sm text-balance text-body-sm text-muted-foreground">
           {description}
         </p>
       ) : null}
       {action || secondaryAction ? (
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
           {action}
           {secondaryAction}
         </div>

@@ -106,8 +106,8 @@ function Result({
         <span
           className={
             success
-              ? "mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-found-muted text-found"
-              : "mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive"
+              ? "mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-found-muted text-found"
+              : "mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive"
           }
           aria-hidden
         >

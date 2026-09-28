@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 
+/** Same shape as EmptyState, so a failed list and an empty list sit alike. */
 export function ErrorState({
   title,
   message,
@@ -16,16 +17,22 @@ export function ErrorState({
   const tc = useTranslations("common");
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/5 p-12 text-center">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-        <AlertTriangle className="h-6 w-6" />
-      </div>
-      <h3 className="text-lg font-semibold">{title ?? t("genericTitle")}</h3>
+    <div
+      role="alert"
+      className="flex flex-col items-center justify-center rounded-xl border border-destructive/25 bg-destructive/[0.03] px-6 py-12 text-center"
+    >
+      <span
+        className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10 text-destructive"
+        aria-hidden
+      >
+        <AlertTriangle className="h-5 w-5" />
+      </span>
+      <h3 className="text-heading-4">{title ?? t("genericTitle")}</h3>
       {message ? (
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">{message}</p>
+        <p className="mt-1.5 max-w-sm text-body-sm text-muted-foreground">{message}</p>
       ) : null}
       {onRetry ? (
-        <Button variant="outline" className="mt-4" onClick={onRetry}>
+        <Button variant="outline" className="mt-5" onClick={onRetry}>
           {tc("retry")}
         </Button>
       ) : null}
