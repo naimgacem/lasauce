@@ -169,8 +169,10 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
+        # `/fr`, not `/`: every path is locale-prefixed, so `/` always answers
+        # with a redirect and a check for 200 there can never pass.
         - >-
-          node -e "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode===200?0:1))
+          node -e "require('http').get('http://localhost:3000/fr',r=>process.exit(r.statusCode===200?0:1))
           .on('error',()=>process.exit(1))"
       interval: 10s
       timeout: 5s

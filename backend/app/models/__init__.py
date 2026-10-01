@@ -4,6 +4,7 @@ Models are imported here so that Alembic's autogenerate (which targets
 `app.db.base.Base.metadata`) and the test fixtures discover every table.
 """
 
+from app.models.admin_action import AdminAction, AdminActionType, AdminTargetType
 from app.models.category import Category
 from app.models.claim import Claim, ClaimStatus
 from app.models.credit import (
@@ -27,6 +28,9 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User, UserRole, UserStatus
 
 __all__ = [
+    "AdminAction",
+    "AdminActionType",
+    "AdminTargetType",
     "User",
     "UserRole",
     "UserStatus",

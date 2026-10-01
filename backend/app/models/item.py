@@ -61,8 +61,12 @@ class ItemStatus(str, enum.Enum):
 class ItemClosedReason(str, enum.Enum):
     recovered = "recovered"
     expired = "expired"
+    #  The reporter took it down.
     withdrawn = "withdrawn"
     duplicate = "duplicate"
+    #  A moderator took it down. Kept apart from `withdrawn` so the reporter's
+    #  own history never claims they deleted something they didn't.
+    removed = "removed"
 
 
 class ProcessingStatus(str, enum.Enum):
@@ -157,6 +161,13 @@ class Item(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Index("ix_items_category_id", "category_id"),
         Index("ix_items_lost_or_found_at", "lost_or_found_at"),
         Index("ix_items_wilaya_code", "wilaya_code"),
+        #  Partial: nearly every row is `ready`, so indexing only the rest keeps
+        #  the worker's sweep and the admin pipeline panel cheap at any size.
+        Index(
+            "ix_items_processing_status_unfinished",
+            "processing_status",
+            postgresql_where=text("processing_status <> 'ready'"),
+        ),
     )
 
     def __repr__(self) -> str:  # pragma: no cover

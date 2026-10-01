@@ -188,17 +188,32 @@ traces to the payment that created it or the match that consumed it.
 
 ## Admin — `/admin`
 
-All require `admin`; every mutating call writes an `admin_actions` audit row.
+All require `admin` — enforced on the router itself, so no route can omit it —
+and a non-admin gets `403` before request validation runs. Every mutating call
+writes an `admin_actions` row **in the same transaction** as the change. See
+[admin.md](admin.md) for the operating rules.
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/admin/stats` | KPIs: counts of users/items by type/status, matches, confirm rate, queue depth. |
-| GET | `/admin/users` | List/search users; filters `role, is_active, q`. |
-| PATCH | `/admin/users/{id}` | Change `role`, ban/unban (`is_active`), `verify`. |
-| GET | `/admin/items` | All items incl. closed; moderation filters. |
-| DELETE | `/admin/items/{id}` | Hard moderation removal (with `reason`). |
-| GET | `/admin/matches` | Inspect matches; filter by confidence/status. |
-| GET | `/admin/actions` | Read the audit log. |
+| GET | `/admin/stats` | Overview: users, items, pipeline (incl. arq queue depth, `null` when Redis is unreachable), match quality (`confirm_rate` = confirmed / judged), claims, revenue, and a zero-filled 30-day activity series in `Africa/Algiers` days. |
+| POST | `/admin/pipeline/retry-failed` | Re-queue matchable items with `processing_status=failed` (max 200). `409` when the queue is down. |
+| GET | `/admin/users` | Search accounts. `q` matches name/email substring or an exact id; filters `role, status, verified`. Rows carry `item_count` and `last_active_at`. |
+| GET | `/admin/users/{id}` | Account with stats (reports, claims, credit balance, amount paid, active sessions), credit ledger and payments. |
+| PATCH | `/admin/users/{id}` | Any of `role`, `status` (`active` or `suspended`), `is_verified: true`, plus `reason`. Reason required to suspend or change a role. Suspension revokes every refresh token. `403` on your own role/status. One audit row per actual change; repeats are no-ops. |
+| POST | `/admin/users/{id}/credits` | Grant 1–100 match unlocks with a required `note` (ledger `reason=grant`); the user is notified. |
+| GET | `/admin/items` | All items **including closed**. Filters `q` (text, or an exact id), `type, status, processing_status, category_id, wilaya_code, user_id`. Rows carry `reporter`, `match_count`, `pending_claim_count`. |
+| GET | `/admin/items/{id}` | Item with reporter, every match (unredacted scores, owner verdicts) and every claim (with answers). |
+| POST | `/admin/items/{id}/close` | Soft close with `reason_code` ∈ `removed, duplicate, expired` and a required internal `note`. Retracts live suggestions, declines pending claims, notifies reporter and claimants (without the note). |
+| POST | `/admin/items/{id}/reopen` | Reverse a moderation close: restores the previous status and the suggestions the close retracted, then re-embeds. `409` for `withdrawn`/`recovered` — those are the reporter's decisions. |
+| POST | `/admin/items/{id}/reprocess` | Reset to `pending` and re-queue embed → match. `409` when closed or the queue is down. |
+| DELETE | `/admin/items/{id}/images/{image_id}` | Remove one photo (`?reason=`); storage cleaned and the item re-matched. |
+| GET | `/admin/matches` | All suggestions, newest first, unredacted. Filters `status, min_confidence, max_confidence`. |
+| POST | `/admin/matches/{id}/retract` | `suggested`/`pending` → `expired`. Writes **no** `match_feedback`: a moderator's retraction is not a training label. |
+| GET | `/admin/payments` | All checkouts with customer. Filters `status, provider, user_id`. Read-only. |
+| GET | `/admin/payments/{id}` | One payment including the gateway's raw `provider_payload`. |
+| GET | `/admin/actions` | The audit log, newest first. Filters `action, target_type, target_id, admin_id`. |
+
+Lists share the standard pagination envelope (`page_size` ≤ 100).
 
 ---
 
@@ -221,4 +236,4 @@ All require `admin`; every mutating call writes an `admin_actions` audit row.
 | `/items/{id}/matches`, `/matches` | matches, match_feedback | `match_service`, `matching_service` |
 | `/matches/{id}/unlock`, `/billing/*` | payments, credit_ledger, match_unlocks | `billing_service` |
 | `/notifications` | notifications | `notification_service` |
-| `/admin/*` | users, items, matches, admin_actions | `admin_service` |
+| `/admin/*` | users, items, matches, claims, payments, admin_actions | `services/admin/*` |

@@ -1,0 +1,4 @@
+# Shell scripts run on Linux servers, where a CRLF line ending breaks them
+# ("$'\r': command not found"). Pin LF whatever OS checks the repository out.
+*.sh text eol=lf
+Caddyfile text eol=lf

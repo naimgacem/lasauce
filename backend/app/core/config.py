@@ -8,7 +8,14 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+#: The committed development default. Anything signed with it can be forged by
+#: anyone who has read this file, so it is refused everywhere except development.
+DEV_JWT_SECRET = "dev-insecure-change-me"
+#: HS256 keys shorter than this are brute-forceable offline from one token.
+MIN_JWT_SECRET_LENGTH = 32
 
 
 class Settings(BaseSettings):
@@ -46,7 +53,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # --- Auth / JWT ---
-    JWT_SECRET_KEY: str = "dev-insecure-change-me"
+    JWT_SECRET_KEY: str = DEV_JWT_SECRET
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
@@ -233,6 +240,27 @@ class Settings(BaseSettings):
     def is_chargily_live(self) -> bool:
         """True when pointed at the live gateway rather than the test sandbox."""
         return "/test/" not in self.CHARGILY_API_BASE
+
+
+    @model_validator(mode="after")
+    def _require_real_secret_outside_development(self) -> Settings:
+        """Refuse to boot a reachable deployment with a guessable signing key.
+
+        Every access token, reset link and verification link is signed with
+        `JWT_SECRET_KEY`. With the committed default, or anything short, a
+        stranger can mint a token for any account — administrators included.
+        Failing at startup is the only point where that cannot slip through.
+        """
+        if self.APP_ENV.lower() != "development" and (
+            self.JWT_SECRET_KEY == DEV_JWT_SECRET
+            or len(self.JWT_SECRET_KEY) < MIN_JWT_SECRET_LENGTH
+        ):
+            raise ValueError(
+                f"JWT_SECRET_KEY must be set to a random value of at least "
+                f"{MIN_JWT_SECRET_LENGTH} characters when APP_ENV={self.APP_ENV!r}. "
+                "Generate one with: openssl rand -hex 32"
+            )
+        return self
 
 
 @lru_cache

@@ -5,8 +5,11 @@ export type ItemStatus = "open" | "matched" | "claimed" | "closed";
 export type ItemClosedReason =
   | "recovered"
   | "expired"
+  /** The reporter took it down. */
   | "withdrawn"
-  | "duplicate";
+  | "duplicate"
+  /** A moderator took it down. */
+  | "removed";
 
 /** ML pipeline state — orthogonal to the business `status`. */
 export type ProcessingStatus =

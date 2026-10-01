@@ -4,5 +4,4 @@
  */
 export const flags = {
   matches: (process.env.NEXT_PUBLIC_FEATURE_MATCHES ?? "false") === "true",
-  admin: (process.env.NEXT_PUBLIC_FEATURE_ADMIN ?? "false") === "true",
 } as const;

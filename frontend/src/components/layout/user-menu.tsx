@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, ShieldCheck, User as UserIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +31,7 @@ function initials(name: string): string {
 export function UserMenu() {
   const t = useTranslations("nav");
   const tc = useTranslations("common");
-  const { user } = useSession();
+  const { user, isAdmin } = useSession();
   const logout = useLogout();
 
   if (!user) return null;
@@ -62,6 +62,16 @@ export function UserMenu() {
             {t("profile")}
           </Link>
         </DropdownMenuItem>
+        {/* Only the entry is hidden from everyone else; the console itself is
+            guarded, and every endpoint behind it checks the role. */}
+        {isAdmin ? (
+          <DropdownMenuItem asChild>
+            <Link href={ROUTES.admin} className="cursor-pointer">
+              <ShieldCheck className="h-4 w-4" />
+              {t("admin")}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => logout.mutate()} disabled={logout.isPending}>
           <LogOut className="h-4 w-4" />

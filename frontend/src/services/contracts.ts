@@ -3,6 +3,25 @@
  * implement the SAME interfaces — `services/index.ts` picks one per env, and
  * nothing above this layer ever knows which.
  */
+import type {
+  AdminAction,
+  AdminActionQuery,
+  AdminItem,
+  AdminItemDetail,
+  AdminItemQuery,
+  AdminMatch,
+  AdminMatchQuery,
+  AdminPayment,
+  AdminPaymentDetail,
+  AdminPaymentQuery,
+  AdminStats,
+  AdminUser,
+  AdminUserDetail,
+  AdminUserPatch,
+  AdminUserQuery,
+  CreditGrantPayload,
+  ItemClosePayload,
+} from "@/types/admin";
 import type { Paginated } from "@/types/api";
 import type {
   AuthResponse,
@@ -119,6 +138,36 @@ export interface ClaimsApi {
   withdraw(id: string): Promise<Claim>;
 }
 
+/**
+ * The admin console. Every call is refused (403) unless the session belongs to
+ * an administrator, and every mutation is written to the audit log server-side.
+ */
+export interface AdminApi {
+  stats(): Promise<AdminStats>;
+  /** Re-queue every matchable report whose AI processing failed. */
+  retryFailed(): Promise<{ requeued: number }>;
+
+  users(query: AdminUserQuery): Promise<Paginated<AdminUser>>;
+  user(id: string): Promise<AdminUserDetail>;
+  updateUser(id: string, patch: AdminUserPatch): Promise<AdminUserDetail>;
+  grantCredits(id: string, payload: CreditGrantPayload): Promise<AdminUserDetail>;
+
+  items(query: AdminItemQuery): Promise<Paginated<AdminItem>>;
+  item(id: string): Promise<AdminItemDetail>;
+  closeItem(id: string, payload: ItemClosePayload): Promise<AdminItemDetail>;
+  reopenItem(id: string, note?: string): Promise<AdminItemDetail>;
+  reprocessItem(id: string): Promise<AdminItemDetail>;
+  deleteImage(itemId: string, imageId: string, reason?: string): Promise<AdminItemDetail>;
+
+  matches(query: AdminMatchQuery): Promise<Paginated<AdminMatch>>;
+  retractMatch(id: string, note?: string): Promise<AdminMatch>;
+
+  payments(query: AdminPaymentQuery): Promise<Paginated<AdminPayment>>;
+  payment(id: string): Promise<AdminPaymentDetail>;
+
+  actions(query: AdminActionQuery): Promise<Paginated<AdminAction>>;
+}
+
 export interface Api {
   auth: AuthApi;
   items: ItemsApi;
@@ -127,4 +176,5 @@ export interface Api {
   matches: MatchesApi;
   claims: ClaimsApi;
   billing: BillingApi;
+  admin: AdminApi;
 }

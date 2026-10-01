@@ -30,6 +30,16 @@ from app.db.base import Base
 ModelType = TypeVar("ModelType", bound=Base)
 
 
+def like_pattern(term: str) -> str:
+    """`%term%` for a LIKE/ILIKE, with the user's own wildcards made literal.
+
+    Without escaping, a search for `50%` or `a_b` is silently a pattern rather
+    than text, and a lone `%` matches every row in the table.
+    """
+    escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
 class BaseRepository(Generic[ModelType]):
     """CRUD building blocks shared by all repositories."""
 

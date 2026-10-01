@@ -64,6 +64,16 @@
     --processing-foreground: 30 85% 12%;
     --processing-muted: 40 90% 95%;
 
+    /* — Chart marks ————————————————————————————————————————
+       The lost/found hues again, stepped for FILLS rather than text. The
+       semantic tokens above are tuned for contrast as ink on a pale chip, and
+       the teal one is too grey (OKLCH C 0.08) to read as a colour when it is a
+       bar. These steps pass the categorical checks — lightness band, chroma
+       floor, CVD separation — against the card surface in each theme
+       (validated with the dataviz palette script; re-run it if they change). */
+    --chart-lost: 352 74% 45%;
+    --chart-found: 184 85% 33%;
+
     /* — Premium signature ————————————————————————————————————
        Marks the paid matching feature. Three stops, not two: a metal reads as
        metal because a highlight travels across it, and a flat two-tone ramp is
@@ -119,6 +129,9 @@
     --processing: 38 90% 55%;
     --processing-foreground: 35 70% 8%;
     --processing-muted: 38 40% 15%;
+
+    --chart-lost: 352 78% 62%;
+    --chart-found: 184 80% 38%;
 
     /* Gold lifts in dark mode — the same values that read rich on white go
        muddy on a near-black card. */

@@ -9,7 +9,14 @@ from collections.abc import Sequence
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.models.item import TS_CONFIG, Item, ItemStatus, ItemType
+from app.models.item import (
+    TS_CONFIG,
+    Item,
+    ItemClosedReason,
+    ItemStatus,
+    ItemType,
+    ProcessingStatus,
+)
 from app.repositories.base import BaseRepository
 
 # pg_trgm's default word_similarity threshold is 0.6, which lands in the middle
@@ -24,13 +31,46 @@ WORD_SIMILARITY_THRESHOLD = 0.5
 class ItemRepository(BaseRepository[Item]):
     model = Item
 
-    async def get_with_relations(self, item_id: uuid.UUID) -> Item | None:
-        result = await self.session.execute(
+    async def get_with_relations(
+        self, item_id: uuid.UUID, *, with_reporter: bool = False
+    ) -> Item | None:
+        stmt = (
             select(Item)
             .where(Item.id == item_id)
             .options(selectinload(Item.images), joinedload(Item.category))
         )
+        if with_reporter:
+            stmt = stmt.options(joinedload(Item.user))
+        result = await self.session.execute(stmt)
         return result.unique().scalar_one_or_none()
+
+    async def counts_for_user(self, user_id: uuid.UUID) -> dict[str, int]:
+        """How many reports this person filed, how many are live, how many ended well."""
+        row = (
+            await self.session.execute(
+                select(
+                    func.count().label("total"),
+                    func.count().filter(Item.status != ItemStatus.closed).label("open"),
+                    func.count()
+                    .filter(Item.closed_reason == ItemClosedReason.recovered)
+                    .label("recovered"),
+                ).where(Item.user_id == user_id)
+            )
+        ).one()
+        return {key: int(value) for key, value in row._mapping.items()}
+
+    async def list_failed_ids(self, *, limit: int) -> list[uuid.UUID]:
+        """Reports whose pipeline failed and that could still be matched."""
+        result = await self.session.execute(
+            select(Item.id)
+            .where(
+                Item.processing_status == ProcessingStatus.failed.value,
+                Item.status != ItemStatus.closed,
+            )
+            .order_by(Item.updated_at)
+            .limit(limit)
+        )
+        return list(result.scalars().all())
 
     async def list_filtered(
         self,
@@ -43,7 +83,9 @@ class ItemRepository(BaseRepository[Item]):
         q: str | None = None,
         date_from: dt.datetime | None = None,
         date_to: dt.datetime | None = None,
+        processing_status: ProcessingStatus | None = None,
         exclude_closed: bool = True,
+        with_reporter: bool = False,
         limit: int = 20,
         offset: int = 0,
     ) -> tuple[Sequence[Item], int]:
@@ -56,6 +98,10 @@ class ItemRepository(BaseRepository[Item]):
         (migration 0005), with a pg_trgm similarity fallback so a typo or a
         partial word still finds something. Results are ordered by relevance —
         title matches outrank description matches — then by recency.
+
+        `processing_status` and `with_reporter` exist for the admin console,
+        which lists every report (closed ones included) with its author. The
+        public browse path never sets them.
         """
         conditions = []
         if item_type is not None:
@@ -70,6 +116,8 @@ class ItemRepository(BaseRepository[Item]):
             conditions.append(Item.wilaya_code == wilaya_code)
         if user_id is not None:
             conditions.append(Item.user_id == user_id)
+        if processing_status is not None:
+            conditions.append(Item.processing_status == processing_status.value)
         # Relevance expression, built only when there's a query to rank against.
         rank = None
         if q and q.strip():
@@ -129,6 +177,8 @@ class ItemRepository(BaseRepository[Item]):
             .offset(offset)
             .options(selectinload(Item.images), joinedload(Item.category))
         )
+        if with_reporter:
+            page_stmt = page_stmt.options(joinedload(Item.user))
         result = await self.session.execute(page_stmt)
         items = result.unique().scalars().all()
         return items, int(total or 0)

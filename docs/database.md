@@ -29,12 +29,10 @@ Matching is then simply: *for an item of one type, search items of the other.*
 user_role        : user | admin
 item_type        : lost | found
 item_status      : open | matched | claimed | closed                   ← business lifecycle
-item_closed_reason: recovered | expired | withdrawn | duplicate         ← only set when closed
+item_closed_reason: recovered | expired | withdrawn | duplicate | removed  ← only set when closed
 match_status     : pending | suggested | confirmed | rejected | expired
 notification_type: match_found | match_confirmed | item_claimed | item_closed | system
 notif_channel    : in_app | email
-admin_action_type: delete_item | edit_item | resolve_match | ban_user
-                   | unban_user | verify_user | change_role
 ```
 
 > **`items.processing_status`** is a separate, ML-pipeline state — modeled as
@@ -212,20 +210,25 @@ via upsert); CHECK that the two items differ.
 
 ---
 
-### `admin_actions`  *(audit log)*
+### `admin_actions`  *(audit log — migration 0009)*
 | Field | Type | Notes |
 |-------|------|-------|
 | id | UUID PK | |
-| admin_id | UUID NOT NULL FK → users.id | actor; `ON DELETE SET NULL`* |
-| action_type | admin_action_type NOT NULL | |
-| target_type | TEXT NOT NULL | 'item' \| 'user' \| 'match' |
-| target_id | UUID NOT NULL | id of the affected row |
-| reason | TEXT NULL | |
-| metadata | JSONB NOT NULL DEFAULT '{}' | before/after snapshot |
-| created_at | TIMESTAMPTZ NOT NULL DEFAULT now() | |
+| admin_id | UUID NULL FK → users.id | actor; `ON DELETE SET NULL` — removing an account never erases what it did |
+| admin_email | VARCHAR(320) NOT NULL | actor, denormalised; `cli` for the bootstrap command |
+| action | VARCHAR(32) NOT NULL | CHECK-constrained (not a PG enum, so new actions need no `ALTER TYPE`): `suspend_user, reactivate_user, change_role, verify_user, grant_credits, close_item, reopen_item, reprocess_item, delete_image, retract_match, retry_failed_items` |
+| target_type | VARCHAR(16) NOT NULL | `user`, `item`, `match` or `system` |
+| target_id | UUID NULL | required unless `target_type = 'system'` (CHECK) |
+| target_label | VARCHAR(255) NULL | the target's name or title *at the time* |
+| reason | TEXT NULL | required by the service for suspensions, role changes, closes and grants |
+| details | JSONB NOT NULL DEFAULT '{}' | before/after of what changed, plus context — e.g. the match ids a close retracted, which is what makes a reopen exact |
+| created_at / updated_at | TIMESTAMPTZ | |
 
-\* For a tamper-evident audit trail, keep the row even if the admin user is
-removed (store a denormalized `admin_email` too).
+Written in the **same transaction** as the change it records, and never updated
+or deleted. Indexes: `created_at DESC`, `(target_type, target_id)`, `admin_id`.
+
+`removed` joined `item_closed_reason` in the same migration, so a moderator's
+takedown is distinguishable from the reporter's own `withdrawn`.
 
 ---
 
@@ -328,7 +331,7 @@ erDiagram
     ADMIN_ACTIONS {
       uuid id PK
       uuid admin_id FK
-      admin_action_type action_type
+      varchar action
       text target_type
       uuid target_id
       jsonb metadata

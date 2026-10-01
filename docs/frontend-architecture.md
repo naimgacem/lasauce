@@ -43,7 +43,7 @@ src/
 │       ├── notifications/page.tsx
 │       ├── profile/page.tsx
 │       ├── matches/[itemId]/page.tsx   # FUTURE (M5) — route reserved, feature-flagged
-│       └── admin/                      # FUTURE — RoleGate(admin), reserved
+│       └── (admin lives at app/[locale]/admin — own shell, <AdminGuard>; see admin.md)
 │
 ├── components/                         # Domain-agnostic, reusable anywhere
 │   ├── ui/                             # shadcn/ui primitives (button, input, card, …)
@@ -98,7 +98,7 @@ src/
 │   ├── query-client.ts                 # QueryClient defaults (retry, staleTime)
 │   ├── format.ts                       # dates, relative time, confidence %
 │   ├── utils.ts                        # cn()
-│   └── flags.ts                        # feature flags: matches, admin, notifications
+│   └── flags.ts                        # feature flags: matches, notifications
 │
 ├── types/                              # Shared contracts, mirrors backend DTOs
 │   ├── api.ts                          # ApiError, Paginated<T>, error envelope
@@ -296,7 +296,7 @@ Hard rules: no data tables in user-facing UI (card lists always); touch targets 
 | Notifications | `/notifications` | Grouped by day, unread dots, mark-all-read |
 | Profile | `/profile` | Identity card, profile form, security (password), sessions note |
 | Matches *(future)* | `/matches/[itemId]` | Ranked suggestions: confidence ring, explanation chips, confirm/reject |
-| Admin *(future)* | `/admin` | Stats, moderation — RoleGate |
+| Admin | `/admin/*` | Overview, users, reports, matches, payments, activity log — `<AdminGuard>` |
 
 ---
 

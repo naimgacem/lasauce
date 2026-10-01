@@ -8,13 +8,13 @@ import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.core.config import get_settings
 from app.models.item import TS_CONFIG, Item, ItemStatus, ItemType
-from app.models.match import SETTLED_MATCH_STATUSES, Match
+from app.models.match import SETTLED_MATCH_STATUSES, Match, MatchStatus
 from app.repositories.base import BaseRepository
 
 settings = get_settings()
@@ -386,3 +386,117 @@ class MatchRepository(BaseRepository[Match]):
             )
         )
         return result.unique().scalar_one_or_none()
+
+    # --- Admin -------------------------------------------------------------
+
+    @staticmethod
+    def _admin_options() -> tuple:
+        """Both sides with their photos, plus every verdict recorded on the pair."""
+        return (
+            joinedload(Match.lost_item).selectinload(Item.images),
+            joinedload(Match.found_item).selectinload(Item.images),
+            selectinload(Match.feedback),
+        )
+
+    async def list_filtered(
+        self,
+        *,
+        status: MatchStatus | None = None,
+        min_confidence: float | None = None,
+        max_confidence: float | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[list[Match], int]:
+        """Every suggestion the engine has written, newest first, for review."""
+        conditions = []
+        if status is not None:
+            conditions.append(Match.status == status.value)
+        if min_confidence is not None:
+            conditions.append(Match.confidence >= min_confidence)
+        if max_confidence is not None:
+            conditions.append(Match.confidence <= max_confidence)
+
+        total = await self.session.scalar(
+            select(func.count()).select_from(Match).where(*conditions)
+        )
+        result = await self.session.execute(
+            select(Match)
+            .where(*conditions)
+            .order_by(Match.created_at.desc(), Match.id)
+            .limit(limit)
+            .offset(offset)
+            .options(*self._admin_options())
+        )
+        return list(result.unique().scalars().all()), int(total or 0)
+
+    async def list_all_for_item(self, item_id: uuid.UUID) -> list[Match]:
+        """Every suggestion involving an item, whatever its state — the admin view."""
+        result = await self.session.execute(
+            select(Match)
+            .where((Match.lost_item_id == item_id) | (Match.found_item_id == item_id))
+            .order_by(Match.confidence.desc())
+            .options(*self._admin_options())
+        )
+        return list(result.unique().scalars().all())
+
+    async def get_for_admin(self, match_id: uuid.UUID) -> Match | None:
+        result = await self.session.execute(
+            select(Match).where(Match.id == match_id).options(*self._admin_options())
+        )
+        return result.unique().scalar_one_or_none()
+
+    async def count_live_by_item(self, item_ids: Sequence[uuid.UUID]) -> dict[uuid.UUID, int]:
+        """Suggestions still in play per item, for one page of the items table."""
+        if not item_ids:
+            return {}
+        live = Match.status.notin_((MatchStatus.rejected.value, MatchStatus.expired.value))
+        ids = list(item_ids)
+        counts: dict[uuid.UUID, int] = {}
+        #  Two grouped scans rather than one UNION: each side has its own index
+        #  (`ix_matches_*_item_confidence`), and the planner uses it directly.
+        for column in (Match.lost_item_id, Match.found_item_id):
+            result = await self.session.execute(
+                select(column, func.count()).where(column.in_(ids), live).group_by(column)
+            )
+            for item_id, n in result.all():
+                counts[item_id] = counts.get(item_id, 0) + int(n)
+        return counts
+
+    async def retract_for_item(self, item_id: uuid.UUID) -> list[uuid.UUID]:
+        """Expire every live suggestion involving an item; return their ids.
+
+        The ids are the point: a moderation close records them so that a later
+        reopen can restore exactly these rows and nothing else. Settled pairs
+        (confirmed/rejected) are the owners' decisions and are never touched.
+        """
+        result = await self.session.execute(
+            select(Match).where(
+                (Match.lost_item_id == item_id) | (Match.found_item_id == item_id),
+                Match.status.in_((MatchStatus.pending.value, MatchStatus.suggested.value)),
+            )
+        )
+        retracted: list[uuid.UUID] = []
+        for match in result.scalars().all():
+            match.status = MatchStatus.expired.value
+            retracted.append(match.id)
+        return retracted
+
+    async def reinstate(self, match_ids: Sequence[uuid.UUID]) -> int:
+        """Return expired suggestions to `suggested` — the undo of a moderation close.
+
+        Only rows still `expired` move. A pair that has since been confirmed or
+        rejected by its owners is their decision and is left alone.
+        """
+        if not match_ids:
+            return 0
+        result = await self.session.execute(
+            select(Match).where(
+                Match.id.in_(list(match_ids)), Match.status == MatchStatus.expired.value
+            )
+        )
+        restored = 0
+        for match in result.scalars().all():
+            match.status = MatchStatus.suggested.value
+            match.resolved_at = None
+            restored += 1
+        return restored

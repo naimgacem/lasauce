@@ -19,6 +19,10 @@ venv/
 !*.example
 !**/*.example
 
+# Data exported for a server move — a database dump holds every user's email
+# and password hash, so it must never reach the repository.
+deploy-export/
+
 # Media / uploads (local storage backend)
 backend/media/
 media/

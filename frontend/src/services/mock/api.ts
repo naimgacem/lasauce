@@ -12,6 +12,7 @@ import type { Item, ItemImage } from "@/types/item";
 import type { AppNotification } from "@/types/notification";
 
 import type { Api } from "@/services/contracts";
+import { mockAdminApi } from "./admin";
 import {
   delay,
   findCategory,
@@ -528,4 +529,5 @@ export const mockApi: Api = {
       return payment;
     },
   },
+  admin: mockAdminApi,
 };

@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 
 from app.models.refresh_token import RefreshToken
 from app.repositories.base import BaseRepository
@@ -30,3 +30,16 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
             )
             .values(revoked_at=dt.datetime.now(dt.timezone.utc))
         )
+
+    async def count_active_for_user(self, user_id: uuid.UUID) -> int:
+        """Signed-in devices: refresh tokens neither revoked nor expired."""
+        total = await self.session.scalar(
+            select(func.count())
+            .select_from(RefreshToken)
+            .where(
+                RefreshToken.user_id == user_id,
+                RefreshToken.revoked_at.is_(None),
+                RefreshToken.expires_at > dt.datetime.now(dt.timezone.utc),
+            )
+        )
+        return int(total or 0)

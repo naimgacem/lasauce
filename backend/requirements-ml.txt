@@ -9,7 +9,12 @@
 # is what actually runs here.
 --extra-index-url https://download.pytorch.org/whl/cpu
 
-torch==2.5.1+cpu
+# The CPU index names its builds differently per architecture: x86_64 wheels
+# carry a `+cpu` local version, aarch64 ones (Oracle's free Ampere VMs, AWS
+# Graviton) do not — they are CPU-only already. Pinning `+cpu` unconditionally
+# makes the worker unbuildable on ARM servers.
+torch==2.5.1+cpu ; platform_machine == "x86_64" or platform_machine == "AMD64"
+torch==2.5.1 ; platform_machine == "aarch64"
 
 # Text embeddings. Pulls transformers/tokenizers/huggingface-hub transitively.
 sentence-transformers==3.3.1

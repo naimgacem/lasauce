@@ -1,0 +1,188 @@
+name: sabtou
+
+# Production stack for ONE server: the same five services as development, plus
+# Caddy in front for HTTPS. Run from this directory:
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Deliberately a standalone file rather than an override of the root
+# docker-compose.yml. That file publishes Postgres (5432) and Redis (6379) on
+# the host for local tools, and Compose overrides can only ADD ports, not take
+# them away. On a public server those two ports must not exist at all, so here
+# they never do: the only published ports are Caddy's 80 and 443.
+#
+# Every value comes from `.env` next to this file — see `.env.example`.
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sabtou}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}@postgres:5432/${POSTGRES_DB:-sabtou}
+  REDIS_URL: redis://redis:6379/0
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in deploy/.env}
+  APP_ENV: ${APP_ENV:-staging}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  CORS_ORIGINS: https://${DOMAIN:?set DOMAIN in deploy/.env}
+  # Links in emails and the payment gateway's return page.
+  FRONTEND_URL: https://${DOMAIN}
+  # Where a payment gateway posts its webhook: Caddy routes /api/* to the API.
+  PUBLIC_API_URL: https://${DOMAIN}
+  STORAGE_PROVIDER: local
+  MEDIA_ROOT: /app/media
+  EMAIL_BACKEND: console
+  REQUIRE_EMAIL_VERIFICATION: "false"
+  MATCHING_PAYWALL_ENABLED: ${MATCHING_PAYWALL_ENABLED:-true}
+  FREE_MATCH_UNLOCKS: ${FREE_MATCH_UNLOCKS:-1}
+  MATCH_UNLOCK_COST: ${MATCH_UNLOCK_COST:-1}
+  PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-manual}
+  CHARGILY_API_BASE: ${CHARGILY_API_BASE:-https://pay.chargily.net/test/api/v2}
+  CHARGILY_SECRET_KEY: ${CHARGILY_SECRET_KEY:-}
+
+# Docker keeps container logs forever by default; on a small disk that is how a
+# server that "worked for months" suddenly stops.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sabtou}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-sabtou}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    logging: *logging
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+      target: api
+    restart: unless-stopped
+    logging: *logging
+    command: sh -c "alembic upgrade head && python -m app.db.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    environment:
+      <<: *backend-env
+      # The API only ever hears from Caddy on the private network, so it may
+      # trust the client address Caddy forwards. Without this every request
+      # appears to come from Caddy, and session records store its IP.
+      FORWARDED_ALLOW_IPS: "*"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/app/media
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import urllib.request,sys;
+          sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  worker:
+    build:
+      context: ../backend
+      target: worker
+    restart: unless-stopped
+    logging: *logging
+    command: ["arq", "app.workers.main.WorkerSettings"]
+    environment: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/app/media
+      # ~470MB of model weights, downloaded once on first start.
+      - hf_cache:/app/.cache/huggingface
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        # Browser calls stay same-origin (`/api/v1`, `/media`) and Caddy routes
+        # them to the API, so no hostname is baked into the bundle.
+        NEXT_PUBLIC_API_URL: ""
+        NEXT_PUBLIC_MEDIA_URL: ""
+        NEXT_PUBLIC_USE_MOCKS: "false"
+        API_ORIGIN: http://api:8000
+        MEDIA_ORIGIN: http://api:8000
+        # Frozen into canonical and Open Graph URLs at build time.
+        SITE_URL: https://${DOMAIN}
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      INTERNAL_API_URL: http://api:8000/api/v1
+      API_ORIGIN: http://api:8000
+      MEDIA_ORIGIN: http://api:8000
+      SITE_URL: https://${DOMAIN}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "require('http').get('http://localhost:3000/fr',r=>process.exit(r.statusCode===200?0:1))
+          .on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *logging
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and the ACME account. Losing this volume means asking
+      # Let's Encrypt again, which is rate-limited — keep it.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
+  media:
+  hf_cache:
+  caddy_data:
+  caddy_config:

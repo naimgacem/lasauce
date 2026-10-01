@@ -20,6 +20,8 @@ similarity** (Sentence Transformers) into a single ranked confidence score.
 | [docs/ai-matching.md](docs/ai-matching.md) | Embedding generation, score fusion, candidate retrieval, confidence calculation |
 | [docs/deployment.md](docs/deployment.md) | Docker / Compose topology, environment variables, storage abstraction |
 | [docs/roadmap.md](docs/roadmap.md) | Incremental development roadmap (M0–M8) |
+| [docs/admin.md](docs/admin.md) | Admin console: access, operating rules, what each action does |
+| [deploy/README.md](deploy/README.md) | **Putting the site online** — free options, step by step |
 
 ---
 

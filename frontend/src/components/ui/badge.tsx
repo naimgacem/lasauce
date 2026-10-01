@@ -32,6 +32,9 @@ const badgeVariants = cva(
           "border-found/20 bg-found-muted text-found dark:text-found dark:border-found/30",
         "processing-soft":
           "border-processing/25 bg-processing-muted text-processing dark:text-processing dark:border-processing/30",
+        /* Account and moderation states that block someone (suspended). */
+        "destructive-soft":
+          "border-destructive/25 bg-destructive/10 text-destructive dark:border-destructive/35",
 
         /* Reserved for the paid matching feature.
            Outlined rather than filled: a solid gold pill shouts, and shouting

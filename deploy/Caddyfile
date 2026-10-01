@@ -1,0 +1,28 @@
+# HTTPS in front of the app. Caddy obtains and renews the certificate for
+# {$DOMAIN} on its own (Let's Encrypt, falling back to ZeroSSL) as soon as the
+# domain points at this server and ports 80/443 are open.
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# The API and stored photos go straight to FastAPI. Everything else — every
+	# page, in every locale — is the Next.js app. Routing /api here rather than
+	# through Next's own proxy saves a hop and hands a payment gateway's webhook
+	# its raw body untouched, which its signature check depends on.
+	@backend path /api/* /media/* /health /health/*
+	handle @backend {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+}

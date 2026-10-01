@@ -125,6 +125,12 @@ const config: Config = {
           muted: "hsl(var(--processing-muted))",
         },
 
+        /* Chart fills only — see the note on --chart-* in globals.css. */
+        chart: {
+          lost: "hsl(var(--chart-lost))",
+          found: "hsl(var(--chart-found))",
+        },
+
         /* Paid-feature surfaces only. */
         premium: {
           from: "hsl(var(--premium-from))",

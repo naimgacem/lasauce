@@ -1,82 +1,21 @@
 """End-to-end item CRUD / ownership / filtering tests.
 
-Requires a real Postgres (with the `vector`, `citext`, `pgcrypto` extensions).
-Skipped unless `TEST_DATABASE_URL` is set, e.g.:
-
-    TEST_DATABASE_URL=postgresql+asyncpg://lf:lf_pass@localhost:5432/lostfound_test pytest
-
-Tables are created and dropped per test for isolation.
+Requires a real Postgres — see `conftest.py` for `TEST_DATABASE_URL`.
 """
 
 from __future__ import annotations
 
-import os
 import uuid
 
-import pytest
 import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from httpx import AsyncClient
 
-import app.models  # noqa: F401 - register every table on Base.metadata
-from app.api.deps import get_db
 from app.core.security import create_access_token, hash_password
-from app.db.base import Base
-from app.main import app
 from app.models.category import Category
 from app.models.user import User, UserRole
+from tests.conftest import requires_db
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
-
-pytestmark = pytest.mark.skipif(
-    not TEST_DATABASE_URL,
-    reason="TEST_DATABASE_URL not set (Postgres + pgvector required)",
-)
-
-
-@pytest_asyncio.fixture
-async def engine():
-    eng = create_async_engine(TEST_DATABASE_URL)
-    async with eng.begin() as conn:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS citext"))
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
-        # `items.search_vector` is a generated column over this configuration,
-        # so it must exist before create_all. Mirrors migration 0005 — these
-        # tests build the schema from metadata rather than running migrations.
-        await conn.execute(
-            text(
-                """
-                DO $$
-                BEGIN
-                    IF NOT EXISTS (
-                        SELECT 1 FROM pg_ts_config WHERE cfgname = 'fr_unaccent'
-                    ) THEN
-                        EXECUTE 'CREATE TEXT SEARCH CONFIGURATION fr_unaccent (COPY = french)';
-                        EXECUTE 'ALTER TEXT SEARCH CONFIGURATION fr_unaccent '
-                                'ALTER MAPPING FOR hword, hword_part, word '
-                                'WITH unaccent, french_stem';
-                    END IF;
-                END
-                $$;
-                """
-            )
-        )
-        await conn.run_sync(Base.metadata.create_all)
-    try:
-        yield eng
-    finally:
-        async with eng.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-        await eng.dispose()
-
-
-@pytest_asyncio.fixture
-async def session_factory(engine):
-    return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+pytestmark = requires_db
 
 
 @pytest_asyncio.fixture
@@ -103,16 +42,8 @@ async def seeded(session_factory):
 
 
 @pytest_asyncio.fixture
-async def client(session_factory):
-    async def _override_get_db():
-        async with session_factory() as session:
-            yield session
-
-    app.dependency_overrides[get_db] = _override_get_db
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
-        yield ac
-    app.dependency_overrides.pop(get_db, None)
+async def client(db_client: AsyncClient) -> AsyncClient:
+    return db_client
 
 
 def _auth(user: User) -> dict[str, str]:

@@ -12,6 +12,8 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
+from arq.constants import default_queue_name
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -39,6 +41,20 @@ class JobQueue:
         except Exception as exc:  # noqa: BLE001 - never fail the caller's request
             logger.warning("job_enqueue_failed", extra={"job": job, "error": str(exc)})
             return False
+
+    async def depth(self) -> int | None:
+        """Jobs waiting to run, or None when the queue cannot be asked.
+
+        None is a different answer from 0 and callers must keep it distinct: "no
+        backlog" and "no idea — Redis is down" call for opposite reactions.
+        """
+        if self._redis is None:
+            return None
+        try:
+            return int(await self._redis.zcard(default_queue_name))
+        except Exception as exc:  # noqa: BLE001 - a stats read must not fail the page
+            logger.warning("queue_depth_unavailable", extra={"error": str(exc)})
+            return None
 
     async def embed_item(self, item_id: uuid.UUID) -> bool:
         """Queue the embed → match pipeline for an item.

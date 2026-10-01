@@ -26,6 +26,7 @@ from typing import Any
 from sqlalchemy import func, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 from app.models.credit import (
     PURCHASE_LEDGER_INDEX_WHERE,
@@ -71,6 +72,55 @@ class PaymentRepository(BaseRepository[Payment]):
             .limit(limit)
         )
         return result.scalars().all()
+
+    async def list_filtered(
+        self,
+        *,
+        status: PaymentStatus | None = None,
+        provider: str | None = None,
+        user_id: uuid.UUID | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[Sequence[Payment], int]:
+        """Every checkout on the platform, newest first — the admin ledger view."""
+        conditions = []
+        if status is not None:
+            conditions.append(Payment.status == status.value)
+        if provider:
+            conditions.append(Payment.provider == provider)
+        if user_id is not None:
+            conditions.append(Payment.user_id == user_id)
+
+        total = await self.session.scalar(
+            select(func.count()).select_from(Payment).where(*conditions)
+        )
+        result = await self.session.execute(
+            select(Payment)
+            .where(*conditions)
+            .options(joinedload(Payment.user))
+            .order_by(Payment.created_at.desc(), Payment.id)
+            .limit(limit)
+            .offset(offset)
+        )
+        return result.scalars().all(), int(total or 0)
+
+    async def get_with_user(self, payment_id: uuid.UUID) -> Payment | None:
+        result = await self.session.execute(
+            select(Payment).where(Payment.id == payment_id).options(joinedload(Payment.user))
+        )
+        return result.scalar_one_or_none()
+
+    async def paid_totals_for_user(self, user_id: uuid.UUID) -> tuple[int, int]:
+        """(settled payments, dinars paid) for one customer."""
+        row = (
+            await self.session.execute(
+                select(func.count(), func.coalesce(func.sum(Payment.amount), 0)).where(
+                    Payment.user_id == user_id,
+                    Payment.status == PaymentStatus.paid.value,
+                )
+            )
+        ).one()
+        return int(row[0]), int(row[1])
 
     async def mark_paid(self, payment_id: uuid.UUID, payload: dict[str, Any]) -> bool:
         """Settle a pending payment. Returns True only for the caller that won it.
@@ -192,6 +242,34 @@ class CreditRepository(BaseRepository[CreditLedger]):
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none() is not None
+
+    async def grant(self, *, user_id: uuid.UUID, quantity: int, note: str) -> CreditLedger:
+        """Credit an account by hand — support gestures and compensation.
+
+        `note` is mandatory at the service layer: an unexplained `+5` in a
+        ledger whose whole point is that every unit is traceable would be the
+        one row nobody can account for.
+        """
+        row = CreditLedger(
+            user_id=user_id,
+            delta=quantity,
+            reason=LedgerReason.grant.value,
+            note=note,
+        )
+        self.session.add(row)
+        await self.session.flush()
+        return row
+
+    async def list_for_user(
+        self, user_id: uuid.UUID, *, limit: int = 50
+    ) -> Sequence[CreditLedger]:
+        result = await self.session.execute(
+            select(CreditLedger)
+            .where(CreditLedger.user_id == user_id)
+            .order_by(CreditLedger.created_at.desc())
+            .limit(limit)
+        )
+        return result.scalars().all()
 
     async def spend(
         self, *, user_id: uuid.UUID, match_id: uuid.UUID, cost: int

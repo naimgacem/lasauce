@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from app.models.claim import Claim, ClaimStatus
@@ -74,3 +74,31 @@ class ClaimRepository(BaseRepository[Claim]):
             )
         )
         return result.scalars().all()
+
+    # --- Admin -------------------------------------------------------------
+
+    async def list_pending_for_item(self, item_id: uuid.UUID) -> Sequence[Claim]:
+        result = await self.session.execute(
+            select(Claim).where(
+                Claim.item_id == item_id, Claim.status == ClaimStatus.pending.value
+            )
+        )
+        return result.scalars().all()
+
+    async def count_pending_by_item(
+        self, item_ids: Sequence[uuid.UUID]
+    ) -> dict[uuid.UUID, int]:
+        if not item_ids:
+            return {}
+        result = await self.session.execute(
+            select(Claim.item_id, func.count())
+            .where(Claim.item_id.in_(list(item_ids)), Claim.status == ClaimStatus.pending.value)
+            .group_by(Claim.item_id)
+        )
+        return {item_id: int(n) for item_id, n in result.all()}
+
+    async def count_by_claimant(self, claimant_id: uuid.UUID) -> int:
+        total = await self.session.scalar(
+            select(func.count()).select_from(Claim).where(Claim.claimant_id == claimant_id)
+        )
+        return int(total or 0)

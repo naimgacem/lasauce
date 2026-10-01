@@ -1,13 +1,11 @@
-"""Aggregates all versioned (`/api/v1`) routers.
-
-`admin` joins once the admin surfaces ship.
-"""
+"""Aggregates all versioned (`/api/v1`) routers."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    admin,
     auth,
     billing,
     categories,
@@ -33,3 +31,4 @@ api_router.include_router(matches.matches_router, prefix="/matches", tags=["matc
 api_router.include_router(
     notifications.router, prefix="/notifications", tags=["notifications"]
 )
+api_router.include_router(admin.router, prefix="/admin", tags=["admin"])

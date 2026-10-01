@@ -38,6 +38,39 @@ export function formatDate(
   });
 }
 
+/**
+ * A calendar day without its year — "12 Sept" — for chart axes, where the
+ * year is the same on every tick. Takes a plain `YYYY-MM-DD`; noon UTC keeps
+ * the day stable in every timezone the formatter might apply.
+ */
+export function formatDayMonth(day: string, locale = "fr"): string {
+  const d = new Date(`${day}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(intlLocale(locale), {
+    month: "short",
+    day: "numeric",
+    timeZone: TIME_ZONE,
+  });
+}
+
+/** Date and time to the minute — for audit trails, where "which day" isn't enough. */
+export function formatDateTime(
+  iso: string | null | undefined,
+  locale = "fr",
+): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString(intlLocale(locale), {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TIME_ZONE,
+  });
+}
+
 /** Compact relative time, e.g. "3 days ago" / "il y a 3 jours". */
 export function formatRelative(
   iso: string | null | undefined,

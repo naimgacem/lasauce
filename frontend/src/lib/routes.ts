@@ -38,7 +38,16 @@ export const ROUTES = {
 
   // future (feature-flagged)
   matches: (itemId: string) => `/matches/${itemId}`,
+
+  // administrators only — guarded by <AdminGuard>, enforced by the API
   admin: "/admin",
+  adminUsers: "/admin/users",
+  adminUser: (id: string) => `/admin/users/${id}`,
+  adminItems: "/admin/items",
+  adminItem: (id: string) => `/admin/items/${id}`,
+  adminMatches: "/admin/matches",
+  adminPayments: "/admin/payments",
+  adminActivity: "/admin/activity",
 } as const;
 
 /** Where to send an authenticated user by default. */

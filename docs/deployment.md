@@ -1,5 +1,10 @@
 # 05 — Deployment, Docker & Environment
 
+> **To put the site online, follow [`deploy/README.md`](../deploy/README.md).**
+> It runs this same topology on one server behind Caddy (automatic HTTPS),
+> using `deploy/docker-compose.prod.yml`. The sections below are the original
+> design notes.
+
 ## 1. Container topology (docker-compose)
 
 Five services share one network. Backend and worker are built from the **same**

@@ -35,6 +35,8 @@ const CLOSED_REASON_KEY = {
   recovered: "closedRecovered",
   expired: "closedExpired",
   withdrawn: "closedWithdrawn",
+  duplicate: "closedDuplicate",
+  removed: "closedRemoved",
 } as const;
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {

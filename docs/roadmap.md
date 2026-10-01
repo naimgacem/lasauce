@@ -13,7 +13,7 @@ adjust freely.
 | **M4 — Embedding pipeline** | arq worker, CLIP + MiniLM, write vectors, pgvector indexes | New items walk `processing_status` `pending→embedding→matching→ready` with text+image embeddings stored |
 | **M5 — Matching engine** | retrieval + fusion + confidence, `matches` upsert | Item detail shows ranked suggestions with % confidence + explanations |
 | **M6 — Notifications** | `notifications` + worker fan-out, in-app feed | User gets notified on high-confidence match; confirm/reject flow resolves items |
-| **M7 — Admin dashboard** | `/admin/*`, `admin_actions` audit, stats | Admin manages users/items/matches; audit log; KPI dashboard |
+| **M7 — Admin dashboard** ✅ | `/admin/*`, `admin_actions` audit, stats | Admin manages users/items/matches; audit log; KPI dashboard |
 | **M8 — Hardening & deploy** | rate limits, validation, tests, S3 backend, prod compose | S3 storage, signed URLs, e2e tests green, `docker-compose.prod.yml` deploy |
 
 ---
@@ -66,11 +66,18 @@ adjust freely.
 - Confirm flow → both items `claimed` → `closed(recovered)`, counterpart notified, `match_feedback`
   written. Email channel pluggable (console dev / SMTP prod).
 
-### M7 — Admin dashboard
-- `/admin/*` endpoints; every mutation writes `admin_actions`.
-- Stats KPIs (counts, confirm rate, queue depth).
-- Admin-only Next.js area: users (ban/role/verify), item moderation, match
-  inspection, audit log viewer.
+### M7 — Admin dashboard ✅
+- `/admin/*` endpoints; every mutation writes `admin_actions` in the same
+  transaction as the change (migration `0009`).
+- Overview: user, report and recovery figures, 30-day activity, AI pipeline
+  health with a one-click retry, match quality (confirm rate, confidence of
+  confirmed vs rejected), revenue.
+- Admin-only Next.js console (`/[locale]/admin`, fr/ar/en, RTL): users
+  (suspend/reactivate, role, verify, grant credits), report moderation (close
+  with a reason, reopen, re-run AI, remove a photo), match inspection and
+  retraction, payments ledger, audit log viewer.
+- First admin bootstrapped with `python -m app.db.create_admin`; see
+  [admin.md](admin.md).
 
 ### M8 — Hardening, mobile polish & deploy
 - Per-IP + per-user rate limits on auth/write; CORS allowlist; security headers.

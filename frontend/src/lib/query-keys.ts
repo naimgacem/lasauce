@@ -1,3 +1,10 @@
+import type {
+  AdminActionQuery,
+  AdminItemQuery,
+  AdminMatchQuery,
+  AdminPaymentQuery,
+  AdminUserQuery,
+} from "@/types/admin";
 import type { ItemQuery } from "@/types/item";
 
 /** Query-key factories — the only place keys are spelled. */
@@ -51,4 +58,23 @@ export const billingKeys = {
   entitlements: () => [...billingKeys.all, "entitlements"] as const,
   payments: () => [...billingKeys.all, "payments"] as const,
   payment: (id: string) => [...billingKeys.all, "payment", id] as const,
+};
+
+/**
+ * One root for the whole console, so a moderation action can refresh every
+ * admin view it might have changed in a single invalidation. The cost is a few
+ * extra refetches; the alternative is a stat tile disagreeing with the table
+ * beneath it.
+ */
+export const adminKeys = {
+  all: ["admin"] as const,
+  stats: () => [...adminKeys.all, "stats"] as const,
+  users: (query: AdminUserQuery) => [...adminKeys.all, "users", query] as const,
+  user: (id: string) => [...adminKeys.all, "user", id] as const,
+  items: (query: AdminItemQuery) => [...adminKeys.all, "items", query] as const,
+  item: (id: string) => [...adminKeys.all, "item", id] as const,
+  matches: (query: AdminMatchQuery) => [...adminKeys.all, "matches", query] as const,
+  payments: (query: AdminPaymentQuery) => [...adminKeys.all, "payments", query] as const,
+  payment: (id: string) => [...adminKeys.all, "payment", id] as const,
+  actions: (query: AdminActionQuery) => [...adminKeys.all, "actions", query] as const,
 };

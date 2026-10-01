@@ -7,6 +7,7 @@ import datetime as dt
 import jwt
 import pytest
 
+from app.core.config import DEV_JWT_SECRET, Settings
 from app.core.security import (
     TOKEN_TYPE_ACCESS,
     create_access_token,
@@ -48,3 +49,21 @@ def test_refresh_token_is_random_and_hashable() -> None:
     assert a != b
     assert hash_refresh_token(a) == hash_refresh_token(a)
     assert hash_refresh_token(a) != hash_refresh_token(b)
+
+
+# --- Deployment configuration -------------------------------------------------
+
+
+@pytest.mark.parametrize("secret", [DEV_JWT_SECRET, "short-but-not-default"])
+def test_non_development_refuses_a_weak_signing_key(secret: str) -> None:
+    with pytest.raises(ValueError, match="JWT_SECRET_KEY"):
+        Settings(APP_ENV="staging", JWT_SECRET_KEY=secret, _env_file=None)
+
+
+def test_development_keeps_the_default_key() -> None:
+    assert Settings(APP_ENV="development", _env_file=None).JWT_SECRET_KEY == DEV_JWT_SECRET
+
+
+def test_non_development_accepts_a_real_key() -> None:
+    settings = Settings(APP_ENV="production", JWT_SECRET_KEY="x" * 64, _env_file=None)
+    assert settings.is_production
