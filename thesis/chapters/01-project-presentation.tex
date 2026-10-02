@@ -94,10 +94,11 @@ smartphone browser, with no installation, addresses that population directly.
         and is designed to remain usable on a modest connection --- which
         matters in a market where nine subscriptions in ten are mobile.
 
-  \item \textbf{Cost structure that permits free access.} All inference runs
+  \item \textbf{Cost structure that permits a low price.} All inference runs
         locally on open pre-trained models, so serving one more user costs
         infrastructure only. There is no per-request charge to any external AI
-        provider, which is what makes a free-to-citizen service sustainable.
+        provider, which is what keeps reporting free and lets a match
+        suggestion be unlocked for a few hundred dinars.
 \end{itemize}
 
 \section{The Team}
@@ -116,15 +117,18 @@ Main roles and competencies:
         the choice to hold vectors in the primary database alongside relational
         data.
   \item Implemented the backend: a versioned REST API over FastAPI, the
-        asynchronous data layer, seven database migrations, authentication with
+        asynchronous data layer, nine database migrations, authentication with
         rotating refresh tokens, and the image ingestion pipeline.
   \item Designed and implemented the multimodal matching engine: embedding
         generation, two-route candidate retrieval, score fusion, similarity
         calibration and the confidence model.
   \item Built the front-end application in Next.js and TypeScript, including the
         trilingual interface and its right-to-left layout.
-  \item Packaged the system for deployment with Docker Compose and defined the
-        storage abstraction that carries it from local disk to object storage.
+  \item Built the paid matching tier (credit ledger and payment gateway
+        integration) and the administration console.
+  \item Packaged the system with Docker Compose and wrote the production
+        deployment kit, with automatic HTTPS, used to put the platform
+        online.
 \end{itemize}
 
 \towrite{If you worked as a team, duplicate this subsection for each member and
@@ -169,9 +173,10 @@ title page matches, and adjust the singular pronouns in this chapter.}
         fusion weights and calibrate confidence into a true probability, as
         described in Chapter~\ref{ch:prototype}.
 
-  \item \textbf{Obtain the national Startup Label} granted under Executive
-        Decree No.~20-254~\cite{startupdz}, which opens access to the support
-        and financing mechanisms described in Chapter~\ref{ch:finance}.
+  \item \textbf{Open real payments.} Register the activity under the
+        auto-entrepreneur status, open a merchant account with the payment
+        gateway, and switch the paid matching tier from simulated to live
+        payments, at the costs set out in Chapter~\ref{ch:finance}.
 
   \item \textbf{Build presence at the moment of loss.} Demand for this service
         is event-driven: nobody looks for a lost-property platform until
@@ -204,9 +209,11 @@ title page matches, and adjust the singular pronouns in this chapter.}
         measured not by user count but by the number of objects actually
         returned to their owners.
 
-  \item \textbf{Sustain the service financially} without charging the citizen
-        who has just lost their papers, through the institutional and
-        partnership revenue analysed in Chapter~\ref{ch:finance}.
+  \item \textbf{Sustain the service financially} without charging anyone to
+        report or to search: revenue comes from unlocking match suggestions,
+        analysed in Chapter~\ref{ch:finance}. When salaries become necessary,
+        incorporate and obtain the national Startup Label granted under
+        Executive Decree No.~20-254~\cite{startupdz}.
 \end{itemize}
 
 \section{Project implementation schedule}
@@ -262,7 +269,7 @@ engine with no corpus cannot be evaluated.
   \ganttgroup{Intelligence}{8}{12} \\
   \ganttbar{M4 --- Embedding pipeline (worker)}{8}{10} \\
   \ganttbar{M5 --- Matching engine}{9}{11} \\
-  \ganttbar{M6 --- Notifications and claims}{10}{12} \\
+  \ganttbar{M6 --- Notifications, claims, paid matching}{10}{12} \\
 
   \ganttgroup{Delivery}{11}{16} \\
   \ganttbar{M7 --- Administration and moderation}{11}{13} \\

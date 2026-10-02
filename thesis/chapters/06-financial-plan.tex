@@ -1,266 +1,422 @@
-\chapter{FINANCIAL PLAN}
+\chapter{Financial Plan}
 \label{ch:finance}
 
-\section{Basis of the model}
+\section{Basis of the plan}
 
-The figures in this chapter are a \textbf{projection built on stated
-assumptions}, not measurements. Where a price is public it is cited; where a
-quantity is a business hypothesis it is labelled as one. The assumptions are
-listed first so that a reader can disagree with a number without having to
-reverse-engineer where it came from.
+This chapter prices the platform as it was built and measured in
+Chapter~\ref{ch:prototype}, not as a hypothetical company. Its costs are the
+monthly subscriptions and levies the project would actually pay, at public
+prices consulted in late September 2026 and cited line by line. Its revenue
+comes from the one thing the prototype sells --- unlocking a match suggestion
+(Section~\ref{sec:paid-matching}) --- at the prices written in its code. Where a
+quantity cannot be measured before launch, such as how many people will report
+an object in a month, it is stated as an assumption and varied across three
+scenarios rather than given as a single figure.
 
 \begin{table}[htbp]
 \centering
-\caption{Assumptions underlying the model}
+\caption{Assumptions underlying the plan}
 \label{tab:assumptions}
 \small
-\begin{tabularx}{\textwidth}{@{}p{4.3cm} X@{}}
+\begin{tabularx}{\textwidth}{@{}L{3.9cm} X@{}}
 \toprule
 \textbf{Assumption} & \textbf{Basis} \\
 \midrule
-Currency and conversion
-  & All figures in Algerian dinars (DZD). Infrastructure is billed in foreign
-    currency and converted at 1~USD~$=$~130~DZD, the 2026
-    average~\cite{xe2026}. \\
+Two exchange rates
+  & Servers are billed in euros. On 24 September 2026 the Banque d'Algérie
+    rate was 152.39~DZD per euro and the parallel market sold euros at
+    276~DZD~\cite{algerie360fx2026}. A foreign subscription is paid with an
+    international card funded in foreign currency, and that currency is not
+    always obtained at the official rate. The plan therefore uses the
+    \textbf{parallel rate as its base case} --- the more expensive of the two
+    --- and gives the official figure alongside. \\
 \addlinespace
-No AI inference cost
-  & Embeddings are computed locally on open pre-trained models running on CPU
-    (Chapter~\ref{ch:prototype}). There is no per-request charge to any external
-    provider --- the dominant recurring cost in comparable AI products, and
-    zero here. \\
+No inference cost
+  & Both models run on the platform's own CPU (Chapter~\ref{ch:prototype}).
+    There is no charge per request to any AI provider and no software
+    licence: the whole stack is open-source. \\
 \addlinespace
-No software licences
-  & The stack is entirely open-source (PostgreSQL, Redis, FastAPI, Next.js). \\
+Founders unpaid at first
+  & No one is paid during the demonstration and the pilot year. The cost of
+    paying people is computed separately, as a break-even level, so that it is
+    visible rather than hidden. \\
 \addlinespace
-Year~1 is unsalaried
-  & The founding team works without salary during the pilot, as is normal for a
-    labelled startup in its first year. Salaried hiring begins in year~2. \\
+Equipment already owned
+  & Development and operation use the founders' own computers and
+    connections; nothing is purchased. \\
 \addlinespace
-Salary basis
-  & Developer gross taken at 1.8~M~DZD per year, within the reported range for
-    software developers in Algeria~\cite{worldsalaries2025}; a 26\,\% employer
-    social charge is applied on top. \\
-\addlinespace
-Revenue is institutional
-  & The service is free for citizens permanently (Chapter~\ref{ch:market}).
-    Revenue comes from institutional subscriptions and partnerships. \\
+Legal form follows revenue
+  & No legal entity is needed to demonstrate the platform. Selling credits
+    requires a registered activity: the pilot runs under the auto-entrepreneur
+    status, and a company is formed only when salaries or the Startup Label
+    are needed. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\towrite{Replace the salary basis and the subscription price with real quotes
-before the defence --- an actual pro-forma from a hosting provider and a real
-conversation with one institution are worth more to a jury than any published
-average. Everything else in this chapter recomputes from those two numbers.}
+\section{Sizing the infrastructure from measurements}
 
-\section{Costs and expenses}
-
-\subsection{Infrastructure}
-
-The architecture makes this section unusually short, and that is the single most
-important financial fact about the project. Because inference is local and the
-stack is open-source, running the platform costs the price of one modest server,
-one managed database and some object storage.
+Chapter~\ref{ch:prototype} measured what the running platform needs: about
+1.2\,GB of memory, of which 872\,MB is the worker holding its two models; no
+GPU; about 2.7\,GB of container images; and photographs of 63\,KB on average.
+These four numbers decide which offers are viable (Table~\ref{tab:hosting}).
 
 \begin{table}[htbp]
 \centering
-\caption{Infrastructure costs, monthly}
-\label{tab:infra-costs}
+\caption{Hosting offers evaluated against the measured footprint (prices per month, excluding VAT)}
+\label{tab:hosting}
 \small
-\begin{tabularx}{\textwidth}{@{}X r r l@{}}
+\begin{tabularx}{\textwidth}{@{}L{3.6cm} X r L{3.0cm}@{}}
 \toprule
-\textbf{Line} & \textbf{Y1 (USD)} & \textbf{Y2 (USD)} & \textbf{Reference} \\
+\textbf{Offer} & \textbf{Resources} & \textbf{Price} & \textbf{Verdict} \\
 \midrule
-Application compute (API + worker) & 35 & 70  & Hetzner CCX23~\cite{selfhost2026} \\
-Managed PostgreSQL + \code{pgvector} & 20 & 40  & Railway~\cite{railway2026} \\
-Object storage and bandwidth        & 10 & 40  & S3-compatible, per GB \\
-Domain and certificates             &  2 &  2  & TLS free via Let's Encrypt \\
-Transactional e-mail                &  0 & 15  & free tier at pilot volume \\
-Monitoring and logs                 &  0 & 10  & free tier at pilot volume \\
-\midrule
-\textbf{Total per month}            & \textbf{67}  & \textbf{177} & \\
-\textbf{Total per year (USD)}       & \textbf{804} & \textbf{2\,124} & \\
-\textbf{Total per year (DZD)}       & \textbf{104\,520} & \textbf{276\,120} & at 130 DZD/USD \\
+Render, free tier~\cite{render2026}
+  & 512\,MB; suspended after 15 minutes without traffic & 0 & Too small: the worker alone needs 872\,MB \\
+\addlinespace
+Oracle Cloud, Always Free~\cite{oraclefree2026,terminalbytes2026}
+  & 2 ARM cores (Ampere A1), 12\,GB, 200\,GB of storage & 0 & Demonstration \\
+\addlinespace
+Azure for Students~\cite{azurestudents2026}
+  & 100\,USD of credit for 12 months, no card & 0 & Fallback for the demonstration \\
+\addlinespace
+Hetzner CX23~\cite{hetzner2026,hetznerspecs2026}
+  & 2 vCPU, 4\,GB, 40\,GB NVMe, 20\,TB traffic & 5.49\,EUR & Pilot \\
+\addlinespace
+Hetzner CAX11~\cite{hetzner2026,hetznerspecs2026}
+  & 2 ARM vCPU, 4\,GB, 40\,GB NVMe, 20\,TB traffic & 5.99\,EUR & Alternative to CX23 \\
+\addlinespace
+Hetzner CX33~\cite{hetzner2026,hetznerspecs2026}
+  & 4 vCPU, 8\,GB, 80\,GB NVMe, 20\,TB traffic & 8.49\,EUR & Growth \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Two implementation decisions hold these figures down. Uploaded photographs are
-re-encoded to WebP at a bounded resolution, cutting a typical phone image by
-roughly 95\,\% and postponing the point at which storage dominates. And the API
-runs without Redis when the queue is disabled, so the pilot can be deployed as a
-single service before the worker is needed.
+A 4\,GB server holds the measured 1.2\,GB with room for the operating system and
+for traffic peaks, and its 40\,GB disk holds the images, the database and
+several hundred thousand photographs at the measured size. Storage and
+bandwidth, which dominate the cost of many photo-based services, are therefore
+not separate lines in this plan.
 
-\subsection{Personnel}
+\section{Operating costs by phase}
 
-Personnel is the dominant cost from year~2 onward, and it follows the headcount
-of Table~\ref{tab:headcount} in Chapter~\ref{ch:organization}.
+\subsection{Phase 0 --- the demonstration: 0~DZD per month}
+
+Until the defence, the platform runs on Oracle's Always Free ARM server, which
+since 2026 provides two cores and 12\,GB of memory at no
+charge~\cite{terminalbytes2026}. The deployment kit of
+Chapter~\ref{ch:prototype} needs nothing else: the free \code{sslip.io} service
+gives the server a hostname, Caddy obtains a free HTTPS
+certificate~\cite{caddy2026}, payments run in simulated mode, and notifications
+stay in-app, so no e-mail service is needed. A bank card is required to open the
+account, for identity verification only.
+
+This phase is free but not dependable. Oracle reclaims an Always Free server it
+considers idle --- one whose processor, network \emph{and} memory use all stay
+under 20\,\% for seven days~\cite{oraclefree2026} --- and the measured footprint
+of 1.2\,GB is only 10\,\% of the 12\,GB on offer. A quiet week is enough to lose
+the server. The allowance itself was halved in 2026 without much
+notice~\cite{terminalbytes2026}. Both are acceptable for a demonstration that
+can be redeployed in minutes from the kit; neither is acceptable for a service
+that holds people's reports and takes their money.
+
+\subsection{Phase 1 --- the public pilot: about 4\,900~DZD per month}
+
+The pilot moves to a paid server and opens real payments, which requires a
+registered activity. The auto-entrepreneur status is the lightest one available:
+its tax (IFU) is 0.5\,\% of turnover with a minimum of 10\,000~DZD per year, its
+social contribution (CASNOS) is a flat 24\,000~DZD per year, and it covers
+turnover up to 5\,000\,000~DZD~\cite{autoentrepreneur2026} --- far above any
+scenario in this chapter. Table~\ref{tab:phase1-costs} lists every recurring
+cost.
 
 \begin{table}[htbp]
 \centering
-\caption{Personnel expenses, in million DZD per year (gross, including 26\,\%
-employer social charges)}
-\label{tab:personnel-costs}
+\caption{Phase~1 recurring costs, per month. Totals are computed before rounding.}
+\label{tab:phase1-costs}
 \small
-\begin{tabular}{@{}l r r r r r@{}}
+\begin{tabularx}{\textwidth}{@{}l X r r r@{}}
 \toprule
-\textbf{Role} & \textbf{Y1} & \textbf{Y2} & \textbf{Y3} & \textbf{Y4} & \textbf{Y5} \\
+ & & & \multicolumn{2}{c}{\textbf{DZD}} \\
+\cmidrule(l){4-5}
+\textbf{Line} & \textbf{Offer} & \textbf{EUR} & \textbf{official} & \textbf{parallel} \\
 \midrule
-Full-stack developer        & --- & 4.54 & 6.80 & 9.07 & 11.34 \\
-Machine-learning engineer   & --- & 2.77 & 2.77 & 2.77 & 5.54 \\
-Moderation and support      & --- & 1.26 & 2.52 & 3.78 & 5.04 \\
-Partnerships and business   & --- & 1.76 & 1.76 & 3.53 & 3.53 \\
-Marketing and communication & --- & ---  & 1.51 & 1.51 & 3.02 \\
+Server               & Hetzner CX23~\cite{hetzner2026}     & 5.49 & 837 & 1\,515 \\
+Public IPv4 address  & Hetzner~\cite{cloudtally2026}        & 0.50 & 76  & 138 \\
+Automatic backups    & Hetzner, +20\,\%~\cite{cloudtally2026} & 1.10 & 167 & 303 \\
+Domain name (.dz)    & 1\,500 DA a year~\cite{hostarts2026}  & --- & 125 & 125 \\
+HTTPS certificates   & Let's Encrypt via Caddy~\cite{caddy2026} & --- & 0 & 0 \\
+Transactional e-mail & Brevo free plan, 300 a day~\cite{brevo2026} & --- & 0 & 0 \\
+IFU, annual minimum  & 10\,000 DZD a year~\cite{autoentrepreneur2026} & --- & 833 & 833 \\
+CASNOS               & 24\,000 DZD a year~\cite{autoentrepreneur2026} & --- & 2\,000 & 2\,000 \\
 \midrule
-\textbf{Total}              & \textbf{0.00} & \textbf{10.33} & \textbf{15.36} & \textbf{20.66} & \textbf{28.47} \\
+\textbf{Total per month} & & \textbf{7.09} & \textbf{4\,038} & \textbf{4\,915} \\
+\textbf{Total per year}  & & \textbf{85.06} & \textbf{48\,462} & \textbf{58\,975} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Two observations follow. The levies of the legal status (2\,833~DZD a month)
+cost more than the infrastructure (1\,956~DZD at the parallel rate): running
+the software is the cheaper part of being in business. And the choice of
+exchange rate moves the total by only 22\,\%, because most of it is in dinars.
+
+\paragraph{Payment fees.} Chargily charges no subscription. Its free Starter
+plan covers the first 300 transactions or 300\,000~DZD; beyond that, the Comfort
+plan takes 1.5\,\% of each transaction with a minimum of 15~DZD, includes one
+free payout to the merchant's account per month, and charges 2\,\% on
+refunds~\cite{chargily2026}. The 15~DZD minimum weighs very differently on the
+three packs (Table~\ref{tab:fees}).
+
+\begin{table}[htbp]
+\centering
+\caption{Payment fee on each pack under Chargily's Comfort plan, in DZD. The
+average purchase uses the mix assumed in Section~\ref{sec:revenue-factors}.}
+\label{tab:fees}
+\small
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+\textbf{Pack} & \textbf{Price} & \textbf{Fee} & \textbf{Fee share} & \textbf{Net} \\
+\midrule
+Single unlock & 200    & 15.0 & 7.5\,\% & 185.0 \\
+Pack of 3     & 500    & 15.0 & 3.0\,\% & 485.0 \\
+Pack of 10    & 1\,200 & 18.0 & 1.5\,\% & 1\,182.0 \\
+\midrule
+Average purchase   & 420    & 15.3 & 3.6\,\% & 404.7 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Consolidated costs}
+The single unlock loses 7.5\,\% of its price to the fee floor, while the pack of
+3 loses 3\,\%. This supports the interface's choice of presenting the pack of 3
+as the default (Figure~\ref{fig:billing}).
+
+\subsection{Phase 2 --- a company with salaries: about 131\,500~DZD per month}
+
+Two events end the auto-entrepreneur phase: turnover approaching the
+5\,000\,000~DZD ceiling, or the need for the Startup Label, which is granted only
+to companies~\cite{startuplabel2026}. The label exempts the company from profit
+tax (IBS) for four years, renewable for two more, and gives priority access to
+public startup financing. Forming a two-partner SARL costs 283\,610~DZD through
+a turnkey provider, including the notary, the commercial register, the legal
+publication and twelve months of domiciliation, plus a capital of
+100\,000~DZD~\cite{creation2026}. Table~\ref{tab:phase2-costs} gives the
+recurring costs once two developers are paid.
 
 \begin{table}[htbp]
 \centering
-\caption{Summary of charges and costs, in million DZD per year}
-\label{tab:costs}
+\caption{Phase~2 recurring costs, per month (parallel rate for the server)}
+\label{tab:phase2-costs}
 \small
-\begin{tabularx}{\textwidth}{@{}X r r r r r@{}}
+\begin{tabularx}{\textwidth}{@{}X r@{}}
 \toprule
-\textbf{Cost line} & \textbf{Y1} & \textbf{Y2} & \textbf{Y3} & \textbf{Y4} & \textbf{Y5} \\
+\textbf{Line} & \textbf{DZD} \\
 \midrule
-Infrastructure                       & 0.10 & 0.28 & 0.55 & 0.90 & 1.50 \\
-Personnel (incl.\ social charges)    & 0.00 & 10.33 & 15.36 & 20.66 & 28.47 \\
-Marketing and communication          & 0.15 & 0.50 & 1.00 & 1.50 & 2.00 \\
-Legal, administrative, accounting    & 0.10 & 0.20 & 0.30 & 0.40 & 0.50 \\
-Tangible fixed assets (equipment)    & 0.40 & 0.20 & 0.30 & 0.40 & 0.50 \\
+Server Hetzner CX33, IPv4 and backups (10.69\,EUR)~\cite{hetzner2026,cloudtally2026} & 2\,950 \\
+Domain name (.dz)~\cite{hostarts2026}                                                  & 125 \\
+Accountant (range 8\,000--30\,000 DZD)~\cite{creation2026}                             & 15\,000 \\
+Two developers, 45\,000 DZD gross each, the bottom of the junior range~\cite{ctadz2026} & 90\,000 \\
+Employer's social contributions on those salaries (26\,\%)                             & 23\,400 \\
 \midrule
-\textbf{Total annual cost}           & \textbf{0.75} & \textbf{11.51} & \textbf{17.51} & \textbf{23.86} & \textbf{32.97} \\
+\textbf{Total per month}                                                               & \textbf{131\,475} \\
+\textbf{Total per year}                                                                & \textbf{1\,577\,699} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The shape of this table is worth stating explicitly: \textbf{the technology is
-not the expense --- the team is}. Infrastructure never exceeds 5\,\% of the
-annual cost in any year of the model. A jury may reasonably ask why an
-AI-powered platform is so cheap to run, and the answer is architectural, not
-optimistic: an external embedding API billed per request would have made the
-free-to-citizen model impossible at any meaningful volume.
+As a company, the platform must also charge value-added tax at the normal rate
+of 19\,\%~\cite{tva2026}. Keeping the advertised prices unchanged, an average
+purchase of 420~DZD then leaves 337.6~DZD after tax and fees, instead of
+404.7~DZD under the auto-entrepreneur status.
 
-\section{Revenue}
+\section{Revenue model}
 
-\subsection{Revenue model}
+\subsection{What is sold}
 
-The service is free for citizens on both sides, permanently, and that is a
-constraint rather than a promotion. Charging the person who has just lost their
-identity papers would suppress the loss reports the engine needs; charging the
-finder would suppress the scarcer side of the market outright. Revenue therefore
-comes from the actors who derive institutional value from the same pool:
+Reporting, searching and claiming are free; what is sold is the identity of a
+suggested match, at the prices of Table~\ref{tab:packs}. Every account receives
+one free unlock, so a person pays only from their \emph{second} suggestion
+onwards. Revenue per report is therefore the product of three factors:
 
-\begin{itemize}[leftmargin=1.4em,itemsep=4pt]
-  \item \textbf{Institutional subscriptions} --- an annual account for a
-        university, transport operator, airport, municipality or commercial
-        centre, replacing a paper register with a searchable one and giving
-        automatic matching against national loss reports. Modelled at
-        60\,000~DZD per institution per year in years~1--3, rising to
-        80\,000~DZD as the pool becomes more valuable.
-  \item \textbf{Sponsorship and partnerships} --- from year~3, with insurers,
-        telecom operators and banks, for whom association with a recovery
-        service is directly relevant to their own customers.
-  \item \textbf{Anonymised recovery analytics} --- aggregate statistics on what
-        is lost, where and when, useful to transport operators and municipal
-        services for planning. No personal data leaves the platform.
+\begin{equation}
+\text{revenue per report} \;=\; o \times b \times \bar{p},
+\label{eq:revenue}
+\end{equation}
+
+\noindent where $o$ is the share of reports that receive more suggestions than
+the free allowance covers, $b$ the share of those owners who buy, and $\bar{p}$
+the average purchase.
+
+\subsection{The three factors}
+\label{sec:revenue-factors}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Opportunity, $o$.} Measured on the evaluation corpus, 18 of 56
+        reports (32\,\%) have two or more live suggestions
+        (Section~\ref{sec:eval-matching}). That corpus was built to exercise
+        the matcher and is denser in matching pairs than real traffic will be,
+        so 32\,\% is used only as the favourable value; the cautious and base
+        scenarios use 15\,\% and 25\,\%.
+  \item \textbf{Buying rate, $b$.} No measurement exists before launch. The
+        scenarios use 5\,\%, 10\,\% and 20\,\% of the owners who see a locked
+        suggestion. The pilot's first task is to replace these figures with
+        observed ones; the platform already records every unlock and purchase.
+  \item \textbf{Average purchase, $\bar{p}$.} Assuming half of purchases are
+        single unlocks, 40\,\% packs of 3 and 10\,\% packs of 10, the average
+        purchase is 420~DZD for 2.7 unlocks.
 \end{itemize}
 
-\towrite{Decide whether you also want optional paid visibility for individual
-reports. It is the obvious fourth line, and it is deliberately excluded here:
-letting a citizen pay to rank higher undermines the claim that suggestions are
-ranked on evidence, which is the product's central promise. If you include it,
-be ready to defend that tension.}
+With these values, one report brings 3.0~DZD of net revenue in the cautious
+scenario, 10.1~DZD in the base scenario and 25.9~DZD in the favourable one.
 
-\subsection{Projections}
+\section{Break-even analysis}
+
+Table~\ref{tab:breakeven} gives the volume needed to cover three levels of cost:
+the running costs of the pilot (level~A); the same plus one founder paid the
+national minimum wage of 24\,000~DZD a month~\cite{autoentrepreneur2026}
+(level~B); and the company with two salaried developers (level~C).
 
 \begin{table}[htbp]
 \centering
-\caption{Revenue projection, in million DZD per year}
-\label{tab:revenue}
+\caption{Monthly break-even volumes. Purchases are averages of 420~DZD; report
+volumes are the new reports per month needed in each scenario.}
+\label{tab:breakeven}
 \small
-\begin{tabularx}{\textwidth}{@{}X r r r r r@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\textwidth}{@{}X r r r r r r@{}}
 \toprule
-\textbf{Revenue line} & \textbf{Y1} & \textbf{Y2} & \textbf{Y3} & \textbf{Y4} & \textbf{Y5} \\
+ & \textbf{Cost} & & & \multicolumn{3}{c}{\textbf{Reports per month}} \\
+\cmidrule(l){5-7}
+\textbf{Level} & \textbf{DZD/mo.} & \textbf{Purch.} & \textbf{Unlocks} & \textbf{Cautious} & \textbf{Base} & \textbf{Favour.} \\
 \midrule
-\multicolumn{6}{@{}l}{\textit{Optimistic scenario}}\\
-Institutional subscriptions      & 0.30 & 2.40 & 7.20 & 16.00 & 28.00 \\
-\quad {\footnotesize partner institutions} & {\footnotesize 5} & {\footnotesize 40} & {\footnotesize 120} & {\footnotesize 200} & {\footnotesize 350} \\
-Sponsorship and partnerships     & ---  & 0.60 & 3.50 & 7.50 & 13.00 \\
-Analytics                        & ---  & ---  & 1.30 & 2.50 & 4.00 \\
-\textbf{Total}                   & \textbf{0.30} & \textbf{3.00} & \textbf{12.00} & \textbf{26.00} & \textbf{45.00} \\
-\addlinespace
-\multicolumn{6}{@{}l}{\textit{Pessimistic scenario}}\\
-Institutional subscriptions      & 0.10 & 1.20 & 3.50 & 8.00 & 15.00 \\
-\quad {\footnotesize partner institutions} & {\footnotesize 2} & {\footnotesize 20} & {\footnotesize 58} & {\footnotesize 100} & {\footnotesize 187} \\
-Sponsorship and partnerships     & ---  & ---  & 1.00 & 3.00 & 7.00 \\
-\textbf{Total}                   & \textbf{0.10} & \textbf{1.20} & \textbf{4.50} & \textbf{11.00} & \textbf{22.00} \\
+A: pilot costs           & 4\,915   & 12.1  & 33     & 1\,620  & 486     & 190 \\
+B: A + minimum wage      & 28\,915  & 71.4  & 193    & 9\,527  & 2\,858  & 1\,117 \\
+C: company, 2 salaries   & 131\,475 & 389.4 & 1\,052 & 51\,919 & 15\,576 & 6\,085 \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-\section{Break-even analysis}
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-    width=0.94\textwidth, height=7.2cm,
-    xlabel={Year}, ylabel={Million DZD},
-    xtick={1,2,3,4,5},
-    xticklabels={Y1,Y2,Y3,Y4,Y5},
-    ymin=0, ymax=48,
-    grid=major,
-    grid style={draw=black!12},
-    legend pos=north west,
-    legend style={font=\scriptsize, draw=rulegray, fill=white},
+    width=0.94\textwidth, height=7.4cm,
+    xmin=0, xmax=3000, ymin=0, ymax=36000,
+    xlabel={New reports per month},
+    ylabel={Net revenue, DZD per month},
+    xtick={0,500,1000,1500,2000,2500,3000},
+    ytick={0,5000,10000,15000,20000,25000,30000,35000},
+    scaled ticks=false,
+    /pgf/number format/.cd, 1000 sep={\,},
+    axis lines*=left,
+    ymajorgrids, grid style={draw=black!10},
     tick label style={font=\scriptsize},
     label style={font=\scriptsize},
+    legend style={font=\scriptsize, draw=none, at={(0.5,-0.2)},
+                  anchor=north, legend columns=3,
+                  /tikz/every even column/.append style={column sep=8pt}},
+    legend cell align=left,
+    clip=true,
   ]
-  \addplot[thick, draw=todoborder, mark=*, mark size=1.7pt]
-    coordinates {(1,0.75) (2,11.51) (3,17.51) (4,23.86) (5,32.97)};
-  \addlegendentry{Total annual cost}
+  \addplot[very thick, draw=uamobblue, domain=0:3000, samples=2]
+    {25.901*x};
+  \addlegendentry{Favourable}
+  \addplot[very thick, draw=uamobblue!60, domain=0:3000, samples=2]
+    {10.117*x};
+  \addlegendentry{Base}
+  \addplot[very thick, draw=uamobblue!30, domain=0:3000, samples=2]
+    {3.035*x};
+  \addlegendentry{Cautious}
 
-  \addplot[thick, draw=uamobblue, mark=square*, mark size=1.7pt]
-    coordinates {(1,0.30) (2,3.00) (3,12.00) (4,26.00) (5,45.00)};
-  \addlegendentry{Revenue --- optimistic}
-
-  \addplot[thick, draw=uamobblue!55, dashed, mark=triangle*, mark size=2.2pt]
-    coordinates {(1,0.10) (2,1.20) (3,4.50) (4,11.00) (5,22.00)};
-  \addlegendentry{Revenue --- pessimistic}
+  \addplot[thick, dashed, draw=todoborder, domain=0:3000, samples=2, forget plot]
+    {4915};
+  \addplot[thick, dashed, draw=todoborder, domain=0:3000, samples=2, forget plot]
+    {28915};
+  \node[font=\scriptsize, text=todoborder, anchor=north east] at (axis cs:3000,4915)
+    {Level A: pilot running costs, 4\,915 DZD};
+  \node[font=\scriptsize, text=todoborder, anchor=south west] at (axis cs:1500,28915)
+    {Level B: A + one minimum wage, 28\,915 DZD};
 \end{axis}
 \end{tikzpicture}
-\caption{Annual costs against the two revenue scenarios. The optimistic case
-crosses into annual profitability during year~4; the pessimistic case does not
-reach it within the five-year horizon.}
+\caption{Net monthly revenue against the number of new reports, for the three
+scenarios (favourable: $o=32\,\%$, $b=20\,\%$; base: $o=25\,\%$, $b=10\,\%$;
+cautious: $o=15\,\%$, $b=5\,\%$), compared with cost levels A and B. Level C
+(131\,475~DZD) lies far above the chart.}
 \label{fig:breakeven}
 \end{figure}
 
-Two conclusions follow, and the second matters more than the first.
+\section{First-year projection}
 
-\paragraph{The optimistic scenario reaches annual break-even in year~4}, when
-revenue of 26.0~M~DZD passes costs of 23.9~M~DZD. Cumulatively the venture
-remains negative until year~5, so external financing is required for roughly
-four years --- which is what the ANADE mechanisms, reaching up to
-10~M~DZD~\cite{anade2025}, and the support attached to the national Startup
-Label~\cite{startupdz} are designed to bridge.
+Table~\ref{tab:year1} applies the pilot's costs to a first year at three
+steady volumes, each paired with its scenario: 200 reports a month for the
+cautious case, 500 for the base case, 1\,000 for the favourable case. The
+Starter allowance of Chargily is treated as a one-time allowance, which is the
+conservative reading.
 
-\paragraph{The pessimistic scenario does not break even within the horizon}, and
-the gap is instructive rather than fatal. It is driven almost entirely by the
-rate of institutional adoption, not by the cost of running the platform ---
-infrastructure stays below 5\,\% of costs in both scenarios. The project's
-financial risk is therefore a \emph{commercial} risk, concentrated in whether
-partner institutions sign, and not a technical or infrastructural one. That is
-where the effort of year~1 belongs, and it is why Chapter~\ref{ch:market} puts
-partnerships ahead of user acquisition.
+\begin{table}[htbp]
+\centering
+\caption{First year of the pilot, in DZD (server at the parallel rate)}
+\label{tab:year1}
+\small
+\begin{tabularx}{\textwidth}{@{}X r r r@{}}
+\toprule
+ & \textbf{Cautious} & \textbf{Base} & \textbf{Favourable} \\
+\midrule
+New reports per month                      & 200       & 500      & 1\,000 \\
+Reports in the year                        & 2\,400    & 6\,000   & 12\,000 \\
+Purchases                                  & 18        & 150      & 768 \\
+Unlocks sold                               & 49        & 405      & 2\,074 \\
+\midrule
+\textbf{Revenue}                           & \textbf{7\,560} & \textbf{63\,000} & \textbf{322\,560} \\
+\midrule
+Payment fees (first 300 purchases free)    & 0         & 0        & 7\,160 \\
+Server, IPv4 and backups                   & 23\,475   & 23\,475  & 23\,475 \\
+Domain name                                & 1\,500    & 1\,500   & 1\,500 \\
+IFU (minimum; 0.5\,\% would be lower)      & 10\,000   & 10\,000  & 10\,000 \\
+CASNOS                                     & 24\,000   & 24\,000  & 24\,000 \\
+\textbf{Total costs}                       & \textbf{58\,975} & \textbf{58\,975} & \textbf{66\,136} \\
+\midrule
+\textbf{Result for the year}               & \textbf{$-$51\,415} & \textbf{4\,025} & \textbf{256\,424} \\
+Result per month                           & $-$4\,285 & 335      & 21\,369 \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\towrite{If your jury expects a formal break-even point in units, add the
-calculation: fixed costs divided by the contribution margin per institutional
-subscription. With costs dominated by salaries and a subscription price of
-60\,000~DZD, the year-2 break-even is roughly 190 institutions --- a figure
-worth stating explicitly, because it makes the commercial challenge concrete.}
+The cautious year loses about 51\,000~DZD, which the founders can carry from
+their own pockets. The base year roughly breaks even on its running costs. The
+favourable year earns about 21\,000~DZD a month --- a real profit, but still less
+than one minimum wage. In none of the three can the pilot pay its founders.
+
+\section{Financing}
+
+The demonstration costs nothing and the pilot year at most 59\,000~DZD, so
+neither needs external money: the founders can finance both. Financing becomes
+a question at Phase~2, which needs the company's formation (283\,610~DZD), its
+capital (100\,000~DZD) and a runway; six months of Phase~2 costs add
+788\,850~DZD, for a total of about 1.17 million DZD. That is the scale of the
+schemes run by ANADE, which reach 10 million DZD~\cite{anade2025}, and of the
+public startup financing to which the Startup Label gives priority
+access~\cite{startupdz,startuplabel2026}. The pilot's measured conversion rates
+are what such an application would need to show.
+
+\section{Conclusion}
+
+Three conclusions follow from these numbers.
+
+\paragraph{Running the platform is cheap, and the reason is measured.} A
+platform with two AI models costs under 2\,000~DZD a month in infrastructure,
+because both models run on the CPU of a 4\,GB server and photographs are
+compressed to tens of kilobytes. The fixed costs of being a registered business
+are larger than the cost of the software.
+
+\paragraph{Revenue per report is small.} At the base assumptions a report
+brings about ten dinars. The paid tier covers the pilot's running costs from
+around 500 reports a month in the base case, but paying even one person at the
+minimum wage requires about 2\,900 reports a month, and a salaried team of two
+about 15\,600 --- a national volume, not a single wilaya's. Growth must
+therefore be geographic, and a second revenue line, such as accounts for
+institutions that hold large numbers of found objects
+(Chapter~\ref{ch:business}), may be needed before the team can be paid.
+
+\paragraph{The risk is commercial, not technical.} Every uncertain figure in this
+chapter is a volume or a conversion rate. The pilot's purpose is to measure
+those two numbers, and the platform already records everything needed to do so.

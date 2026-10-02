@@ -1,4 +1,4 @@
-\chapter{PRODUCTION STRATEGY AND ORGANIZATION PLAN}
+\chapter{Production Strategy and Organization Plan}
 \label{ch:organization}
 
 \section{The process of obtaining the service}
@@ -25,7 +25,8 @@ Figure~\ref{fig:service-process} shows how the three actors converge.
      {\scriptsize automatic, bidirectional, continuous}};
 
   \node[storenode, text width=12.6cm] (sugg) at (0,0.9)
-    {Ranked suggestions with confidence and explanations; both owners notified above threshold};
+    {Ranked suggestions with confidence and explanations; both owners notified above threshold;\\
+     {\scriptsize first unlock free, then one credit per suggestion}};
 
   \node[storenode, text width=12.6cm] (claim) at (0,-0.6)
     {Claim submitted --- the claimant answers the verification questions set by the reporter};
@@ -61,6 +62,8 @@ and a human decision before any identity is disclosed.}
         language of their choice, with photographs if any exist.
   \item Receives ranked suggestions with confidence and explanations as soon as
         matching runs, and a notification whenever a strong new match appears.
+        The first suggestion they open is free; each further one costs a
+        credit.
   \item Submits a claim on a promising found report, answering the verification
         questions set by the finder.
   \item On approval, receives the finder's contact details and arranges the
@@ -130,93 +133,94 @@ individual user to arrive after a loss finds something to match against.
 
 The stack is built entirely on open-source components --- PostgreSQL, Redis,
 FastAPI, Next.js --- and on pre-trained models used under permissive licences
-and run locally. Procurement is therefore infrastructure and services; there are
-no software licences to buy, and, critically, \textbf{no per-request charge to
-any external AI provider}. Every embedding is computed on the project's own
-CPU, which is what allows the service to be free at the point of use.
+and run locally. Procurement is therefore a handful of monthly subscriptions;
+there are no software licences to buy, no equipment to purchase, and,
+critically, \textbf{no per-request charge to any external AI provider}. Every
+embedding is computed on the project's own CPU, which is what keeps reporting
+free and the price of an unlock low. Table~\ref{tab:procurement} lists what is
+procured; the prices are justified in Chapter~\ref{ch:finance}.
 
 \begin{table}[htbp]
 \centering
 \caption{Procurement requirements}
 \label{tab:procurement}
 \small
-\begin{tabularx}{\textwidth}{@{}p{3.5cm} X p{3.1cm}@{}}
+\begin{tabularx}{\textwidth}{@{}L{3.2cm} X L{3.9cm}@{}}
 \toprule
-\textbf{Item} & \textbf{Why it is needed} & \textbf{Reference offer} \\
+\textbf{Item} & \textbf{Why it is needed} & \textbf{Offer chosen} \\
 \midrule
-Application compute
-  & Runs the API and the embedding worker; the worker needs memory for the two
-    models, not a GPU
-  & Hetzner CCX23, 2~vCPU / 16~GB / 160~GB NVMe, $\approx$~31~EUR per
-    month~\cite{selfhost2026} \\
+One virtual server
+  & Runs all five services: database, queue, API, worker and frontend. Sized
+    on the measured 1.2\,GB of memory; no GPU needed
+  & Oracle Always Free for the demonstration; Hetzner CX23, 5.49\,EUR a
+    month, for the pilot~\cite{hetzner2026} \\
 \addlinespace
-Managed PostgreSQL with \code{pgvector}
-  & Relational data, full-text search and vector indexes in one engine
-  & Railway managed Postgres, \$10--40 per month by
-    size~\cite{railway2026} \\
+Public IPv4 and backups
+  & A reachable address, and daily copies of the database and photographs
+  & Hetzner, 0.50\,EUR a month plus 20\,\% of the server
+    price~\cite{cloudtally2026} \\
 \addlinespace
-Object storage and bandwidth
-  & Photographs; the dominant variable cost, since every report may carry up to
-    five images
-  & S3-compatible storage, billed per GB stored and transferred \\
+Domain name
+  & The platform's public identity
+  & \code{.dz} domain, 1\,500\,DA a year~\cite{hostarts2026} \\
 \addlinespace
-Domain and certificates
-  & Public presence and TLS
-  & Annual domain registration; certificates free via Let's Encrypt \\
+HTTPS certificates
+  & Encrypted connections
+  & Let's Encrypt through Caddy, free~\cite{caddy2026} \\
 \addlinespace
 Transactional e-mail
-  & Account verification, password reset, match notifications by e-mail
-  & Free tier sufficient at pilot volume \\
+  & Account and password e-mails as the user base grows
+  & Brevo free plan, 300 e-mails a day~\cite{brevo2026} \\
 \addlinespace
-Error monitoring and logs
-  & Operating a background worker blind is not viable
-  & Free tier sufficient at pilot volume \\
+Payment gateway
+  & Selling credit packs in dinars, by EDAHABIA or CIB card
+  & Chargily Pay: free for 300 transactions, then 1.5\,\% with a 15\,DZD
+    minimum~\cite{chargily2026} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Two architectural decisions keep this list short and its total low. Image
-uploads are re-encoded to WebP at a bounded resolution before storage, cutting a
-typical phone photograph by roughly 95\,\% and pushing back the point at which
-storage becomes the dominant cost. And the API can run without Redis, which
-allows the browsing and reporting surface to be deployed as a single service
-during the pilot, with the worker added only when matching volume requires it.
+Two architectural decisions keep this list short and its total low.
+Photographs are re-encoded to WebP at a bounded resolution before storage, and
+those of the evaluation corpus average 63\,KB, so storage and bandwidth are not
+procured separately. And both models run on the CPU within 872\,MB of memory,
+so a single 4\,GB server hosts the whole platform, database included, instead
+of a managed database, an object store and a GPU instance billed separately.
 
 \section{Workforce}
 
 The team required is small, because the product's marginal cost is
 computational rather than human. What does scale with volume is moderation:
 every disputed claim is arbitrated by a person, and claim volume grows with
-reports.
+reports. The administration console of Chapter~\ref{ch:prototype} lets the
+founders do that work themselves during the pilot.
 
 \begin{table}[htbp]
 \centering
-\caption{Personnel headcount estimation over five years}
+\caption{Who does what, by phase (the phases of Chapter~\ref{ch:finance})}
 \label{tab:headcount}
 \small
-\begin{tabular}{@{}l c c c c c@{}}
+\begin{tabularx}{\textwidth}{@{}X X X X@{}}
 \toprule
-\textbf{Role} & \textbf{Y1} & \textbf{Y2} & \textbf{Y3} & \textbf{Y4} & \textbf{Y5} \\
+\textbf{Role} & \textbf{Phase 0 --- demonstration} & \textbf{Phase 1 --- pilot} & \textbf{Phase 2 --- company} \\
 \midrule
-Full-stack developer          & 2 & 2 & 3 & 4 & 5 \\
-Machine-learning engineer     & --- & 1 & 1 & 1 & 2 \\
-Moderation and user support   & --- & 1 & 2 & 3 & 4 \\
-Partnerships and business     & --- & 1 & 1 & 2 & 2 \\
-Marketing and communication   & --- & --- & 1 & 1 & 2 \\
+Development and operation & Founding team, unpaid & Founding team, unpaid & Two salaried developers \\
+\addlinespace
+Moderation and support    & Founding team & Founding team, through the console & The developers, then a moderator \\
+\addlinespace
+Institutional partnerships & Founding team & Founding team & Founding team \\
+\addlinespace
+Accounting and declarations & --- & Founders (simplified regime) & External accountant \\
 \midrule
-\textbf{Total}                & \textbf{2} & \textbf{5} & \textbf{8} & \textbf{11} & \textbf{15} \\
+\textbf{Salaried staff}   & \textbf{0} & \textbf{0} & \textbf{2} \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
-In year one the founding team performs every role; the figures above assume no
-salaried hire before the platform has demonstrated recovery volume. The first
-two hires are deliberate: a machine-learning engineer once enough labelled
-feedback exists to train on, and a moderator once claim volume exceeds what the
-founders can arbitrate while still building.
-
-\towrite{Confirm these headcounts against the salary assumptions in
-Chapter~\ref{ch:finance} --- the two tables must agree, and a jury will check.}
+No salary is paid before the pilot has shown recovery volume and a measured
+conversion rate; the first two salaries are the ones costed in
+Chapter~\ref{ch:finance}. The next hire is a moderator, once claim volume
+exceeds what the developers can arbitrate while still building.
 
 \section{Key partners}
 
@@ -250,6 +254,10 @@ Chapter~\ref{ch:finance} --- the two tables must agree, and a jury will check.}
   \item \textbf{ANADE}, whose interest-free financing schemes for young ventures
         reach up to 10 million dinars~\cite{anade2025}.
 
-  \item \textbf{Hosting and infrastructure providers}, whose free and low tiers
-        make the pilot phase possible at negligible cost.
+  \item \textbf{Hosting providers} --- Oracle's free tier for the
+        demonstration, Hetzner for the pilot --- whose offers let the platform
+        run for under 2\,000~DZD a month.
+
+  \item \textbf{Chargily}, the payment gateway through which credit packs are
+        sold in dinars by national bank card.
 \end{itemize}

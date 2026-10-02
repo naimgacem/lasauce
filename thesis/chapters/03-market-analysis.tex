@@ -1,4 +1,4 @@
-\chapter{STRATEGIC MARKET ANALYSIS}
+\chapter{Strategic Market Analysis}
 \label{ch:market}
 
 \section{The market segment}
@@ -263,7 +263,7 @@ Section~\ref{sec:marketing} is built specifically to answer.
 \label{tab:swot}
 \small
 \renewcommand{\arraystretch}{1.25}
-\begin{tabularx}{\textwidth}{@{}>{\bfseries}p{2.3cm} X@{}}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries}p{2.75cm} >{\cellstartslist}X@{}}
 \toprule
 Strengths &
 \begin{itemize}[leftmargin=1em,nosep,topsep=2pt]
@@ -272,8 +272,8 @@ Strengths &
   \item Genuinely multilingual --- the same pool serves Arabic, French and
         English reports without fragmenting
   \item Privacy-preserving claim workflow: a match never exposes contact details
-  \item No per-request AI cost; inference runs locally on open models, which is
-        what makes free access sustainable
+  \item No per-request AI cost; inference runs locally on open models, which
+        keeps reporting free and the price of an unlock low
   \item Explained confidence rather than opaque ranking
   \item Built on open-source infrastructure with no licence fees
 \end{itemize} \\
@@ -282,8 +282,8 @@ Weaknesses &
 \begin{itemize}[leftmargin=1em,nosep,topsep=2pt]
   \item \textbf{Cold start.} The platform is worth little until both pools are
         populated, and the found side is the scarcer one
-  \item No revenue from the primary user, by design --- monetisation is indirect
-        and unproven
+  \item Revenue rests on micro-payments of 200 to 1\,200 DZD, and the share of
+        users who will pay is not yet measured
   \item Scoring constants are hand-tuned; calibration awaits real feedback data
   \item Small team with no operational track record
   \item Dependent on voluntary honesty; verification questions mitigate but do
@@ -317,7 +317,8 @@ Threats &
   \item Personal-data obligations around photographs and identity information
   \item Network effects favour whoever reaches density first --- being second is
         close to being absent
-  \item Infrastructure costs scaling with image storage before revenue does
+  \item Users declining to pay for suggestions and searching by hand
+        instead, since every report remains publicly searchable
   \item Low trust in online handovers between strangers
 \end{itemize} \\
 \bottomrule
@@ -364,12 +365,14 @@ The strategy follows from that, and from the cold-start weakness named above.
         every loss report against every discovery report, on text and images at
         once, and protects the handover behind a verification handshake.
 
-  \item \textbf{Price.} Free for citizens, on both sides, permanently. This is a
-        strategic constraint rather than a promotional one: charging the person
-        who just lost their identity papers would suppress precisely the reports
-        the engine needs, and charging the finder would suppress the scarcer
-        side of the market outright. Revenue comes from institutions and
-        partnerships instead --- see Chapter~\ref{ch:finance}.
+  \item \textbf{Price.} Reporting, searching and claiming are free, and finders
+        never pay: charging for a report would suppress precisely the reports
+        the engine needs, and the found side is the scarcer one. What is paid
+        is the unlocking of a match suggestion. The first unlock is free;
+        further ones cost 200~DZD each, or 167 and 120~DZD each in packs of 3
+        and 10. The price is set as an impulse purchase made at the moment a
+        result exists, not as a subscription --- see
+        Chapter~\ref{ch:finance}.
 
   \item \textbf{Place.} The web, reachable from any smartphone browser without
         installation; and physically, the partner institutions where objects are

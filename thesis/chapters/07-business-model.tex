@@ -1,122 +1,129 @@
-\chapter{BUSINESS MODEL}
+\chapter{Business Model}
 \label{ch:business}
 
 \section{Business Model Canvas}
 
 Figure~\ref{fig:canvas} consolidates the preceding chapters into a single view.
 Nothing in it is new: the segments come from Chapter~\ref{ch:market}, the
-partners and activities from Chapter~\ref{ch:organization}, and the cost and
-revenue structure from Chapter~\ref{ch:finance}. Its purpose is to show that
-those chapters agree with each other.
+partners and activities from Chapter~\ref{ch:organization}, the offer and its
+prices from the prototype of Chapter~\ref{ch:prototype}, and the cost and
+revenue figures from Chapter~\ref{ch:finance}. Its purpose is to show that those
+chapters agree with each other.
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[x=1cm,y=1cm,
     blk/.style={fill=uamobblue!4, draw=rulegray, line width=0.4pt},
     hd/.style={anchor=north west, font=\tiny\bfseries\color{uamobblue},
-               inner sep=4pt},
+               inner sep=4pt, align=left},
     bd/.style={anchor=north west, font=\tiny, align=left, inner sep=4pt},
   ]
 
-  % --- grid ---
-  \draw[blk] (0,0)     rectangle (3.05,-8);      % key partners
-  \draw[blk] (3.05,0)  rectangle (6.10,-4);      % key activities
-  \draw[blk] (3.05,-4) rectangle (6.10,-8);      % key resources
-  \draw[blk] (6.10,0)  rectangle (9.15,-8);      % value propositions
-  \draw[blk] (9.15,0)  rectangle (12.20,-4);     % customer relationships
-  \draw[blk] (9.15,-4) rectangle (12.20,-8);     % channels
-  \draw[blk] (12.20,0) rectangle (15.25,-8);     % customer segments
-  \draw[blk] (0,-8)    rectangle (7.62,-11.4);   % cost structure
-  \draw[blk] (7.62,-8) rectangle (15.25,-11.4);  % revenue streams
+  % --- grid: 5 columns of 3.04 cm = 15.2 cm, inside the 15.5 cm text width ---
+  \draw[blk] (0,0)      rectangle (3.04,-8.4);    % key partners
+  \draw[blk] (3.04,0)   rectangle (6.08,-4.2);    % key activities
+  \draw[blk] (3.04,-4.2) rectangle (6.08,-8.4);   % key resources
+  \draw[blk] (6.08,0)   rectangle (9.12,-8.4);    % value propositions
+  \draw[blk] (9.12,0)   rectangle (12.16,-4.2);   % customer relationships
+  \draw[blk] (9.12,-4.2) rectangle (12.16,-8.4);  % channels
+  \draw[blk] (12.16,0)  rectangle (15.2,-8.4);    % customer segments
+  \draw[blk] (0,-8.4)   rectangle (7.6,-12.0);    % cost structure
+  \draw[blk] (7.6,-8.4) rectangle (15.2,-12.0);   % revenue streams
 
   % --- key partners ---
-  \node[hd] at (0,0) {KEY PARTNERS};
-  \node[bd, text width=2.7cm] at (0,-0.45) {
+  \node[hd] at (0,0) {Key partners};
+  \node[bd, text width=2.68cm] at (0,-0.45) {
     $\bullet$~Universities, starting with UAMOB\\
-    $\bullet$~Public transport operators\\
-    $\bullet$~Airports and stations\\
-    $\bullet$~Municipalities\\
-    $\bullet$~Commercial centres\\
-    $\bullet$~University incubator and Algeria Venture\\
-    $\bullet$~ANADE (financing)\\
-    $\bullet$~Hosting providers};
+    $\bullet$~Transport operators, airports and stations\\
+    $\bullet$~Municipalities and commercial centres\\
+    \hspace*{0.7em}{\itshape (they seed the found side)}\\
+    $\bullet$~Chargily Pay (EDAHABIA, CIB)\\
+    $\bullet$~Hetzner, and Oracle for the demonstration\\
+    $\bullet$~University incubator, Algeria Venture\\
+    $\bullet$~ANADE (financing)};
 
   % --- key activities ---
-  \node[hd] at (3.05,0) {KEY ACTIVITIES};
-  \node[bd, text width=2.7cm] at (3.05,-0.45) {
-    $\bullet$~Operating the platform\\
-    $\bullet$~Improving matching from accumulated feedback\\
-    $\bullet$~Signing institutional partners\\
-    $\bullet$~Moderating disputed claims};
+  \node[hd] at (3.04,0) {Key activities};
+  \node[bd, text width=2.68cm] at (3.04,-0.45) {
+    $\bullet$~Operating the platform and its matching engine\\
+    $\bullet$~Moderating reports, accounts and claims\\
+    $\bullet$~Signing institutions to fill the found side\\
+    $\bullet$~Measuring conversion and recoveries};
 
   % --- key resources ---
-  \node[hd] at (3.05,-4) {KEY RESOURCES};
-  \node[bd, text width=2.7cm] at (3.05,-4.45) {
-    $\bullet$~The multimodal matching engine\\
-    $\bullet$~\textbf{The pool of reports} --- the real asset, and it grows with use\\
-    $\bullet$~The labelled feedback dataset\\
-    $\bullet$~The technical team};
+  \node[hd] at (3.04,-4.2) {Key resources};
+  \node[bd, text width=2.68cm] at (3.04,-4.65) {
+    $\bullet$~The multimodal, multilingual matching engine\\
+    $\bullet$~\textbf{The pool of reports}, which grows with use\\
+    $\bullet$~Owner verdicts on suggestions (labelled data)\\
+    $\bullet$~The credit ledger and payment integration\\
+    $\bullet$~The founding team};
 
   % --- value propositions ---
-  \node[hd] at (6.10,0) {VALUE PROPOSITIONS};
-  \node[bd, text width=2.7cm] at (6.10,-0.45) {
-    \textit{For citizens}\\
-    $\bullet$~The platform does the comparing, in both directions\\
-    $\bullet$~Matches across Arabic, French and English\\
+  \node[hd] at (6.08,0) {Value propositions};
+  \node[bd, text width=2.68cm] at (6.08,-0.45) {
+    \textit{For people who lost something}\\
+    $\bullet$~The platform does the comparing, continuously\\
+    $\bullet$~Across Arabic, French and English\\
     $\bullet$~A photograph matches without words\\
-    $\bullet$~Confidence \emph{with reasons}\\
-    $\bullet$~Contact protected by verification\\[3pt]
+    $\bullet$~Confidence shown \emph{with reasons}\\[3pt]
+    \textit{For finders}\\
+    $\bullet$~Report in a few minutes, free\\
+    $\bullet$~Contact only after an approved claim\\[3pt]
     \textit{For institutions}\\
-    $\bullet$~A searchable register, not a paper one\\
-    $\bullet$~Fewer counter visits\\
-    $\bullet$~Automatic matching nationwide};
+    $\bullet$~A searchable register instead of a paper one\\
+    $\bullet$~Fewer visits to the counter};
 
   % --- customer relationships ---
-  \node[hd] at (9.15,0) {CUSTOMER RELATIONSHIPS};
-  \node[bd, text width=2.7cm] at (9.15,-0.6) {
+  \node[hd] at (9.12,0) {Customer\\relationships};
+  \node[bd, text width=2.68cm] at (9.12,-0.7) {
     $\bullet$~Self-service, no installation\\
-    $\bullet$~Notification-driven re-engagement\\
-    $\bullet$~Human moderation for disputed claims\\
-    $\bullet$~Account management for institutions};
+    $\bullet$~Notification when a match appears\\
+    $\bullet$~First unlock free, to prove the result\\
+    $\bullet$~Human moderation of disputes};
 
   % --- channels ---
-  \node[hd] at (9.15,-4) {CHANNELS};
-  \node[bd, text width=2.7cm] at (9.15,-4.45) {
+  \node[hd] at (9.12,-4.2) {Channels};
+  \node[bd, text width=2.68cm] at (9.12,-4.65) {
     $\bullet$~Mobile web browser\\
     $\bullet$~Partner lost-property desks\\
-    $\bullet$~Search visibility at the moment of loss\\
-    $\bullet$~Physical signage where losses occur};
+    $\bullet$~Signage where losses occur\\
+    $\bullet$~Search engines, at the moment of loss\\
+    $\bullet$~Social-media lost-and-found groups};
 
   % --- customer segments ---
-  \node[hd] at (12.20,0) {CUSTOMER SEGMENTS};
-  \node[bd, text width=2.7cm] at (12.20,-0.45) {
-    \textit{Users (free)}\\
-    $\bullet$~People who lost an object\\
-    $\bullet$~People who found one\\[3pt]
-    \textit{Paying institutions}\\
-    $\bullet$~Universities and campuses\\
-    $\bullet$~Transport operators\\
-    $\bullet$~Airports and stations\\
-    $\bullet$~Municipalities\\
-    $\bullet$~Commercial centres};
+  \node[hd] at (12.16,0) {Customer segments};
+  \node[bd, text width=2.68cm] at (12.16,-0.45) {
+    \textit{Paying}\\
+    $\bullet$~People who lost an object and received a suggestion\\[3pt]
+    \textit{Free, and essential}\\
+    $\bullet$~People who found an object\\
+    $\bullet$~Institutions holding found objects: universities, transport,
+      airports, municipalities\\[3pt]
+    \textit{Launch segment}\\
+    $\bullet$~Students and residents of Bouira};
 
   % --- cost structure ---
-  \node[hd] at (0,-8) {COST STRUCTURE};
-  \node[bd, text width=7.25cm] at (0,-8.45) {
-    $\bullet$~\textbf{Personnel dominates} --- over 90\,\% of annual cost from year~2\\
-    $\bullet$~Infrastructure stays below 5\,\% of cost in every year of the model\\
-    $\bullet$~Marketing, legal and administrative\\
-    $\bullet$~\textbf{No per-request AI cost} --- inference runs locally on open models\\
-    $\bullet$~No software licences --- the stack is entirely open-source};
+  \node[hd] at (0,-8.4) {Cost structure};
+  \node[bd, text width=7.25cm] at (0,-8.85) {
+    $\bullet$~\textbf{Pilot: about 4\,900 DZD a month} --- server, IPv4 and
+      backups 1\,956; IFU and CASNOS 2\,833; domain 125\\
+    $\bullet$~Per sale: Chargily fee, 1.5\,\% with a 15 DZD minimum (3.6\,\%
+      of an average purchase)\\
+    $\bullet$~No AI provider, no licences: both models run on the server's CPU\\
+    $\bullet$~Company with two developers: about 131\,500 DZD a month, 86\,\%
+      of it salaries and contributions};
 
   % --- revenue streams ---
-  \node[hd] at (7.62,-8) {REVENUE STREAMS};
-  \node[bd, text width=7.25cm] at (7.62,-8.45) {
-    $\bullet$~Institutional subscriptions, 60\,000--80\,000~DZD per year\\
-    $\bullet$~Sponsorship and partnerships, from year~3\\
-    $\bullet$~Anonymised recovery analytics for operators and municipalities\\
-    $\bullet$~\textbf{Free for citizens, permanently} --- a structural constraint,
-      not a promotion: charging either side suppresses the reports the engine needs};
+  \node[hd] at (7.6,-8.4) {Revenue streams};
+  \node[bd, text width=7.25cm] at (7.6,-8.85) {
+    $\bullet$~\textbf{Unlocking match suggestions}, sold as credit packs:
+      200 DZD (1), 500 DZD (3), 1\,200 DZD (10)\\
+    $\bullet$~One free unlock per account; reporting, search and claims always
+      free\\
+    $\bullet$~About 10 DZD per report in the base scenario; pilot costs
+      covered from about 500 reports a month\\
+    $\bullet$~\textit{Option, not in the plan:} paid accounts for institutions};
 
 \end{tikzpicture}
 \caption{Business Model Canvas}
@@ -128,24 +135,31 @@ those chapters agree with each other.
 Three features of this model deserve to be stated rather than left to be
 inferred from the grid.
 
-\paragraph{The paying customer is not the user.} Citizens never pay, on either
-side. This is the only configuration in which the engine receives the data it
-needs: a fee on the loss report suppresses demand from people who have just lost
-something, and a fee on the found report suppresses the scarcer side of the
-market outright. The institutions that pay do so for a different good --- a
-searchable register and reduced counter load --- which happens to be produced by
-the same pool.
+\paragraph{Only the result is paid for.} Nobody pays to report, to search, to
+browse or to claim, and finders --- the scarcer side of the market --- never pay
+at all. The one thing sold is the engine's work: the identity of a report it
+believes describes the same object, offered to the person who lost something,
+at the moment their motivation is highest and only once a result exists. The
+first unlock is free, so every user sees the product work before being asked
+for money, and a locked suggestion still shows its confidence, so the buyer
+knows what they are paying for. The paywall sells convenience, not access: every
+report remains publicly browsable and searchable, so a person willing to search
+by hand can still find their object without paying, and a suggestion confirmed
+by both parties is never locked.
 
 \paragraph{The asset is the pool, not the software.} The matching engine could
 be rebuilt by a competent team; the accumulated corpus of reports, and the
-labelled record of which suggestions were confirmed and which rejected, could
-not. That corpus is what improves the ranking over time, and it compounds:
-more reports produce more matches, more matches produce more feedback, and more
-feedback produces better matching. It is also why reaching density first
-matters so much --- being second in this market is close to being absent.
+labelled record of which suggestions owners confirmed and which they rejected,
+could not. That corpus is what improves the ranking over time, and it compounds:
+more reports produce more suggestions, more suggestions produce more verdicts,
+and more verdicts produce better matching. It is also why the found side must be
+filled first, through institutions, and why reporting must stay free.
 
-\paragraph{The cost structure is what permits the price structure.} A platform
-paying an external provider per embedding could not give the service away.
-Running open models locally on CPU turns the marginal cost of one more report
-into a fraction of a cent of storage, and that is what makes a permanently free
-consumer service defensible in front of a jury rather than aspirational.
+\paragraph{Low costs make a low price possible, but not a large income.} Because
+both models run on the CPU of a 4\,GB server, an unlock can be priced like a
+coffee and still leave 96\,\% of the average purchase after fees. The same
+arithmetic sets the limit of the model: at about ten dinars per report, the
+paid tier pays for the platform early but pays salaries only at a national
+volume. The canvas therefore keeps institutional accounts as an option: the
+institutions already receive value from the pool, and charging them would add a
+second stream without taxing the people the pool depends on.

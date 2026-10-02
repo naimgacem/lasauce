@@ -1,6 +1,6 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-\markboth{ABSTRACT}{ABSTRACT}
+\markboth{Abstract}{Abstract}
 
 Every day, personal belongings --- phones, wallets, identity papers, keys, bags
 --- are lost in public spaces, and the mechanisms available to reunite them
@@ -35,7 +35,7 @@ machine-generated reasons explaining why the suggestion was made.
 The system is implemented as a modular monolith: a FastAPI backend exposing a
 versioned REST API, an \code{arq} background worker that owns all model
 inference so that reporting an item never waits on a neural network, a
-PostgreSQL~16 database with \code{pgvector}, Redis as queue and cache, and a
+PostgreSQL~16 database with \code{pgvector}, Redis as job queue, and a
 Next.js frontend serving three fully localised interfaces (English, French and
 right-to-left Arabic). Contact details are never exposed by a match alone: a
 separate claim workflow requires the claimant to answer verification questions
@@ -44,6 +44,20 @@ approves. The prototype covers the complete cycle --- registration,
 reporting, embedding, matching, notification, claim, and recovery --- and the
 labelled outcome of every confirmed or rejected suggestion is persisted as
 training signal for a future calibrated ranking model.
+
+Around this engine, the prototype provides a paid matching tier --- reporting,
+searching and claiming stay free, while unlocking a suggestion beyond the first
+costs one credit, sold in packs of 200 to 1\,200 dinars through the Chargily
+payment gateway --- and an administration console whose every action is written
+to an audit log in the same transaction. Measured on its own data, the
+multilingual encoder retrieved the right object first in all 72 queries of a
+controlled cross-language experiment, against 23 for an English-only model; the
+measured distribution of image similarities, with a median of 0.58 between
+unrelated photographs, set the calibration of the visual channel; and seven of
+the eight suggestions judged by their owners were correct. The whole platform
+runs on a CPU in about 1.2\,GB of memory, which allows a public pilot to operate
+for about 4\,900 dinars a month, the levies of the auto-entrepreneur status
+included.
 
 \vspace{0.8cm}
 \noindent\textbf{Keywords:} lost and found, semantic search, sentence

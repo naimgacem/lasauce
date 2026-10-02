@@ -1,7 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  Visual style — reproduces the department's thesis look from the reference
-%  PDF: "N Chapter" above the chapter title, and a running header reading
-%  "CHAPTER N. TITLE".
+%  Visual style: a centred "Chapter N" label above the chapter title, and a
+%  running header reading "Chapter N. Title".
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % --- Palette -------------------------------------------------------------
@@ -15,18 +14,46 @@
 \definecolor{todobg}{RGB}{253,245,244}
 
 % --- Chapter headings ----------------------------------------------------
+%  Numbered: "Chapter N" on its own line, the title under it, a rule below.
+%  Unnumbered (Abstract, Contents, Conclusion, Bibliography...): the same
+%  title and rule without the label, so every chapter opening lines up.
 \titleformat{\chapter}[display]
-  {\normalfont\filright}
-  {\hfill\Huge\bfseries\color{uamobblue}\thechapter\;\normalfont\Large Chapter}
-  {6pt}
-  {\hfill\Huge\bfseries}
-  [\vspace{4pt}{\color{rulegray}\titlerule[0.8pt]}]
-\titlespacing*{\chapter}{0pt}{10pt}{34pt}
+  {\normalfont\centering}
+  {\Large\scshape\color{uamobblue}\chaptertitlename~\thechapter}
+  {8pt}
+  {\huge\bfseries}
+  [\vspace{6pt}{\color{rulegray}\titlerule[0.8pt]}]
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\centering}
+  {}
+  {0pt}
+  {\huge\bfseries}
+  [\vspace{6pt}{\color{rulegray}\titlerule[0.8pt]}]
+\titlespacing*{\chapter}{0pt}{10pt}{30pt}
 
 \titleformat{\section}
   {\normalfont\large\bfseries\color{uamobblue}}{\thesection}{0.8em}{}
 \titleformat{\subsection}
   {\normalfont\normalsize\bfseries}{\thesubsection}{0.8em}{}
+
+% --- Table columns -------------------------------------------------------
+%  Text in narrow table columns is set ragged-right: justified, it opens wide
+%  gaps between words and hyphenates short labels. L{width} is the fixed-width
+%  version; every tabularx X column gets the same treatment.
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+%  For cells that open with a list: treat the cell like the top of a minipage,
+%  so the first item sits on the same line as the row's label instead of one
+%  line below it.
+\makeatletter
+\newcommand{\cellstartslist}{\@minipagetrue}
+\makeatother
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% --- Line breaking -------------------------------------------------------
+%  Long identifiers set in typewriter (model names, column names) cannot be
+%  hyphenated; a little emergency stretch lets TeX break before them instead of
+%  pushing them into the margin.
+\setlength{\emergencystretch}{2em}
 
 % --- Running headers -----------------------------------------------------
 %  fancyhdr warns if the header box is shorter than its content; 15pt clears

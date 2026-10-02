@@ -21,8 +21,7 @@ styling lives in `preamble/`.
    ```
 2. Overleaf → **New Project → Upload Project** → drop `thesis.zip`.
 3. **Menu → Compiler → pdfLaTeX** (see *Engine* below — this matters).
-4. Compile. It should build on the first try, with grey placeholder boxes where
-   screenshots are still missing.
+4. Compile. It should build on the first try.
 
 If you have Overleaf premium, use its Git integration instead and keep this
 folder as the source of truth.
@@ -31,13 +30,22 @@ folder as the source of truth.
 
 ## Building locally
 
-Nothing is installed on this machine, so local builds need MiKTeX or TeX Live
-first. Once installed:
+Any TeX Live distribution works. A minimal one is
+[TinyTeX](https://github.com/rstudio/tinytex-releases) (about 300 MB once the
+packages below are added); install it on a drive with room to spare.
 
 ```bash
+tlmgr install babel-english babel-french hyphen-french csquotes lm microtype \
+  setspace float booktabs multirow enumitem caption titlesec fancyhdr listings \
+  pgf pgfgantt pgfplots cite latexmk
 latexmk -pdf main.tex     # latexmkrc is already configured
 latexmk -c                # clean aux files
 ```
+
+Without `latexmk`, run `pdflatex main`, `bibtex main`, then `pdflatex main`
+twice. The build should finish with no overfull boxes and no undefined
+references; check the log for `Overfull` after any edit to a table or
+diagram.
 
 ---
 
@@ -63,7 +71,7 @@ thesis/
 ├── latexmkrc                   ← build config (Overleaf reads it)
 ├── preamble/
 │   ├── packages.tex            ← package loads
-│   ├── style.tex               ← chapter design, headers, listing/TikZ styles
+│   ├── style.tex               ← chapter headings, headers, table columns, TikZ styles
 │   └── macros.tex              ← TITLE, YOUR NAME, SUPERVISOR live here
 ├── frontmatter/
 │   ├── titlepage.tex           ← UAMOB title page
@@ -75,13 +83,13 @@ thesis/
 │   ├── 01-project-presentation.tex    ← written (Gantt drawn; team needs your names)
 │   ├── 02-innovative-aspects.tex      ← written
 │   ├── 03-market-analysis.tex         ← written, with cited national figures
-│   ├── 04-production-organization.tex ← written, with costed procurement
-│   ├── 05-experimental-prototype.tex  ← written in full from the codebase
-│   ├── 06-financial-plan.tex          ← written, projection on stated assumptions
+│   ├── 04-production-organization.tex ← written, procurement priced in Ch. 6
+│   ├── 05-experimental-prototype.tex  ← written from the code, with measured evaluation
+│   ├── 06-financial-plan.tex          ← real monthly costs, cited; revenue from the real packs
 │   ├── 07-business-model.tex          ← written, canvas drawn in TikZ
 │   └── conclusion.tex                 ← written
-├── bibliography/references.bib        ← 28 entries, all cited
-└── figures/                    ← only screenshots + logos; see figures/README.md
+├── bibliography/references.bib        ← 48 entries, all cited
+└── figures/                    ← 12 screenshots (+ optional logos); see figures/README.md
 ```
 
 ---
@@ -91,38 +99,42 @@ thesis/
 1. **`preamble/macros.tex`** — `\thesistitle`, `\thesissupervisor`,
    `\thesisstudentone` (and `two`/`three` if you are a team). These feed the
    title page. They currently say `TODO`.
-2. **`figures/`** — capture the nine screenshots listed in `figures/README.md`.
-   Each replaces its grey placeholder automatically, no LaTeX edit needed.
-   Every *diagram* is drawn in LaTeX and needs no file.
-3. **The red `TO WRITE` boxes** — what remains is only what genuinely can't be
-   derived: your team's names, your real supplier quotes, and a handful of
-   judgement calls flagged for you to confirm. Set `\showtodosfalse` in
-   `main.tex` to hide them all before the final print.
+2. **The red `TO WRITE` boxes** — four remain, all things only you can write:
+   the team members (Ch. 1), the real dates of the schedule (Ch. 1), the
+   acknowledgments and the dedication. Set `\showtodosfalse` in `main.tex` to
+   hide them all before the final print.
+3. **`figures/`** — all twelve screenshots are in place. Check that none shows
+   a real person's contact details before printing.
 
 ---
 
 ## Figures and numbers: what is sourced, what is assumed
 
+**Measured** — every number in Chapter 5's evaluation (corpus, cross-lingual
+experiment, CLIP similarity distribution, matching outcomes, latencies, memory)
+was measured on the running prototype in late September 2026.
+
 **Cited** — Chapter 3's market figures come from ARPCE, DataReportal, MESRS and
-Macrotrends; Chapter 6's infrastructure prices from published Hetzner and
-Railway rates; the exchange rate from a dated source. All are in
-`references.bib` with the specific figure recorded in the `note` field.
+Macrotrends. Chapter 6's costs are real public prices: Oracle's free tier,
+Hetzner's June 2026 price list, Chargily's fee plans, the .dz domain, Brevo,
+the auto-entrepreneur levies (IFU, CASNOS), company formation, VAT, junior
+salaries, and the official and parallel euro rates of 24 September 2026. Each
+source is in `references.bib` with the figure used recorded in its `note`.
 
-**Modelled** — Chapter 6's revenue projections, headcount and subscription price
-are business hypotheses, and Section 6.1 says so explicitly and lists them in a
-table before using them. Replace the salary basis and the subscription price
-with real quotes before the defence; everything else recomputes from those two.
+**Assumed** — only three quantities in Chapter 6 are hypotheses, and the chapter
+varies each across three scenarios: the share of reports with more suggestions
+than the free unlock covers, the share of those owners who buy, and the monthly
+report volume. The pack mix (50 / 40 / 10 %) is also an assumption.
 
-**Check before printing** — telecom and population statistics are revised
-quarterly and cloud prices change. Re-verify the cited figures near your defence
-date.
+**Check before printing** — prices and exchange rates move. Re-verify the cited
+figures near your defence date.
 
-### Diagrams (11, all drawn in LaTeX)
+### Diagrams and charts (12, all drawn in LaTeX)
 
 Gantt schedule (Ch. 1) · market funnel and positioning matrix (Ch. 3) · service
-process (Ch. 4) · architecture, matching pipeline, ER diagram, use-case diagram,
-sequence diagram (Ch. 5) · break-even chart (Ch. 6) · Business Model Canvas
-(Ch. 7).
+process (Ch. 4) · architecture, ER diagram, matching pipeline, CLIP similarity
+histogram, sequence diagram, use-case diagram (Ch. 5) · break-even chart
+(Ch. 6) · Business Model Canvas (Ch. 7).
 
 To change one, edit its `tikzpicture` in the chapter file. They use `pgfgantt`
 and `pgfplots`, both standard on Overleaf.
@@ -135,17 +147,18 @@ Written from the actual implementation, not from the design docs — the two hav
 diverged, and the chapter follows the code:
 
 - Full front-end and back-end technology tables
-- Two TikZ diagrams (deployed architecture; matching pipeline) — vector-drawn,
-  no image files needed
-- The multilingual text encoder and why an English-only model fails here
+- Architecture, ER, pipeline, sequence and use-case diagrams
+- The multilingual text encoder and the measured reason for it (72/72
+  cross-language queries against 23/72 for an English-only model)
 - Candidate retrieval, including the image-only second route
-- **The CLIP calibration finding** — unrelated photos scoring ~0.7 raw cosine,
-  and the floor-rescaling that fixes it, with references
+- **The CLIP calibration finding** — measured distribution of raw similarities
+  (median 0.578 for unrelated pairs) and the floor-rescaling that fixes it
 - Fusion with weight redistribution, lexical blending, confidence boosts,
-  distinctiveness margin, thresholds
-- Full parameter table with the real configured values
-- UI walkthrough (9 screenshot slots), the claim workflow, RTL support
-- Testing, Docker packaging, deployment
+  distinctiveness margin, thresholds, and the full parameter table
+- UI walkthrough with 12 screenshots, including the paid matching tier and the
+  administration console
+- Experimental evaluation on the prototype's own data, with its limits
+- Testing, Docker packaging, the production deployment kit
 
 Anything you change in the code that contradicts this chapter — a threshold, a
 model name, a weight — needs updating here too. The parameter table is the
@@ -155,7 +168,5 @@ place it will bite you first.
 
 ## Bibliography note
 
-`plain` style only prints entries that are actually `\cite`d. `references.bib`
-contains more entries than are currently cited (tool docs, FAISS); uncited ones
-will simply not appear. The market/statistics sources for Chapter 3 are not
-there yet — a comment at the bottom of the `.bib` lists what to add.
+`plain` style only prints entries that are actually `\cite`d; an entry added
+and never cited silently does not appear. All 48 current entries are cited.

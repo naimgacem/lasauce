@@ -1,6 +1,6 @@
-\chapter*{CONCLUSION}
+\chapter*{Conclusion}
 \addcontentsline{toc}{chapter}{Conclusion}
-\markboth{CONCLUSION}{CONCLUSION}
+\markboth{Conclusion}{Conclusion}
 
 This thesis set out from an ordinary observation: when an object is lost, the
 information needed to recover it usually already exists, split between two
@@ -13,53 +13,60 @@ against a discovery report.
 \projectname{} assigns that responsibility to software. We designed and built a
 platform on which a single guided report enters a national pool that is searched
 automatically and continuously, in both directions. The comparison is multimodal
-and multilingual: descriptions are encoded by a multilingual sentence model, so
-that a report written in Arabic is comparable with one written in French or
-English, and photographs are encoded by a vision-language model and searched as
-an independent channel, so that a clear picture attached to three words of text
-still reaches the right owner. Both vector spaces live inside PostgreSQL through
-the \code{pgvector} extension, which allows approximate nearest-neighbour
-retrieval and relational filtering to be expressed as one query rather than
-stitched together in application code.
+and multilingual: descriptions are encoded by a multilingual sentence model, and
+photographs by a vision-language model searched as an independent channel. Both
+vector spaces live inside PostgreSQL through the \code{pgvector} extension, so
+that nearest-neighbour retrieval and relational filtering are one query. Around
+the engine, the prototype provides a trilingual interface with right-to-left
+support, a claim workflow that protects contact details, a paid matching tier
+built on an auditable credit ledger, and an administration console whose every
+action is recorded.
 
-Building the engine taught more than designing it did. The instructive failure
-was silent: raw similarities returned by the vision model are not calibrated
-probabilities, and two entirely unrelated photographs still score around $0.7$
---- enough, when fed directly into a weighted average, to push unrelated objects
-in front of users while every unit test continued to pass. Correcting it
-required rescaling the similarity against a measured floor, redistributing
-fusion weights over the modalities actually present so that a missing photograph
-is never read as a dissimilar one, and blending a lexical term so that
-\dq{iPhone~14} and \dq{iPhone~13} stop being interchangeable. Each of those
-corrections came from examining outputs rather than from reading documentation.
+The prototype was measured rather than only described. In a controlled
+experiment, the multilingual encoder matched the right object first in all 72
+cross-language queries, where an English-only model failed almost every query
+involving Arabic. On the platform's own photographs, the raw similarity of two
+unrelated images was found to have a median of $0.58$ --- enough, fed directly
+into a weighted average, to put unrelated objects in front of users while every
+unit test passed --- and the calibration of the image channel was set against
+that measured distribution. Of the eight suggestions judged by their owners,
+seven were correct; three of the confirmed ones were carried by their
+photographs despite weak textual agreement, which is the case the independent
+image route was built for. The whole platform runs in about 1.2\,GB of memory,
+without a GPU, and answers its users in tens of milliseconds.
 
-The other conclusion is that accuracy alone would not have produced a usable
-product. A high-confidence match is a hypothesis about two objects, not an
-authorisation to disclose a person's telephone number, and the platform
-therefore separates the two completely: recovery passes through verification
-questions set by the reporter, answered by the claimant, and judged by the
-reporter, with contact details exchanged only after approval. Users are shown
-not just a percentage but the reasons behind it, translated into their own
-language, so that they can apply judgement the system does not have. These are
-product decisions rather than machine-learning ones, and they determine whether
-anyone is willing to report a found object at all.
+Those measurements also gave the business plan its numbers. The pilot costs
+about 4\,900 dinars a month, more than half of it the levies of the legal status
+rather than the servers. Selling match unlocks at 200 to 1\,200 dinars covers
+those costs from a few hundred reports a month, but paying a team requires a
+national volume. The project's remaining risk is therefore commercial ---
+volume and conversion --- and not technical, and both are what a pilot will
+measure.
 
-Developed within the framework of the university, this project is presented both
-as an engineering result and as a viable startup, whose market, organisation and
-financial structure are analysed in the preceding chapters.
+Accuracy alone would not have produced a usable product. A high-confidence match
+is a hypothesis about two objects, not an authorisation to disclose a person's
+telephone number, and the platform separates the two completely: recovery
+passes through verification questions set by the reporter, answered by the
+claimant, and judged by the reporter. The one suggestion owners rejected in our
+data had a perfect similarity score, which is the clearest argument for keeping
+that human step.
 
 \section*{Future work}
 \addcontentsline{toc}{section}{Future work}
 
-Several directions remain open, and the system was built to accommodate them
-without structural change:
+The system was built to accommodate the following directions without structural
+change; they are the same as the future vision of Chapter~\ref{ch:innovation}.
 
 \begin{itemize}[leftmargin=1.4em,itemsep=4pt]
-  \item \textbf{Learned scoring.} Every confirmed or rejected suggestion is
-        already persisted as a labelled example alongside the scores that
-        produced it. That dataset is exactly what is needed to replace the
-        hand-set weights and boosts with a calibrated model, learned globally
-        and per category --- photographs should dominate for bags and luggage,
+  \item \textbf{A field pilot in Bouira.} Deploying with the university and a
+        first partner institution, to measure what no demonstration corpus can:
+        recovery rates, the share of owners who unlock a suggestion, and the
+        share who buy.
+
+  \item \textbf{Learned scoring.} Every owner verdict is stored next to the
+        scores that produced the suggestion. That dataset is what is needed to
+        replace the hand-set weights and boosts with a calibrated model, learned
+        globally and per category --- photographs should dominate for bags,
         text for documents and keys.
 
   \item \textbf{Cross-modal matching.} Comparing the words of one report against
@@ -67,19 +74,14 @@ without structural change:
         supports and which would rescue pairs where one side has only text and
         the other only an image.
 
-  \item \textbf{Field validation.} Deploying with a pilot institution and
-        measuring real recovery rates, which is the only measurement that
-        ultimately matters and cannot be obtained from a demonstration corpus.
+  \item \textbf{Complete localisation.} Generating notifications as codes
+        translated on the reader's side, as match explanations already are, and
+        adding the eleven wilayas created in November 2025.
 
-  \item \textbf{Institutional integration.} Allowing partner lost-property desks
-        to publish their registers directly into the shared pool.
+  \item \textbf{Institutional integration.} Letting partner lost-property desks
+        publish their registers directly into the shared pool, possibly as the
+        paid institutional accounts left open in Chapter~\ref{ch:business}.
 
   \item \textbf{Native mobile application}, enabling a report to be filed from
         the camera at the moment of discovery.
-
-  \item \textbf{Trust and safety at scale.} Reputation signals and moderation
-        tooling for disputed claims, which become necessary as volume grows.
 \end{itemize}
-
-\towrite{Adjust this list so it matches the future vision in
-Chapter~\ref{ch:innovation} --- the jury will notice if the two disagree.}

@@ -51,7 +51,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% back matter
 \backmatter
 \bibliographystyle{plain}
-\bibliography{bibliography/references}
+%  The contents entry must be written before the bibliography starts, or it
+%  points at the bibliography's last page instead of its first.
+\clearpage\phantomsection
 \addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{bibliography/references}
 
 \end{document}

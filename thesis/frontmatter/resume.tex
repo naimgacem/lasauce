@@ -1,7 +1,7 @@
 \begin{otherlanguage}{french}
 \chapter*{Résumé}
 \addcontentsline{toc}{chapter}{Résumé}
-\markboth{RÉSUMÉ}{RÉSUMÉ}
+\markboth{Résumé}{Résumé}
 
 Chaque jour, des effets personnels --- téléphones, portefeuilles, papiers
 d'identité, clés, sacs --- sont égarés dans l'espace public, et les moyens
@@ -40,7 +40,7 @@ Le système est réalisé sous la forme d'un monolithe modulaire: une API REST
 versionnée développée avec FastAPI, un worker d'arrière-plan \code{arq} qui
 concentre l'ensemble des inférences afin que la déclaration d'un objet
 n'attende jamais un réseau de neurones, une base PostgreSQL~16 dotée de
-\code{pgvector}, Redis comme file d'attente et cache, et une interface Next.js
+\code{pgvector}, Redis comme file d'attente, et une interface Next.js
 entièrement localisée en trois langues (anglais, français et arabe en écriture
 de droite à gauche). Les coordonnées personnelles ne sont jamais divulguées par
 un simple appariement: une procédure de réclamation distincte impose au
@@ -50,6 +50,21 @@ prototype couvre le cycle complet --- inscription, déclaration, encodage,
 appariement, notification, réclamation et restitution --- et le résultat
 étiqueté de chaque suggestion confirmée ou rejetée est conservé comme signal
 d'apprentissage en vue d'un futur modèle de classement calibré.
+
+Autour de ce moteur, le prototype propose un appariement payant --- la
+déclaration, la recherche et la réclamation restent gratuites, tandis que le
+déblocage d'une suggestion au-delà de la première coûte un crédit, vendu par
+lots de 200 à 1\,200 dinars via la passerelle de paiement Chargily --- ainsi
+qu'une console d'administration dont chaque action est consignée dans un journal
+d'audit au sein de la même transaction. Mesuré sur ses propres données,
+l'encodeur multilingue a retrouvé le bon objet en première position pour les 72
+requêtes d'une expérience interlangue contrôlée, contre 23 pour un modèle
+uniquement anglophone~; la distribution mesurée des similarités visuelles, de
+médiane 0{,}58 entre photographies sans rapport, a fixé le calibrage du canal
+visuel~; et sept des huit suggestions jugées par leurs propriétaires étaient
+correctes. L'ensemble de la plateforme fonctionne sur processeur avec environ
+1{,}2\,Go de mémoire, ce qui permet d'exploiter un pilote public pour environ
+4\,900 dinars par mois, charges du statut d'auto-entrepreneur comprises.
 
 \vspace{0.8cm}
 \noindent\textbf{Mots-clés:} objets perdus et trouvés, recherche sémantique,

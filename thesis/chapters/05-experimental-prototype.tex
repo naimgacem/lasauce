@@ -1,15 +1,22 @@
-\chapter{EXPERIMENTAL PROTOTYPE}
+\chapter{Experimental Prototype}
 \label{ch:prototype}
 
 \section{Introduction}
 
 The previous chapters described what \projectname{} is meant to do and why the
-market has room for it. This chapter describes what was actually built. It
-covers the environment and the technologies used, the architecture of the
-implemented system, the internals of the matching engine --- which is the part
-of the platform that carries the innovation claimed in
-Chapter~\ref{ch:innovation} --- the user interfaces, and the way the whole thing
-is tested and packaged for deployment.
+market has room for it. This chapter describes what was actually built, and then
+measures it. It covers the environment and technologies used, the architecture
+of the implemented system, the internals of the matching engine --- the part of
+the platform that carries the innovation claimed in
+Chapter~\ref{ch:innovation} --- the user interfaces, including the paid matching
+tier and the administration console, the experimental evaluation of the
+prototype on its own data, and the way the system is packaged for deployment.
+
+Every figure reported in this chapter was measured on the running prototype:
+on its database, its logs and its containers, or by scripts run against its two
+models. Where a number comes from a small or hand-built sample, the sample is
+described next to the number, so that the reader can judge how far it
+generalises.
 
 Two decisions shape everything that follows and are worth stating up front.
 First, \textbf{no model inference ever happens inside an HTTP request}: encoding
@@ -31,25 +38,26 @@ this platform will reach in its first years, that trade is not worth making.
 
 \subsection{Hardware environment and editors}
 
-Development was carried out on a personal workstation running Windows~11, with
-the entire backend stack executing inside Linux containers through Docker
-Desktop. Model inference runs on CPU: both encoders used by the platform are
-small enough that a GPU is a convenience rather than a requirement, and building
-for CPU keeps the deployment target realistic for the low-cost hosting described
-in Chapter~\ref{ch:finance}. Source editing was done in Visual Studio Code, with
-the Python and TypeScript language servers providing type checking against the
-same configurations used in continuous integration.
+Development was carried out on a laptop workstation (Intel Core i7-8850H, six
+cores at 2.6\,GHz, 16\,GB of memory) running Windows~11, with the entire stack
+executing inside Linux containers through Docker Desktop. Model inference runs
+on CPU: both encoders used by the platform are small enough that a GPU is a
+convenience rather than a requirement, and building for CPU keeps the deployment
+target realistic for the low-cost hosting described in
+Chapter~\ref{ch:finance}. All latencies reported in
+Section~\ref{sec:evaluation} were measured on this machine. Source editing was
+done in Visual Studio Code, with the Python and TypeScript language servers
+providing type checking.
 
 \subsection{Collaborative tools and version control}
 
 The project is a single Git repository containing the backend, the frontend, the
-infrastructure definitions and the design documentation, so that a change
-touching an API contract and its client can be reviewed as one unit. GitHub
-hosts the remote. The API documentation is not written by hand: FastAPI derives
-an OpenAPI schema from the Pydantic models, and an interactive Swagger interface
-is served alongside the running API, which means the contract shown to the
-frontend developer is generated from the code that enforces it and cannot drift
-away from it.
+deployment kit and the design documentation, so that a change touching an API
+contract and its client can be reviewed as one unit. GitHub hosts the remote. The
+API documentation is not written by hand: FastAPI derives an OpenAPI schema from
+the Pydantic models, and an interactive Swagger interface is served alongside the
+running API, which means the contract shown to the frontend developer is
+generated from the code that enforces it and cannot drift away from it.
 
 \subsection{Client-side technologies (front-end)}
 
@@ -67,15 +75,15 @@ role each part plays.
 \textbf{Concern} & \textbf{Technology} & \textbf{Role in the prototype} \\
 \midrule
 Framework    & Next.js 15 (App Router) & Server and client rendering, file-system routing, locale segment \code{/[locale]} \\
-UI library   & React 19 + TypeScript   & Component model with end-to-end static typing against the API types \\
+UI library   & React 19 + TypeScript   & Component model with static typing against the API types \\
 Styling      & Tailwind CSS 3.4        & Utility-first styling; logical properties give right-to-left support at no extra cost \\
-Components   & shadcn/ui on Radix UI   & Accessible primitives (dialog, select, dropdown, switch, avatar) owned in-repo rather than imported as a black box \\
+Components   & shadcn/ui on Radix UI   & Accessible primitives (dialog, select, dropdown, switch) owned in-repo rather than imported as a black box \\
 Server state & TanStack Query 5        & Caching, revalidation and optimistic updates for every API read \\
-Client state & Zustand                 & Session and UI state that is not server-owned \\
-Forms        & React Hook Form + Zod   & Declarative validation; the Zod schema is the single source of truth for the report form \\
+Client state & Zustand                 & Session and interface state that is not server-owned \\
+Forms        & React Hook Form + Zod   & Declarative validation; the Zod schema is the single source of truth for each form \\
 i18n         & next-intl               & Message catalogues for English, French and Arabic, with locale-prefixed routes \\
 Theming      & next-themes             & Light and dark presentation \\
-Motion       & Framer Motion           & Transitions on the report flow and match reveal \\
+Motion       & Framer Motion           & Transitions in the report flow and the match reveal \\
 Feedback     & Sonner                  & Toast notifications \\
 \bottomrule
 \end{tabularx}
@@ -100,13 +108,15 @@ Ten guidance~\cite{owasp2021}.
 \midrule
 API framework & FastAPI          & Asynchronous HTTP layer, dependency injection, generated OpenAPI schema \\
 Validation    & Pydantic v2      & Request and response models; settings loaded and type-checked from the environment \\
-ORM           & SQLAlchemy 2 (async) + asyncpg & Declarative models with typed mappings, executed on an async driver \\
-Migrations    & Alembic          & Seven versioned migrations, including the \code{pgvector} column and index definitions \\
+ORM           & SQLAlchemy 2 + asyncpg & Declarative models with typed mappings, executed on an async driver \\
+Migrations    & Alembic          & Nine versioned migrations, including the vector columns and their indexes \\
 Database      & PostgreSQL 16 + \code{pgvector} & Relational data, full-text search and vector similarity in one engine \\
-Queue         & Redis 7 + \code{arq} & Job queue for embedding and matching; \code{arq} is asyncio-native, matching the API's concurrency model \\
+Queue         & Redis 7 + \code{arq} & Job queue for embedding and matching; asyncio-native, like the API \\
 Auth          & PyJWT + Argon2   & Short-lived access tokens, rotating refresh tokens, memory-hard password hashing \\
 Images        & Pillow           & Decoding, validation and re-encoding of uploads to WebP \\
-Storage       & \code{StorageBackend} abstraction & Local filesystem in development, S3-compatible object storage in production, behind one interface \\
+Storage       & \code{StorageBackend} & Local media volume today, behind an interface that admits an object-storage backend without changing callers \\
+Payments      & \code{PaymentProvider} & Chargily Pay v2~\cite{chargily2026} in production, a simulated provider in development \\
+Reverse proxy & Caddy 2          & Production only: automatic HTTPS certificates and routing to the frontend and the API \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -116,45 +126,46 @@ Storage       & \code{StorageBackend} abstraction & Local filesystem in developm
 
 Two pre-trained encoders are used, both loaded through the
 \code{sentence-transformers} library~\cite{sentencetransformers} so that a
-single API (\code{.encode()}) covers text and images alike, and both pinned to
+single call (\code{.encode()}) covers text and images alike, and both run on
 CPU builds of PyTorch.
 
-\paragraph{Text --- \code{paraphrase-multilingual-MiniLM-L12-v2} (384 dimensions).}
-This is a Sentence-BERT model~\cite{reimers2019sbert} --- a
-BERT~\cite{devlin2019bert} transformer~\cite{vaswani2017attention} fine-tuned
-so that whole sentences, rather than individual tokens, occupy a space where
-cosine distance is meaningful --- made multilingual by
-knowledge distillation from an English teacher onto a multilingual student, so
-that translations of the same sentence are mapped to nearby
-vectors~\cite{reimers2020multilingual}.
-The choice of a \emph{multilingual} sentence encoder is not incidental; it is
-forced by the market described in Chapter~\ref{ch:market}. Reports on this
-platform arrive in Arabic, French and English, and frequently mix two of them
-inside a single description. The English-only encoder that is usually quoted for
-this kind of task, \code{all-MiniLM-L6-v2}, places \dq{Téléphone Samsung égaré}
-and \dq{Samsung phone lost} almost as far apart as two unrelated sentences ---
-which is precisely the match the product exists to find. The multilingual model
-covers more than fifty languages and happens to produce vectors of the same 384
-dimensions, so it substitutes for the English model without any change to the
-database schema.
+\paragraph{Text: multilingual MiniLM (384 dimensions).} The model,
+published as \code{paraphrase-\allowbreak multilingual-\allowbreak
+MiniLM-\allowbreak L12-\allowbreak v2}, is a Sentence-BERT
+model~\cite{reimers2019sbert} --- a BERT~\cite{devlin2019bert}
+transformer~\cite{vaswani2017attention} fine-tuned so that whole sentences,
+rather than individual tokens, occupy a space where cosine distance is
+meaningful --- made multilingual by knowledge distillation from an English
+teacher onto a multilingual student, so that translations of the same sentence
+are mapped to nearby vectors~\cite{reimers2020multilingual}.
 
-\paragraph{Images --- CLIP \code{ViT-B/32} (512 dimensions).}
+The choice of a \emph{multilingual} encoder is forced by the market described in
+Chapter~\ref{ch:market}: reports arrive in Arabic, French and English, and
+frequently mix two of them. The English-only encoder usually quoted for this
+task, \code{all-MiniLM-L6-v2}, was measured against the production model on the
+same reports (Section~\ref{sec:eval-crosslingual}). On a French and an English
+description of the same black Samsung phone, the English-only model gives a
+cosine similarity of $0.276$ --- the level of unrelated sentences --- while the
+multilingual model gives $0.817$. The multilingual model also produces 384
+dimensions, so it replaced the English one without any change to the database
+schema.
+
+\paragraph{Images: CLIP ViT-B/32 (512 dimensions).}
 CLIP~\cite{radford2021clip} is a vision transformer~\cite{dosovitskiy2021vit}
-trained contrastively on image--caption pairs.
-Photographs are compared only to other photographs, so no language is involved
-on the image side and the standard CLIP checkpoint is the correct choice. CLIP
-is preferred to the penultimate layer of a supervised classifier because its
-representation is general-purpose: it was never trained on a fixed label set,
-and lost property is an open-ended category by definition.
+trained contrastively on image--caption pairs. Photographs are compared only to
+other photographs, so no language is involved on the image side and the standard
+checkpoint is the correct choice. CLIP is preferred to the penultimate layer of
+a supervised classifier because its representation is general-purpose: it was
+never trained on a fixed label set, and lost property is an open-ended category
+by definition.
 
 \paragraph{Why not one model for both.} CLIP embeds images and text into a
 shared space, which is attractive at first glance. But the dominant comparison
 in this system is text against text --- one person's description of a wallet
 against another person's description of the same wallet --- and for that a
 dedicated sentence encoder is both stronger and cheaper than CLIP's text tower.
-The two-model arrangement uses each where it is strongest. CLIP's text encoder
-remains available for a future cross-modal signal, matching the \emph{words} of
-one report against the \emph{photograph} of another.
+CLIP's text encoder remains available for a future cross-modal signal, matching
+the \emph{words} of one report against the \emph{photograph} of another.
 
 \section{Architecture of the implemented system}
 
@@ -162,32 +173,35 @@ one report against the \emph{photograph} of another.
 
 The backend is a \textbf{modular monolith}: one FastAPI application whose
 internal boundaries (\code{api/}, \code{services/}, \code{repositories/},
-\code{ml/}, \code{storage/}) are drawn so that any module could later be
-extracted into its own service, plus a background worker that shares the same
-codebase and image but runs a different entry point.
+\code{ml/}, \code{payments/}, \code{storage/}) are drawn so that any module could
+later be extracted into its own service, plus a background worker that shares
+the same codebase but runs a different entry point.
 Figure~\ref{fig:architecture} shows the deployed topology.
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[x=1cm,y=1cm]
 
-  \node[boxnode, text width=10.4cm] (client) at (0,6.2)
-    {\textbf{Next.js 15 --- browser and server rendering}\\
-     locale-prefixed routes \dcode{/en} \dcode{/fr} \dcode{/ar} $\cdot$ TanStack Query cache};
+  \node[boxnode, text width=11.4cm] (client) at (0,6.3)
+    {\textbf{Browser $\rightarrow$ Caddy (automatic HTTPS) $\rightarrow$ Next.js 15}\\
+     locale-prefixed routes \dcode{/fr} \dcode{/ar} \dcode{/en} $\cdot$ TanStack Query cache};
 
-  \node[boxnode, text width=10.4cm] (api) at (0,3.9)
-    {\textbf{FastAPI --- \dcode{/api/v1}}\\
-     auth $\cdot$ categories $\cdot$ items $\cdot$ images $\cdot$ matches $\cdot$ claims $\cdot$ notifications\\
-     authentication $\cdot$ validation $\cdot$ authorisation $\cdot$ OpenAPI};
+  \node[boxnode, text width=11.4cm] (api) at (0,4.0)
+    {\textbf{FastAPI --- \dcode{/api/v1}, 60 routes}\\
+     auth $\cdot$ items $\cdot$ images $\cdot$ matches $\cdot$ claims $\cdot$
+     notifications $\cdot$ billing $\cdot$ admin\\
+     validation $\cdot$ authorisation $\cdot$ rate limiting $\cdot$ OpenAPI};
 
-  \node[storenode, text width=2.7cm] (redis) at (-4,1.3)
-    {\textbf{Redis 7}\\ job queue, cache};
-  \node[storenode, text width=2.7cm] (pg) at (0,1.3)
-    {\textbf{PostgreSQL 16}\\ \dcode{pgvector} + FTS};
-  \node[storenode, text width=2.7cm] (store) at (4,1.3)
-    {\textbf{Object storage}\\ local FS $\rightarrow$ S3};
+  \node[storenode, text width=2.45cm] (redis) at (-4.5,1.4)
+    {\textbf{Redis 7}\\ job queue};
+  \node[storenode, text width=2.45cm] (pg) at (-1.5,1.4)
+    {\textbf{PostgreSQL}\\ 16, \dcode{pgvector}, FTS};
+  \node[storenode, text width=2.45cm] (store) at (1.5,1.4)
+    {\textbf{Media volume}\\ WebP files};
+  \node[storenode, text width=2.45cm] (pay) at (4.5,1.4)
+    {\textbf{Chargily Pay}\\ EDAHABIA, CIB};
 
-  \node[boxnode, text width=10.4cm] (worker) at (0,-1.2)
+  \node[boxnode, text width=11.4cm] (worker) at (0,-1.2)
     {\textbf{\dcode{arq} worker --- all model inference}\\
      \dcode{embed\_item} $\rightarrow$ \dcode{run\_matching} $\rightarrow$ notifications\\
      multilingual MiniLM (384-d) $\cdot$ CLIP ViT-B/32 (512-d)};
@@ -200,38 +214,43 @@ Figure~\ref{fig:architecture} shows the deployed topology.
     node[edgelabel,midway,right]{read / write};
   \draw[flowarrow] (api.south -| store.north) -- (store.north)
     node[edgelabel,midway,right]{put / get};
+  \draw[flowarrow, {Stealth[length=5pt]}-{Stealth[length=5pt]}]
+    (api.south -| pay.north) -- (pay.north)
+    node[edgelabel,midway,right]{checkout, webhook};
 
   \draw[flowarrow] (redis.south) -- (worker.north -| redis.south)
     node[edgelabel,midway,left]{dequeue};
   \draw[flowarrow] (worker.north -| pg.south) -- (pg.south)
-    node[edgelabel,midway,right]{write vectors, matches};
+    node[edgelabel,midway,right]{vectors, matches};
   \draw[flowarrow] (worker.north -| store.south) -- (store.south)
     node[edgelabel,midway,right]{read images};
 
 \end{tikzpicture}
 \caption{Deployed architecture. The API never loads a model; the worker never
-serves a request.}
+serves a request. The payment gateway calls back into the API with a signed
+webhook.}
 \label{fig:architecture}
 \end{figure}
 
 \subsection{Why inference runs outside the request cycle}
 
-Encoding one photograph with CLIP takes on the order of hundreds of
-milliseconds on CPU, and the encoders together occupy well over a gigabyte of
-resident memory. Performing that work inside \code{POST /items} would mean three
-separate costs: the user waits for a neural network before seeing any
-confirmation, the API process must hold the model weights, and API latency
+Encoding one photograph with CLIP takes a median of 98\,ms on the development
+CPU, and 147\,ms at the 95th percentile (Section~\ref{sec:eval-performance}); the
+worker process that holds both models occupies 872\,MB of memory, against
+142\,MB for the API. Performing inference inside \code{POST /items} would
+therefore impose three costs: the user waits for a neural network before seeing
+any confirmation, every API process must hold the model weights, and API latency
 becomes coupled to model load time on every cold start.
 
 Separating the worker removes all three. The API validates the report, persists
 it, returns \code{201~Created}, and enqueues a job. The item is publicly
 browsable immediately with \code{processing\_status~=~pending}, and the worker
 advances it through \code{embedding} and \code{matching} to \code{ready},
-setting \code{failed} on any unhandled error so that a sweep can retry it. The
-business lifecycle of the item (\code{open}, \code{matched}, \code{claimed},
-\code{closed}) is deliberately kept as a separate column from this pipeline
-state, because they answer different questions: an item can be perfectly
-browsable while its matches are still being computed.
+setting \code{failed} on any unhandled error so that a periodic sweep can retry
+it. The business lifecycle of the item (\code{open}, \code{matched},
+\code{claimed}, \code{closed}) is deliberately kept in a separate column from
+this pipeline state, because they answer different questions: an item can be
+perfectly browsable while its matches are still being computed.
 
 \subsection{Implemented data model}
 
@@ -240,7 +259,7 @@ discriminated by a \code{type} enum}, not in two tables. They share every column
 the same embedding pipeline and the same lifecycle; the only difference is the
 direction in which matching searches. Two tables would have duplicated the
 schema, the indexes and the embedding code, and forced a \code{UNION} into every
-browse query. The conceptual entities survive as filtered views.
+browse query.
 
 \begin{table}[htbp]
 \centering
@@ -251,18 +270,19 @@ browse query. The conceptual entities survive as filtered views.
 \toprule
 \textbf{Table} & \textbf{Purpose and notable columns} \\
 \midrule
-\code{users} & Account, role (\code{user}/\code{admin}), verification and active flags. Email stored as \code{citext} so that case never creates a duplicate account. \\
+\code{users} & Account, role (\code{user}/\code{admin}), status (active or suspended), verification flag. E-mail stored as \code{citext} so that letter case never creates a duplicate account. \\
 \code{refresh\_tokens} & Rotation and revocation. Only the \emph{hash} of a token is stored; \code{replaced\_by} forms a chain used for reuse detection. \\
-\code{categories} & Seeded taxonomy (phones, wallets, keys, bags, documents, \ldots), self-referencing for subcategories. Doubles as a hard pre-filter during matching. \\
-\code{items} & Both report types. \code{type}, \code{title}, \code{description}, \code{category\_id}, \code{color}, \code{brand}, \code{wilaya\_code}, \code{lost\_or\_found\_at}, business \code{status}, ML \code{processing\_status}, and \code{text\_embedding vector(384)}. \\
-\code{item\_images} & Up to five photographs per item; \code{image\_path} identifies the stored file, \code{image\_embedding vector(512)} holds the CLIP vector, and \code{blur\_preview} supports locked match previews. \\
+\code{categories} & Seeded taxonomy (phones, wallets, keys, bags, documents, \ldots), self-referencing for subcategories. \\
+\code{items} & Both report types: \code{type}, \code{title}, \code{description}, \code{category\_id}, \code{color}, \code{brand}, \code{wilaya\_code}, \code{lost\_or\_found\_at}, business \code{status}, ML \code{processing\_status}, \code{closed\_reason}, and \code{text\_embedding vector(384)}. \\
+\code{item\_images} & Up to five photographs per item; \code{image\_embedding vector(512)} holds the CLIP vector and \code{blur\_preview} the small blurred thumbnail shown on a locked match card. \\
 \code{matches} & One row per (lost, found) pair above the persistence threshold: \code{text\_score}, \code{image\_score}, \code{combined\_score}, \code{confidence}, \code{explanation} (JSONB), \code{status}. Unique on the pair, so re-matching upserts instead of duplicating. \\
-\code{match\_feedback} & One user's correctness verdict for a match, retained as labelled data for matching calibration. \\
-\code{claims} & The ownership handshake: \code{answers} (JSONB, questions snapshotted at claim time), \code{status}, \code{resolved\_at}. A partial unique index permits only one \emph{pending} claim per person per item. \\
-\code{notifications} & In-app messages with an optional enforced link to an item and an optional match UUID for navigation. \\
-\code{payments} & A payment-gateway checkout attempt, including the price and credit-pack snapshot, provider reference, status, and provider payload. \\
-\code{credit\_ledger} & Append-only credit movements. The balance is \code{SUM(delta)}, rather than a mutable column on \code{users}. \\
-\code{match\_unlocks} & Records that a user has permanently unlocked a match; the user--match pair is unique. \\
+\code{match\_feedback} & One owner's verdict on a suggestion (correct or not), kept as labelled data for calibration. \\
+\code{claims} & The ownership handshake: \code{answers} (JSONB, questions snapshotted at claim time), \code{status}, \code{resolved\_at}. A partial unique index permits one \emph{pending} claim per person per item. \\
+\code{notifications} & In-app messages with an optional link to an item and an optional match identifier for navigation. \\
+\code{payments} & One checkout attempt: pack and price snapshot, provider reference, status and provider payload. \\
+\code{credit\_ledger} & Append-only credit movements. The balance is \code{SUM(delta)}, never a mutable column. \\
+\code{match\_unlocks} & Records that a user has unlocked a match, and whether the free allowance or a credit paid for it. \\
+\code{admin\_actions} & The moderation audit log: who acted, on what, why, and with which details. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -272,7 +292,10 @@ database-enforced foreign-key relationships.
 
 \begin{sidewaysfigure}[p]
 \centering
-\begin{tikzpicture}[x=1cm,y=1cm]
+\begin{tikzpicture}[x=1cm,y=1cm,
+    entity/.append style={text width=35mm,
+                          execute at begin node={\setstretch{1}}},
+  ]
 
   % Account and taxonomy tables.
   \node[weakentity] (rt) at (-7.8,6.3)
@@ -303,7 +326,7 @@ database-enforced foreign-key relationships.
      \dcode{image\_path}\\ \dcode{image\_embedding} \textit{vector(512)}\\
      \dcode{blur\_preview}\\ \dcode{created\_at}/\dcode{updated\_at}};
 
-  \node[entity] (itm) at (-2.6,1.8)
+  \node[entity] (itm) at (-2.6,1.2)
     {\textbf{items}\\ \dcode{id} PK\\ \dcode{user\_id} FK\\ \dcode{category\_id} FK\\
      \dcode{type} \textit{lost|found}\\ \dcode{status}\\ \dcode{processing\_status}\\
      \dcode{title}\\ \dcode{description}\\ \dcode{search\_vector}\\
@@ -340,15 +363,21 @@ database-enforced foreign-key relationships.
      \dcode{provider\_payload} \textit{jsonb}\\ \dcode{failure\_reason}\\
      \dcode{paid\_at}\\ \dcode{created\_at}/\dcode{updated\_at}};
 
-  \node[weakentity] (led) at (7.8,4.1)
+  \node[weakentity] (led) at (7.8,4.6)
     {\textbf{credit\_ledger}\\ \dcode{id} PK\\ \dcode{user\_id} FK\\
      \dcode{payment\_id} FK\\ \dcode{match\_id} FK\\ \dcode{delta}\\
      \dcode{reason}\\ \dcode{note}\\ \dcode{created\_at}/\dcode{updated\_at}};
 
-  \node[weakentity] (unl) at (7.8,0.4)
+  \node[weakentity] (unl) at (7.8,1.0)
     {\textbf{match\_unlocks}\\ \dcode{id} PK\\ \dcode{user\_id} FK\\
      \dcode{match\_id} FK\\ \dcode{source}\\
      \dcode{created\_at}/\dcode{updated\_at}};
+
+  \node[weakentity] (aud) at (7.8,-3.2)
+    {\textbf{admin\_actions}\\ \dcode{id} PK\\ \dcode{admin\_id} FK $\rightarrow$ users\\
+     \dcode{admin\_email}\\ \dcode{action}\\ \dcode{target\_type}\\
+     \dcode{target\_id}\\ \dcode{target\_label}\\ \dcode{reason}\\
+     \dcode{details} \textit{jsonb}\\ \dcode{created\_at}/\dcode{updated\_at}};
 
   % Each line is a real foreign key. Lines are kept behind nodes so crossings
   % never make any table field difficult to read.
@@ -394,21 +423,22 @@ database-enforced foreign-key relationships.
       (cat.south) node[card,pos=0.5] {1 : N parent};
   \end{scope}
 \end{tikzpicture}
-\caption{Complete entity-relationship diagram of the implemented schema.
-Every line represents an enforced foreign key; \code{notifications.match\_id}
-is deliberately not connected because it is stored as an unconstrained UUID,
-not a foreign key. \code{items} participates twice in \code{matches}: once as
-the lost report and once as the found report.}
+\caption{Complete entity-relationship diagram of the implemented schema. Every
+line represents an enforced foreign key. \code{notifications.match\_id} is
+stored as an unconstrained identifier, not a foreign key, and is therefore not
+connected; the audit log's link to \code{users} is marked in the table rather
+than drawn, to keep the diagram legible. \code{items} participates twice in
+\code{matches}: once as the lost report and once as the found report.}
 \label{fig:erd}
 \end{sidewaysfigure}
 
-Migrations are managed with Alembic across eight versions. Migrations 0005--0007
-add full-text search plus the text and image vector indexes; migration 0008 adds
-the payment, credit-ledger, and match-unlock tables. Both vector indexes are
-HNSW~\cite{malkov2020hnsw} over the cosine operator
-class provided by \code{pgvector}~\cite{pgvector}, which gives better
-recall-to-latency behaviour than IVFFlat at the corpus sizes this platform will
-see in its first years.
+The schema is managed with Alembic across nine migrations. Migrations 0005 to
+0007 add full-text search and the text and image vector indexes; 0008 adds the
+payment, credit-ledger and match-unlock tables; 0009 adds the moderation audit
+log and the \code{removed} close reason. Both vector indexes are
+HNSW~\cite{malkov2020hnsw} over the cosine operator class provided by
+\code{pgvector}~\cite{pgvector}, which gives better recall-to-latency behaviour
+than IVFFlat at the corpus sizes this platform will see in its first years.
 
 \section{The matching engine}
 
@@ -421,28 +451,28 @@ summarises the pipeline.
 \centering
 \begin{tikzpicture}[x=1cm,y=1cm]
 
-  \node[boxnode, text width=6cm] (new) at (0,7.2)
+  \node[boxnode, text width=7.4cm] (new) at (0,7.2)
     {\textbf{New or edited report} (lost or found)};
 
-  \node[boxnode, text width=4.4cm] (txt) at (-3.1,5.4)
+  \node[boxnode, text width=5.0cm] (txt) at (-3.3,5.4)
     {Multilingual MiniLM\\ title + description + metadata $\rightarrow$ 384-d};
-  \node[boxnode, text width=4.4cm] (img) at (3.1,5.4)
+  \node[boxnode, text width=5.0cm] (img) at (3.3,5.4)
     {CLIP ViT-B/32\\ each photograph $\rightarrow$ 512-d};
 
-  \node[storenode, text width=8.6cm] (store) at (0,3.6)
+  \node[storenode, text width=11.2cm] (store) at (0,3.6)
     {Vectors written to PostgreSQL (\dcode{pgvector}, unit-normalised)};
 
-  \node[boxnode, text width=8.6cm] (retr) at (0,1.8)
+  \node[boxnode, text width=11.2cm] (retr) at (0,1.8)
     {\textbf{Retrieval} --- relational pre-filter, then two independent routes:\\
      text ANN {\footnotesize(+ lexical FTS)} $\cup$ image ANN};
 
-  \node[boxnode, text width=8.6cm] (fuse) at (0,0)
+  \node[boxnode, text width=11.2cm] (fuse) at (0,0)
     {\textbf{Scoring} --- lexical blend, image calibration, weighted fusion};
 
-  \node[boxnode, text width=8.6cm] (conf) at (0,-1.8)
+  \node[boxnode, text width=11.2cm] (conf) at (0,-1.8)
     {\textbf{Confidence} --- metadata boosts, distinctiveness margin, thresholds};
 
-  \node[boxnode, text width=8.6cm] (out) at (0,-3.6)
+  \node[boxnode, text width=11.2cm] (out) at (0,-3.6)
     {Upsert \dcode{matches}, retract stale ones, notify both owners};
 
   \draw[flowarrow] (new.south) -- ++(0,-0.35) -| (txt.north);
@@ -475,22 +505,19 @@ text_embedding = text_model.encode(doc, normalize_embeddings=True)  # 384-d
 \end{lstlisting}
 
 Each photograph is embedded independently and stored on its own row, rather than
-averaged into a single per-item vector. Averaging would blur a decisive
-close-up together with an out-of-focus wide shot; keeping them separate lets the
-scoring stage take the \emph{maximum} similarity over the cross product of the
-two items' photographs --- best shot against best shot. A single matching angle
-is strong evidence, and off-angle photographs should not be allowed to dilute
-it. An item with no photograph simply has no image vector, a case the fusion
-step handles explicitly.
+averaged into a single per-item vector. Averaging would blur a decisive close-up
+together with an out-of-focus wide shot; keeping them separate lets the scoring
+stage take the \emph{maximum} similarity over the cross product of the two
+items' photographs --- best shot against best shot. An item with no photograph
+simply has no image vector, a case the fusion step handles explicitly.
 
-Both models are loaded once per worker process as singletons and warmed at
-startup, so their load cost is paid on deployment rather than on the first
-report of the day.
+Both models are loaded once per worker process and warmed at startup, so their
+load cost is paid on deployment rather than on the first report of the day.
 
 \subsection{Retrieving candidates}
 
 The engine never scores the whole table. Retrieval is a funnel with a cheap
-relational stage followed by an approximate nearest neighbour stage.
+relational stage followed by an approximate nearest-neighbour stage.
 
 \paragraph{Stage A --- relational pre-filter.} Candidates must be of the
 opposite \code{type}, still \code{open}, and carry a \code{lost\_or\_found\_at}
@@ -499,7 +526,7 @@ date inside a plausible window. The window is deliberately wide and symmetric
 report, because people frequently pick something up before its owner notices
 the loss.
 
-\paragraph{Stage B --- approximate nearest neighbour search.} Over the
+\paragraph{Stage B --- approximate nearest-neighbour search.} Over the
 pre-filtered set, \code{pgvector}'s cosine operator \code{<=>} retrieves the top
 $K$ candidates using the HNSW index.
 
@@ -518,12 +545,13 @@ LIMIT :k;                                    -- k = 50
 \paragraph{The second route.} A text search alone systematically loses one case:
 a good photograph attached to a two-word description. Such an item is never
 retrieved by the text query, so it can never be scored, so it can never be
-suggested --- no matter how obviously the photographs match. The engine
-therefore runs a \emph{second, independent} retrieval over
-\code{item\_images.image\_embedding}, and adds any item found that way to the
-candidate set, scoring it on both modalities afterwards. The two routes are
-unioned, which means an item can surface through strong wording \emph{or}
-through a strong photograph, and is then judged on everything available.
+suggested --- however obviously the photographs match. The engine therefore runs
+a \emph{second, independent} retrieval over \code{item\_images.image\_embedding},
+adds any item found that way to the candidate set, and scores it on both
+modalities afterwards. An item can thus surface through strong wording \emph{or}
+through a strong photograph, and is then judged on everything available. On the
+evaluation corpus a matching pass examined 15.8 candidates on average and
+persisted 2.0 of them (Section~\ref{sec:eval-matching}).
 
 \subsection{Calibrating the image similarity}
 \label{sec:calibration}
@@ -535,17 +563,59 @@ CLIP image embeddings are \emph{anisotropic}: they do not spread over the unit
 sphere but occupy a comparatively narrow cone. This is a known property of
 representations learned by contrastive and self-supervised
 objectives~\cite{ethayarajh2019anisotropy}, and in multimodal contrastive models
-it is compounded by a systematic separation between the image and text
-manifolds~\cite{liang2022modalitygap}. The practical consequence,
-measured on the platform's own corpus, is that two \textbf{completely unrelated}
-photographs still score a cosine similarity of roughly $0.65$ to $0.71$, while
-the same object photographed twice scores around $0.96$. Feeding the raw cosine
-into a weighted average therefore treats an irrelevant photograph as roughly
-$70\%$ agreement, which was enough to lift weak text matches over the
-persistence threshold and put unrelated objects in front of users.
+it is compounded by a separation between the image and text
+manifolds~\cite{liang2022modalitygap}. Figure~\ref{fig:clip-hist} shows the
+consequence on the platform's own photographs. Across the 712 pairs of
+photographs taken from two different reports that were \emph{not} confirmed as
+the same object, the raw cosine similarity has a median of $0.578$ and a 90th
+percentile of $0.738$; 31.9\,\% of these pairs score $0.65$ or more. The five
+pairs whose reports were confirmed by their owners as the same object score
+between $0.861$ and $0.949$.
 
-The fix is to rescale the interval $[f, 1]$ onto $[0, 1]$, where $f$ is a
-configured floor set to the observed unrelated-pair level:
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=6.4cm,
+    xmin=0.25, xmax=1.0, ymin=0, ymax=135,
+    xlabel={Raw CLIP cosine similarity between two photographs},
+    ylabel={Number of pairs},
+    xtick={0.3,0.4,0.5,0.6,0.65,0.7,0.8,0.9,1.0},
+    xticklabels={0.3,0.4,0.5,0.6,,0.7,0.8,0.9,1.0},
+    ytick={0,25,50,75,100,125},
+    axis lines*=left,
+    ymajorgrids, grid style={draw=black!10},
+    tick label style={font=\scriptsize},
+    label style={font=\scriptsize},
+    clip=false,
+  ]
+  \addplot[ybar interval, fill=uamobblue!45, draw=white, line width=0.6pt]
+    coordinates {(0.25,2) (0.30,9) (0.35,43) (0.40,41) (0.45,81) (0.50,109)
+                 (0.55,98) (0.60,102) (0.65,100) (0.70,78) (0.75,24) (0.80,6)
+                 (0.85,9) (0.90,8) (0.95,2) (1.00,0)};
+  \draw[todoborder, thick, dashed] (axis cs:0.65,0) -- (axis cs:0.65,128);
+  \node[font=\scriptsize, anchor=south, text=todoborder] at (axis cs:0.65,128)
+    {floor $f=0.65$};
+  \addplot[only marks, mark=triangle*, mark size=2.6pt, draw=black,
+           fill=black!80]
+    coordinates {(0.861,118) (0.886,118) (0.887,112) (0.949,118) (0.949,112)};
+  \node[font=\scriptsize, anchor=east, align=right] at (axis cs:0.845,115)
+    {same object,\\ confirmed by owners};
+\end{axis}
+\end{tikzpicture}
+\caption{Distribution of the raw CLIP similarity over the 712 cross-report
+photograph pairs of the evaluation corpus that are not confirmed matches (bars,
+bins of 0.05), and the five confirmed same-object pairs (triangles). The upper
+tail of the bars contains photographs reused across demonstration reports and
+same-object pairs whose owners have not yet ruled.}
+\label{fig:clip-hist}
+\end{figure}
+
+Fed directly into a weighted average with a weight of $0.5$, a raw score of
+$0.58$ --- the \emph{typical} unrelated photograph --- contributes $0.29$ to the
+combined score, enough to lift weak text matches over the persistence threshold
+and put unrelated objects in front of users. The fix is to rescale the interval
+$[f, 1]$ onto $[0, 1]$, where $f$ is a configured floor:
 
 \begin{equation}
 s_{\text{img}} = \operatorname{clamp}_{[0,1]}\!\left(\frac{s^{\text{raw}}_{\text{img}} - f}{1 - f}\right),
@@ -553,11 +623,15 @@ s_{\text{img}} = \operatorname{clamp}_{[0,1]}\!\left(\frac{s^{\text{raw}}_{\text
 \label{eq:calibrate}
 \end{equation}
 
-Under this mapping a raw $0.69$ becomes $0.11$ and a raw $0.96$ becomes $0.89$
---- the discrimination that the raw numbers were hiding. Clamping at zero
-matters as much as the rescaling: it means \dq{less alike than two random
-photographs} reads as \emph{no evidence} rather than as negative evidence
-capable of dragging down an otherwise sound textual match.
+Under this mapping the median unrelated pair ($0.578$) becomes $0$, the 90th
+percentile ($0.738$) becomes $0.25$, and the confirmed pairs ($0.861$--$0.949$)
+become $0.60$--$0.85$. Clamping at zero matters as much as the rescaling: it
+means \dq{less alike than an ordinary pair of photographs} reads as \emph{no
+evidence} rather than as negative evidence capable of dragging down an otherwise
+sound textual match. The floor is not a perfect separator --- about a third of
+the unrelated pairs still carry a small positive image score --- which is why
+the image channel is never allowed to decide alone: the text score, the metadata
+and the thresholds below must agree with it.
 
 \subsection{Fusing the scores}
 
@@ -598,9 +672,8 @@ for both items of the pair.
 \subsection{Computing confidence and explanations}
 
 The combined score measures embedding proximity. \emph{Confidence} is the
-user-facing estimate that the pair really is the same object, and it starts from
-the combined score and adds small bounded rewards for independent
-corroboration:
+user-facing estimate that the pair really is the same object; it starts from the
+combined score and adds small bounded rewards for independent corroboration:
 
 \begin{equation}
 c = \operatorname{clamp}_{[0,1]}\!\Big(s_{\text{comb}}
@@ -619,20 +692,19 @@ Several details of the implementation follow from that asymmetry:
 
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
   \item \textbf{Category agreement counts only when both sides declared one.}
-        Agreement on \emph{unknown} is not agreement, and a measurable share of
-        real reports carry no category at all.
+        Agreement on \emph{unknown} is not agreement, and 17 of the 56 reports
+        in the evaluation corpus carry no category at all.
   \item \textbf{Proximity is measured by wilaya, not by radius.} The report form
         does not ask for coordinates and no report in the corpus carries any, so
-        a haversine term would have been dead code. Wilayas are stored as
-        numeric codes rather than names, precisely so that a location can be
-        rendered in Arabic, French or English without touching stored data.
-        \emph{Known limitation:} the implementation currently carries the 58
-        wilayas in force since December 2019, whereas eleven further wilayas
-        were created on 16~November 2025, bringing the national total to
-        69~\cite{wilayas2025}. Because the codes are official administrative
-        numbers and the new ones extend the sequence rather than renumbering it,
-        updating the list is an additive change to one module and its client
-        mirror; it does not affect stored data or the matching logic.
+        a distance term would have been dead code. Wilayas are stored as
+        numeric codes rather than names, so that a location can be rendered in
+        Arabic, French or English without touching stored data.
+        \emph{Known limitation:} the implementation carries the 58 wilayas in
+        force since December 2019, whereas eleven further wilayas were created
+        on 16~November 2025, bringing the national total to
+        69~\cite{wilayas2025}. Because the new codes extend the sequence rather
+        than renumbering it, updating the list is an additive change to one
+        module and its client mirror.
   \item \textbf{Temporal plausibility is directional.} An object is found
         \emph{after} it is lost, so the reverse ordering is penalised --- but
         halved rather than zeroed, because people notice a loss late and
@@ -641,8 +713,8 @@ Several details of the implementation follow from that asymmetry:
         above the runner-up is more trustworthy than the same score in a
         five-way tie, where the similarity is probably measuring \dq{generic
         black wallet} rather than \emph{this} wallet. Because this term depends
-        on the rest of the field, it can only be applied once every candidate
-        has been scored.
+        on the rest of the field, it is applied once every candidate has been
+        scored.
 \end{itemize}
 
 \paragraph{Explanations as reason codes.} The interface shows the confidence as
@@ -650,10 +722,8 @@ a percentage together with the reasons that produced it. Those reasons are
 emitted by the worker as \textbf{codes with parameters} --- \code{same\_category},
 \code{same\_wilaya}, \code{time\_close} with a day count --- and never as
 English prose. The worker cannot know which of three languages the eventual
-reader uses, and this is the product's flagship surface: an Arabic-speaking user
-reading \dq{found 1 day after lost} in English is a visible failure. The
-frontend translates the codes through the same message catalogues that drive the
-rest of the interface.
+reader uses; the frontend translates the codes through the same message
+catalogues that drive the rest of the interface.
 
 \begin{table}[htbp]
 \centering
@@ -664,21 +734,21 @@ rest of the interface.
 \toprule
 \textbf{Parameter} & \textbf{Value} & \textbf{Meaning} \\
 \midrule
-\code{MATCH\_TOPK}            & 50   & Candidates retrieved per modality before scoring \\
-\code{MATCH\_DATE\_SLACK\_DAYS} & 30 & Half-width of the plausible date window \\
-\code{MATCH\_W\_TEXT}         & 0.50 & Weight of the textual modality \\
-\code{MATCH\_W\_IMAGE}        & 0.50 & Weight of the visual modality \\
-\code{MATCH\_W\_LEXICAL}      & 0.25 & Share of full-text score blended into the text similarity \\
+\code{MATCH\_TOPK}              & 50   & Candidates retrieved per modality before scoring \\
+\code{MATCH\_DATE\_SLACK\_DAYS} & 30   & Half-width of the plausible date window \\
+\code{MATCH\_W\_TEXT}           & 0.50 & Weight of the textual modality \\
+\code{MATCH\_W\_IMAGE}          & 0.50 & Weight of the visual modality \\
+\code{MATCH\_W\_LEXICAL}        & 0.25 & Share of full-text score blended into the text similarity \\
 \code{MATCH\_IMAGE\_SIM\_FLOOR} & 0.65 & Raw CLIP cosine treated as zero evidence (Eq.~\ref{eq:calibrate}) \\
-\code{MATCH\_BOOST\_CATEGORY} & 0.05 & Both sides declare the same category \\
-\code{MATCH\_BOOST\_COLOR}    & 0.04 & Colours agree \\
-\code{MATCH\_BOOST\_BRAND}    & 0.04 & Brands agree \\
-\code{MATCH\_BOOST\_WILAYA}   & 0.05 & Same wilaya \\
-\code{MATCH\_BOOST\_TIME}     & 0.04 & Scaled by temporal plausibility \\
-\code{MATCH\_BOOST\_MARGIN}   & 0.05 & Scaled by the gap to the runner-up \\
-\code{CONF\_PERSIST}          & 0.55 & Below this, the match is not stored at all \\
-\code{CONF\_NOTIFY}           & 0.70 & At or above this, both owners are notified \\
-\code{CONF\_STRONG}           & 0.85 & Interface shows a \dq{high confidence} badge \\
+\code{MATCH\_BOOST\_CATEGORY}   & 0.05 & Both sides declare the same category \\
+\code{MATCH\_BOOST\_COLOR}      & 0.04 & Colours agree \\
+\code{MATCH\_BOOST\_BRAND}      & 0.04 & Brands agree \\
+\code{MATCH\_BOOST\_WILAYA}     & 0.05 & Same wilaya \\
+\code{MATCH\_BOOST\_TIME}       & 0.04 & Scaled by temporal plausibility \\
+\code{MATCH\_BOOST\_MARGIN}     & 0.05 & Scaled by the gap to the runner-up \\
+\code{CONF\_PERSIST}            & 0.55 & Below this, the match is not stored at all \\
+\code{CONF\_NOTIFY}             & 0.70 & At or above this, both owners are notified \\
+\code{CONF\_STRONG}             & 0.85 & The interface shows a \dq{high confidence} badge \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -689,7 +759,7 @@ accumulated feedback --- by fitting the weights on confirmed and rejected pairs
 and mapping the resulting scores onto true probabilities through Platt scaling
 or isotonic regression~\cite{zadrozny2002calibration,guo2017calibration} --- and
 holding them behind a single scoring interface means the learned version can
-replace the hand-set version without touching the API, the database or the
+replace the hand-set one without touching the API, the database or the
 interface.
 
 \subsection{Persistence, retraction and notification}
@@ -701,25 +771,24 @@ is triggered again whenever either side of a pair is edited.
   \item \textbf{Idempotence.} The \code{matches} table is unique on the (lost,
         found) pair, so a re-run \emph{upserts} updated scores rather than
         accumulating duplicates.
-  \item \textbf{Retraction.} Any pair that this pass no longer supports is
-        expired. Without this, re-scoring could only ever add suggestions; an
-        item whose entire candidate pool had closed would go on displaying
-        matches it no longer has.
+  \item \textbf{Retraction.} Any pair that a pass no longer supports is expired.
+        Without this, re-scoring could only ever add suggestions; an item whose
+        candidate pool had closed would go on displaying matches it no longer
+        has. In the evaluation corpus, 12 of the 43 suggestions ever created
+        were later expired this way.
   \item \textbf{Notification on transition only.} A user is notified when a pair
         \emph{crosses} the notification threshold, not on every upsert.
-        Otherwise correcting a typo in a description would send a fresh
-        \dq{we may have found your item} for every pair, every time.
+        Re-running the matcher over the whole evaluation corpus produced no
+        duplicate notification.
 \end{itemize}
 
 \subsection{End-to-end sequence}
 
 Figure~\ref{fig:sequence} traces one complete cycle, from the moment a report is
 filed to the moment contact details are released. Two things are worth reading
-off it. The reporter receives \code{201~Created} long before any model has run
---- the response does not wait on inference. And the final disclosure is
-triggered by a human decision, not by the score: the worker's notification ends
-at \dq{a claim is awaiting your review}, and nothing further happens until the
-reporter approves.
+off it. The reporter receives \code{201~Created} long before any model has run.
+And the final disclosure is triggered by a human decision, not by the score:
+nothing is released until the reporter approves a claim.
 
 \begin{figure}[htbp]
 \centering
@@ -733,15 +802,15 @@ reporter approves.
   \node[actorbox] (e) at ( 6,0) {Counterpart};
 
   % --- lifelines ---
-  \draw[lifeline] (-6,-0.35) -- (-6,-10.1);
-  \draw[lifeline] (-3,-0.35) -- (-3,-10.1);
-  \draw[lifeline] ( 0,-0.35) -- ( 0,-10.1);
-  \draw[lifeline] ( 3,-0.35) -- ( 3,-10.1);
-  \draw[lifeline] ( 6,-0.35) -- ( 6,-10.1);
+  \draw[lifeline] (-6,-0.35) -- (-6,-10.7);
+  \draw[lifeline] (-3,-0.35) -- (-3,-10.7);
+  \draw[lifeline] ( 0,-0.35) -- ( 0,-10.7);
+  \draw[lifeline] ( 3,-0.35) -- ( 3,-10.7);
+  \draw[lifeline] ( 6,-0.35) -- ( 6,-10.7);
 
   % --- messages ---
   \draw[msg] (-6,-1.0) -- (-3,-1.0) node[msglabel,midway] {POST /items + photos};
-  \draw[msg] (-3,-1.6) -- ( 3,-1.6) node[msglabel,midway] {insert item, images, storage keys};
+  \draw[msg] (-3,-1.6) -- ( 3,-1.6) node[msglabel,midway] {insert item, images};
   \draw[msg] (-3,-2.2) -- ( 0,-2.2) node[msglabel,midway] {enqueue \dcode{embed\_item}};
   \draw[retmsg] (-3,-2.8) -- (-6,-2.8) node[msglabel,midway] {201 Created};
 
@@ -756,10 +825,11 @@ reporter approves.
   \draw[msg] ( 0,-7.1) -- (-6,-7.1) node[msglabel,midway] {notification: possible match};
   \draw[msg] ( 0,-7.7) -- ( 6,-7.7) node[msglabel,midway] {notification: possible match};
 
-  \draw[msg] ( 6,-8.4) -- (-3,-8.4) node[msglabel,midway] {submit claim + answers to verification questions};
-  \draw[msg] (-3,-9.0) -- (-6,-9.0) node[msglabel,midway] {claim awaiting review};
-  \draw[msg] (-6,-9.6) -- (-3,-9.6) node[msglabel,midway] {approve};
-  \draw[msg] (-3,-10.0) -- ( 6,-10.0) node[msglabel,midway] {contact details released};
+  \draw[msg] ( 6,-8.4) -- (-3,-8.4) node[msglabel,midway] {unlock the suggestion (free first, then one credit)};
+  \draw[msg] ( 6,-9.0) -- (-3,-9.0) node[msglabel,midway] {submit claim + answers to verification questions};
+  \draw[msg] (-3,-9.6) -- (-6,-9.6) node[msglabel,midway] {claim awaiting review};
+  \draw[msg] (-6,-10.1) -- (-3,-10.1) node[msglabel,midway] {approve};
+  \draw[msg] (-3,-10.5) -- ( 6,-10.5) node[msglabel,midway] {contact details released};
 
 \end{tikzpicture}
 \caption{Sequence from report to handover. Inference is entirely off the request
@@ -769,72 +839,71 @@ path, and no identity is disclosed without the reporter's explicit approval.}
 
 \section{Presentation and implementation of the user interfaces}
 
-\towrite{Capture the screenshots listed in \code{thesis/figures/README.md} and
-drop them into \code{thesis/figures/}. Each figure below switches from a grey
-placeholder to the real image automatically once the file exists --- no LaTeX
-edit needed. Keep the browser at roughly 1440\,px wide, use the seeded demo
-data so the grids are full, and take at least one capture in Arabic to
-evidence the right-to-left layout.}
-
 \subsection{Functional coverage}
 
 Figure~\ref{fig:usecase} summarises what the implemented system lets each actor
-do. It is a map of what exists, not of what was planned: administration and
-moderation surfaces are specified but not yet shipped, and are therefore absent
-from the diagram. A partner institution uses the same reporting path as an
-individual finder --- publishing a register is not a separate feature but a
-volume of ordinary found reports --- which is why no dedicated institutional
-use case appears.
+do. It is a map of what exists, not of what was planned. A partner institution
+uses the same reporting path as an individual finder --- publishing a register
+is a volume of ordinary found reports --- which is why no dedicated
+institutional use case appears.
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[x=1cm,y=1cm]
 
-  \node[systemframe, minimum width=7.2cm, minimum height=8.0cm] (sys) at (0,2.8) {};
-  \node[font=\scriptsize\bfseries\color{uamobblue}, anchor=north] at (0,6.65) {\projectname{} platform};
+  \node[systemframe, minimum width=7.4cm, minimum height=9.6cm] (sys) at (0,2.45) {};
+  \node[font=\scriptsize\bfseries\color{uamobblue}, anchor=north] at (0,7.15) {\projectname{} platform};
 
-  \node[usecase, minimum width=34mm] (u1) at (0,6.0) {Browse and search reports};
-  \node[usecase, minimum width=34mm] (u2) at (0,5.1) {Register and authenticate};
-  \node[usecase, minimum width=34mm] (u3) at (0,4.2) {Report a lost or found item};
-  \node[usecase, minimum width=34mm] (u4) at (0,3.3) {Upload photographs};
-  \node[usecase, minimum width=34mm] (u5) at (0,2.4) {View ranked match suggestions};
-  \node[usecase, minimum width=34mm] (u6) at (0,1.5) {Submit a claim with answers};
-  \node[usecase, minimum width=34mm] (u7) at (0,0.6) {Approve or reject a claim};
-  \node[usecase, minimum width=34mm] (u8) at (0,-0.3) {Receive notifications};
+  \node[usecase, minimum width=36mm] (u1)  at (0,6.4)  {Browse and search reports};
+  \node[usecase, minimum width=36mm] (u2)  at (0,5.6)  {Register and authenticate};
+  \node[usecase, minimum width=36mm] (u3)  at (0,4.8)  {Report a lost or found item};
+  \node[usecase, minimum width=36mm] (u4)  at (0,4.0)  {Upload photographs};
+  \node[usecase, minimum width=36mm] (u5)  at (0,3.2)  {View ranked match suggestions};
+  \node[usecase, minimum width=36mm] (u6)  at (0,2.4)  {Unlock a suggestion};
+  \node[usecase, minimum width=36mm] (u7)  at (0,1.6)  {Buy a credit pack};
+  \node[usecase, minimum width=36mm] (u8)  at (0,0.8)  {Submit a claim with answers};
+  \node[usecase, minimum width=36mm] (u9)  at (0,0.0)  {Approve or reject a claim};
+  \node[usecase, minimum width=36mm] (u10) at (0,-0.8) {Receive notifications};
+  \node[usecase, minimum width=36mm] (u11) at (0,-1.6) {Moderate accounts and reports};
 
-  \pic (av) at (-5.9,5.9) {actor};
-  \node[font=\tiny, align=center] at (-5.9,4.3) {Visitor};
+  % Left: human users.
+  \pic at (-5.9,6.6) {actor};
+  \node[font=\tiny, align=center] at (-5.9,5.0) {Visitor};
+  \pic at (-5.9,3.4) {actor};
+  \node[font=\tiny, align=center] at (-5.9,1.75) {Registered\\user};
+  \pic at (-5.9,-0.4) {actor};
+  \node[font=\tiny, align=center] at (-5.9,-2.0) {Administrator};
 
-  \pic (au) at (-5.9,2.6) {actor};
-  \node[font=\tiny, align=center] at (-5.9,1.0) {Registered\\user};
+  % Right: institutions and systems.
+  \pic at (5.9,6.0) {actor};
+  \node[font=\tiny, align=center] at (5.9,4.35) {Partner\\institution};
+  \pic at (5.9,3.0) {actor};
+  \node[font=\tiny, align=center] at (5.9,1.35) {Matching\\worker};
+  \pic at (5.9,0.2) {actor};
+  \node[font=\tiny, align=center] at (5.9,-1.45) {Payment\\gateway};
 
-  \pic (ai) at (5.9,4.6) {actor};
-  \node[font=\tiny, align=center] at (5.9,3.0) {Partner\\institution};
+  \draw[relline] (-5.9,6.1) -- (u1.west);
+  \draw[relline] (-5.9,6.1) -- (u2.west);
 
-  \pic (aw) at (5.9,1.0) {actor};
-  \node[font=\tiny, align=center] at (5.9,-0.6) {Matching\\worker};
+  \foreach \u in {u3,u4,u5,u6,u7,u8,u9,u10}
+    \draw[relline] (-5.9,2.9) -- (\u.west);
 
-  \draw[relline] (-5.9,5.4) -- (u1.west);
-  \draw[relline] (-5.9,5.4) -- (u2.west);
+  \draw[relline] (-5.9,-0.9) -- (u11.west);
 
-  \draw[relline] (-5.9,2.1) -- (u3.west);
-  \draw[relline] (-5.9,2.1) -- (u4.west);
-  \draw[relline] (-5.9,2.1) -- (u5.west);
-  \draw[relline] (-5.9,2.1) -- (u6.west);
-  \draw[relline] (-5.9,2.1) -- (u7.west);
-  \draw[relline] (-5.9,2.1) -- (u8.west);
+  \draw[relline] (5.9,5.5) -- (u3.east);
+  \draw[relline] (5.9,5.5) -- (u4.east);
+  \draw[relline] (5.9,5.5) -- (u9.east);
 
-  \draw[relline] (5.9,4.1) -- (u3.east);
-  \draw[relline] (5.9,4.1) -- (u4.east);
-  \draw[relline] (5.9,4.1) -- (u7.east);
+  \draw[relline] (5.9,2.5) -- (u5.east);
+  \draw[relline] (5.9,2.5) -- (u10.east);
 
-  \draw[relline] (5.9,0.5) -- (u5.east);
-  \draw[relline] (5.9,0.5) -- (u8.east);
+  \draw[relline] (5.9,-0.3) -- (u7.east);
 
 \end{tikzpicture}
 \caption{Use cases implemented in the prototype. The matching worker is a system
 actor: the suggestions and notifications a user sees are produced without any
-human initiating them.}
+human initiating them. The payment gateway confirms purchases through a signed
+webhook.}
 \label{fig:usecase}
 \end{figure}
 
@@ -842,7 +911,7 @@ human initiating them.}
 
 The landing page states the proposition in one line, offers the two entry points
 that matter --- report something lost, report something found --- and shows the
-most recent reports so that a first-time visitor sees an active platform rather
+most recent reports, so that a first-time visitor sees an active platform rather
 than an empty form. The language switcher and the light/dark toggle are
 available before authentication.
 
@@ -852,39 +921,41 @@ available before authentication.
 
 Registration takes an e-mail, a full name and a password. Passwords are hashed
 with Argon2, the memory-hard function standardised in RFC~9106~\cite{argon2rfc}.
-Sessions use short-lived access tokens (15 minutes) paired with
-rotating refresh tokens valid for 30 days, and every rotation invalidates its
-predecessor.
+Sessions use access tokens valid for 15 minutes paired with rotating refresh
+tokens valid for 30 days, and every rotation invalidates its predecessor.
 
 Reuse of an already-rotated refresh token is treated as potential theft and
-revokes the session chain --- but only outside a brief grace window. That window
-exists because the benign case is common: a second browser tab, a page reload in
-mid-refresh, or a retried request will legitimately replay the previous token,
-and without the grace period a single stale replay would log the user out of
-every device they own.
+revokes the session chain --- but only outside a 30-second grace window. That
+window exists because the benign case is common: a second browser tab, a page
+reload in mid-refresh, or a retried request will legitimately replay the
+previous token, and without it a single stale replay would log the user out of
+every device they own. Outside development, the API refuses to start if its
+signing secret is the development default or shorter than 32 characters.
 
-\screenshot{auth-login.png}{Sign-in, with client-side validation from the shared Zod schema}{auth}
+\screenshot[0.55\linewidth]{auth-login.png}{Sign-in form, validated on the client by the same schema the server enforces}{auth}
 
 \subsection{Reporting an item}
 
-One guided form serves both directions, differing only in wording and in the
-date label. It collects a title, a free-text description, a category, colour,
-brand, wilaya, the date, up to two verification questions, and up to five
-photographs.
+One guided form, in five steps, serves both directions, differing only in
+wording and in the date label. It collects a title, a free-text description, a
+category, colour, brand, wilaya, the date, up to two verification questions, and
+up to five photographs.
 
 Uploads are validated on content rather than on file extension --- declared MIME
-type, magic bytes and size --- then re-encoded with Pillow to WebP at a longest
-edge of 1600\,px. A typical phone photograph of three to five megabytes comes
-down to roughly 150--250\,kilobytes, which is the difference between a few
-hundred and a few thousand photographs on a free-tier storage bucket, and the
-1600\,px bound still exceeds every size at which the interface renders an image.
+type, magic bytes and size --- then re-encoded with Pillow to WebP at quality~82
+with the longest edge bounded at 1\,600\,px. The 39 photographs stored for the
+evaluation corpus occupy 3.2\,MB in total, with a mean of 63\,KB and a median of
+30\,KB per file. At that size, the 40\,GB disk of the smallest server considered
+in Chapter~\ref{ch:finance} holds several hundred thousand photographs, so
+storage is not a cost driver at pilot scale.
 
-\screenshot{report-form.png}{Reporting a found item: details, photographs and verification questions}{report}
+\screenshot{report-form.png}{Reporting an item: step two of five, details and category}{report}
 
 \subsection{Browsing and searching}
 
 The public browse views list lost and found reports with filters on category,
-wilaya and date, and a keyword search served by the PostgreSQL full-text index.
+wilaya and date, and a keyword search served by the PostgreSQL full-text index
+with accent folding (\code{unaccent}) and trigram matching for misspellings.
 Keyword search is a genuine fallback rather than a lesser version of the
 matching engine: a user who knows the brand name written on the object wants
 exactly that token, not its neighbourhood in vector space.
@@ -902,16 +973,75 @@ blind dismissal, whereas \dq{same category, same wilaya, photographs strongly
 similar, found one day after the loss} lets the user apply judgement the system
 does not have.
 
-\screenshot{item-matches.png}{Match suggestions with confidence and generated explanations}{matches}
+\screenshot{item-matches.png}{A confirmed suggestion at 86\,\% confidence, with the reasons that produced it}{matches}
+
+\subsection{Paid matching}
+\label{sec:paid-matching}
+
+Reporting, browsing, searching and claiming are free. What is paid is the
+\emph{suggestion}: the identity of the report that the engine believes describes
+the same object. Each account receives one free unlock; further unlocks cost one
+credit each, and credits are sold in three packs (Table~\ref{tab:packs}).
+
+\begin{table}[htbp]
+\centering
+\caption{Credit packs, as implemented in \code{app/core/pricing.py}}
+\label{tab:packs}
+\small
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+\textbf{Pack} & \textbf{Credits} & \textbf{Price (DZD)} & \textbf{Per unlock (DZD)} & \textbf{Saving} \\
+\midrule
+Single unlock & 1  & 200   & 200 & --- \\
+Pack of 3 (highlighted) & 3  & 500   & 167 & 16\,\% \\
+Pack of 10    & 10 & 1\,200 & 120 & 40\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Four implementation decisions carry this feature.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{The redaction happens on the server.} A locked suggestion is
+        stripped of the counterpart's title, photograph, place and date before
+        it is serialised. Blurring in the browser would leave the answer one
+        click away in the developer tools. What a locked card keeps is the
+        confidence figure and a small blurred thumbnail generated at upload
+        time --- the evidence that something real sits behind the lock.
+  \item \textbf{Credits are a ledger, not a counter.} Every purchase, unlock and
+        administrative grant is an append-only row; the balance is their sum.
+        An unlock locks the user's row first and then checks, in order, whether
+        the match is already unlocked, whether the free allowance remains, and
+        whether the balance suffices --- so two simultaneous clicks cannot spend
+        the same credit twice.
+  \item \textbf{The payment gateway sits behind an interface.} Chargily
+        Pay~\cite{chargily2026}, which accepts the national EDAHABIA and CIB
+        cards, is reached through a \code{PaymentProvider} with two operations:
+        create a checkout, and verify a webhook. The webhook's HMAC-SHA256
+        signature is checked over the raw request bytes with a constant-time
+        comparison, and credits are granted only from a verified webhook, never
+        from the browser's return to the site. A simulated provider implements
+        the same interface for development and demonstrations.
+  \item \textbf{A confirmed match is never locked.} Once both parties have been
+        told about a specific item, charging for the card that describes it
+        would sell nothing but frustration.
+\end{itemize}
+
+Prices are whole dinars, the unit in which Chargily settles, and the fee is
+absorbed by the platform so that the price shown is the price paid. The economic
+consequences of this pricing are analysed in Chapter~\ref{ch:finance}.
+
+\screenshot[0.72\linewidth]{locked-matches.png}{Locked suggestions: confidence visible, counterpart withheld, first unlock free}{locked}
+\screenshot{billing.png}{Credit page: balance, free allowance and the three packs}{billing}
 
 \subsection{The claim workflow}
 
-A match is a hypothesis, not an authorisation, so a confirmed match never
-reveals anyone's contact details. Recovery goes through a separate claim:
+A match is a hypothesis, not an authorisation, so even an unlocked suggestion
+never reveals anyone's contact details. Recovery goes through a separate claim:
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
   \item The reporter sets up to two verification questions when publishing
-        (\dq{Which side is it, left or right?}, \dq{What is the lock-screen
+        (\dq{Which side is scratched?}, \dq{What is the lock-screen
         photograph?}).
   \item A user who believes the item is theirs submits a claim answering those
         questions, with an optional message. The questions are snapshotted onto
@@ -934,101 +1064,374 @@ rejection.
 
 Notifications are created in-app when a match crosses the notification
 threshold, when a claim is submitted, and when a claim is resolved. Each carries
-a deep link to the item or match that caused it. The channel column already
-distinguishes in-app from e-mail, so an e-mail transport can be added without a
-schema change.
-
-The dashboard collects the user's own reports with their live state --- the ML
-pipeline status while embedding is in progress, the number of suggestions, and
-any pending claims awaiting their decision.
+a deep link to the item or match that caused it. The dashboard collects the
+user's own reports with their live state --- the processing status while
+embedding is in progress, the number of suggestions, and any claims awaiting
+their decision.
 
 \screenshot{notifications.png}{Notification centre}{notifications}
 \screenshot{dashboard.png}{Personal dashboard: own reports, suggestions and pending claims}{dashboard}
 
+\subsection{Administration console}
+
+A platform that matches strangers and takes payments needs people who can
+intervene. The administration console, reachable only by accounts with the
+\code{admin} role, covers five areas: an overview of the platform's state
+(accounts, open reports, recoveries, the rate at which owners confirm
+suggestions, revenue, and the AI processing queue); accounts, which can be
+suspended, reactivated, verified, promoted, or granted free unlocks; reports,
+which can be taken down with a stated reason, restored, re-processed, or
+stripped of an individual photograph; suggestions, which can be retracted from
+both owners; and payments.
+
+Every one of these actions writes a row to \code{admin\_actions} \emph{in the
+same database transaction} as the change it records, so the audit log cannot
+disagree with the data: either both are committed or neither is. Actions that
+affect another person --- a suspension, a takedown --- require a reason. A
+moderator's takedown is recorded with its own close reason, \code{removed},
+distinct from a reporter withdrawing their own report, so that the two never
+blur together in statistics. The first administrator can only be created from
+the server's command line, which keeps the web interface free of any path to
+privilege.
+
+\screenshot{admin-overview.png}{Administration console, overview page, on the evaluation corpus}{admin}
+
 \subsection{Trilingual interface and right-to-left support}
 
 Every route is prefixed by a locale segment, and English, French and Arabic each
-have a complete message catalogue. Arabic is rendered right-to-left; because the
-styling uses logical rather than physical properties, the layout mirrors without
-a parallel stylesheet.
-
-Localisation reaches further than the interface strings. Wilayas are stored as
-numeric codes and rendered per locale. Match explanations travel from the worker
-as reason codes and are translated on the client. And the text encoder itself is
-multilingual, which is what allows a description written in Arabic to match a
-description of the same object written in French --- the single most important
-consequence of the model choice in Section~\ref{sec:ml-stack}.
+have a complete message catalogue of 905 keys. Arabic is rendered right-to-left;
+because the styling uses logical rather than physical properties, the layout
+mirrors without a parallel stylesheet. Localisation reaches further than the
+interface strings: wilayas are stored as numeric codes and rendered per locale,
+match explanations travel from the worker as reason codes and are translated on
+the client, and the text encoder itself is multilingual, which is what allows a
+description written in Arabic to match one written in French
+(Section~\ref{sec:eval-crosslingual}).
 
 \screenshot{arabic-rtl.png}{The same interface in Arabic, mirrored right-to-left}{rtl}
 
 \section{Testing and validation}
 
 Testing is concentrated where a defect would be either invisible or expensive.
+The backend suite holds 136 automated tests, all passing.
 
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
   \item \textbf{Scoring is pure and unit-tested.} Fusion, calibration,
         confidence and the margin rule are plain functions over plain values ---
-        no database session, no model, no PyTorch. The entire scoring policy can
-        therefore be tested in milliseconds, without loading half a gigabyte of
-        weights, and the tests can be imported from the API side as well.
+        no database session, no model, no PyTorch --- so the entire scoring
+        policy is tested in milliseconds without loading any weights.
   \item \textbf{Integration tests exercise the real HTTP surface} for
-        authentication and the item lifecycle, through the same validation and
-        authorisation dependencies that run in production.
-  \item \textbf{Schema tests} pin the request and response contracts that the
-        typed frontend client is generated against.
-  \item \textbf{Security tests} cover token issuance, expiry, rotation and the
-        reuse-detection path, including the grace window.
+        authentication, the item lifecycle, billing and the administration
+        endpoints, through the same validation and authorisation dependencies
+        that run in production.
+  \item \textbf{Security tests} cover token issuance, expiry, rotation, the
+        reuse-detection path including its grace window, webhook signature
+        checks, and the refusal to start with a weak signing secret.
   \item \textbf{Health endpoints} separate liveness from readiness: readiness
         checks the database and, when configured, Redis.
 \end{itemize}
 
-The most valuable validation, however, is not automated. Working through the
-seeded demonstration corpus by hand is what exposed the CLIP anisotropy
-described in Section~\ref{sec:calibration} --- unrelated photographs were being credited with
-roughly $70\%$ agreement, and no unit test would have flagged that, because the
-code was doing exactly what it had been written to do. The number was wrong, not
-the arithmetic.
+Table~\ref{tab:codebase} gives the size of what was built.
+
+\begin{table}[htbp]
+\centering
+\caption{Size of the implementation}
+\label{tab:codebase}
+\small
+\begin{tabularx}{\textwidth}{@{}X r X@{}}
+\toprule
+\textbf{Component} & \textbf{Size} & \textbf{Notes} \\
+\midrule
+Backend (Python)          & 9\,549 lines  & 104 source files, 60 API routes \\
+Backend tests             & 1\,310 lines  & 136 tests \\
+Database migrations       & 9             & from accounts (0001) to the audit log (0009) \\
+Frontend (TypeScript)     & 16\,616 lines & 208 source files \\
+Interface translations    & 905 keys      & in each of French, Arabic and English \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The most valuable validation, however, was not automated. Inspecting the scores
+the engine produced on real photographs is what exposed the CLIP anisotropy of
+Section~\ref{sec:calibration} --- unrelated photographs were being credited with
+more than half of a perfect score, and no unit test would have flagged that,
+because the code was doing exactly what it had been written to do. The number
+was wrong, not the arithmetic.
+
+\section{Experimental evaluation}
+\label{sec:evaluation}
+
+This section measures the prototype on its own data. It answers four questions:
+does the multilingual text encoder actually match across languages; how does
+the engine behave on the reports in the system; how fast and how large is the
+running system; and what do these measurements not show.
+
+\subsection{Evaluation corpus}
+
+The prototype's database holds the reports entered while the system was built
+and demonstrated, between 28~July and 28~September 2026, written to exercise the
+full cycle from report to recovery. Table~\ref{tab:corpus} describes it. It is a \emph{demonstration} corpus,
+not a sample of the public's behaviour, and the numbers below must be read with
+that in mind.
+
+\begin{table}[htbp]
+\centering
+\caption{The evaluation corpus}
+\label{tab:corpus}
+\small
+\begin{tabularx}{\textwidth}{@{}X r r r@{}}
+\toprule
+ & \textbf{Lost} & \textbf{Found} & \textbf{Total} \\
+\midrule
+Reports                                   & 24 & 32 & 56 \\
+\quad still open                          & 15 & 22 & 37 \\
+\quad matched                            & 7  & 5  & 12 \\
+\quad claimed (a claim approved)          & 1  & 2  & 3  \\
+\quad closed                              & 1  & 3  & 4  \\
+Reports with at least one photograph      & \multicolumn{2}{r}{} & 36 \\
+Photographs stored                        & \multicolumn{2}{r}{} & 39 \\
+Reports with a declared category          & \multicolumn{2}{r}{} & 39 \\
+Wilayas represented                       & \multicolumn{2}{r}{} & 12 \\
+Accounts (of which administrators)        & \multicolumn{2}{r}{} & 24 (1) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Cross-lingual text retrieval}
+\label{sec:eval-crosslingual}
+
+\paragraph{Protocol.} Twelve everyday objects were each described three times,
+as real posts would be: in English as a \emph{loss} report, and in French and
+Arabic as \emph{found} reports, in different words --- for example \dq{Lost my
+black Samsung Galaxy A54 at the bus station, the screen protector is cracked}
+against \dq{Trouvé un téléphone Samsung noir à la gare routière, protection
+d'écran fissurée}. A correct match must therefore survive both a change of
+language and a rephrasing. For every ordered pair of languages, each of the 12
+descriptions was used as a query against the 12 descriptions in the other
+language, giving $6 \times 12 = 72$ queries per model. A query succeeds when its
+nearest neighbour is the same object; the mean reciprocal rank (MRR) also
+credits a correct answer found in second or third place.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-lingual retrieval, 72 queries per model}
+\label{tab:crosslingual}
+\small
+\begin{tabularx}{\textwidth}{@{}X r r r r@{}}
+\toprule
+\textbf{Model} & \textbf{Top-1} & \textbf{MRR} & \textbf{Sim.\ same} & \textbf{Sim.\ other} \\
+\midrule
+Multilingual MiniLM (production) & 72 / 72 & 1.000 & 0.740 & 0.234 \\
+English-only MiniLM (\code{all-MiniLM-L6-v2}) & 23 / 72 & 0.452 & 0.111 & 0.044 \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\begin{tabularx}{\textwidth}{@{}X *{6}{c}@{}}
+\toprule
+\textbf{Top-1, of 12} & EN$\to$FR & EN$\to$AR & FR$\to$EN & FR$\to$AR & AR$\to$EN & AR$\to$FR \\
+\midrule
+Multilingual MiniLM & 12 & 12 & 12 & 12 & 12 & 12 \\
+English-only MiniLM & 9  & 2  & 10 & 0  & 1  & 1  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Result.} The production model retrieved the right object first for
+all 72 queries, with a wide gap between the mean similarity of descriptions of
+the same object ($0.740$) and of different objects ($0.234$). The English-only
+model manages between French and English, which share vocabulary and script,
+but is no better than chance for Arabic: it found 4 of the 48 queries that
+involve Arabic, where chance alone would find 4 (one in twelve). This is the
+measured justification for the model choice of Section~\ref{sec:ml-stack}: with
+an English-only encoder, an Arabic report would be invisible to the matching
+engine. The set is small and hand-written, so the experiment establishes the
+\emph{difference} between the two models rather than an accuracy figure for the
+field.
+
+\subsection{Matching outcomes on the corpus}
+\label{sec:eval-matching}
+
+Over the life of the corpus the engine created 43 suggestions. Their current
+state is given in Table~\ref{tab:match-outcomes}.
+
+\begin{table}[htbp]
+\centering
+\caption{Suggestions created by the engine on the evaluation corpus}
+\label{tab:match-outcomes}
+\small
+\begin{tabularx}{\textwidth}{@{}X r r@{}}
+\toprule
+\textbf{State} & \textbf{Count} & \textbf{Mean confidence} \\
+\midrule
+Suggested, awaiting the owners          & 23 & 0.685 \\
+Confirmed by an owner                   & 7  & 0.771 {\footnotesize (0.567--0.965)} \\
+Rejected by an owner                    & 1  & 1.000 \\
+Expired (retracted by a later pass)     & 12 & 0.626 \\
+\midrule
+\textbf{Total}                          & \textbf{43} & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Confidence levels.} 6 suggestions reached the strong level
+        ($\geq 0.85$), 7 the notification level ($0.70$--$0.85$), and 30 were
+        persisted below the notification threshold ($0.55$--$0.70$) --- visible
+        on the item page but not pushed to anyone.
+  \item \textbf{Coverage.} 31 of the 56 reports (55\,\%) have at least one live
+        suggestion, and 18 (32\,\%) have two or more; a report with any
+        suggestion has 2.0 on average.
+  \item \textbf{Owner verdicts.} Owners judged 8 suggestions: 7 correct and 1
+        incorrect. The incorrect one is instructive: it scored $1.000$ because
+        both reports carry the same photograph file (image similarity $1.000$)
+        and closely worded descriptions, yet its owner judged them to be
+        different objects --- a case no similarity measure can settle, and the
+        reason recovery passes through a human-judged claim.
+  \item \textbf{Claims.} Nine claims were submitted: 4 approved and 2 rejected
+        by the reporter, and 3 still pending.
+  \item \textbf{Notifications.} 65 notifications were sent: 43 for possible
+        matches, 12 for confirmations, 9 for claims and 1 system message.
+\end{itemize}
+
+The confirmed suggestions are spread from $0.567$ to $0.965$, and the three
+lowest ($0.567$, $0.567$ and $0.577$) sat below the notification threshold:
+nobody was alerted, and the owners found them on their item page. All three were
+carried by their photographs --- calibrated image scores of $0.68$ to $0.85$
+against weak text agreement of $0.14$ to $0.24$ --- which is precisely the case
+the second retrieval route of the engine was built for. Both decisions are thus
+supported by the data: retrieving by image independently of text, and keeping
+suggestions below the notification threshold instead of discarding them.
+
+\subsection{Performance and footprint}
+\label{sec:eval-performance}
+
+Table~\ref{tab:performance} gives the timings and the resource use of the
+running system on the development workstation.
+
+\begin{table}[htbp]
+\centering
+\caption{Measured performance and footprint (Intel Core i7-8850H, CPU only)}
+\label{tab:performance}
+\small
+\begin{tabularx}{\textwidth}{@{}X r r@{}}
+\toprule
+\textbf{Measurement} & \textbf{Median} & \textbf{95th pct.} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Model inference, per call}} \\
+Encode one report text (multilingual MiniLM)        & 24\,ms  & 28\,ms \\
+Encode one photograph, 1\,200\,$\times$\,900 (CLIP)  & 98\,ms  & 147\,ms \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{Background jobs (mean and maximum)}} \\
+\code{embed\_item}, text and all photographs         & 0.50\,s & max 1.33\,s \\
+\code{run\_matching}, one report                     & 0.09\,s & --- \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{API response time}} \\
+Browse a page of reports                             & 17\,ms & 39\,ms \\
+Item detail                                          & 9\,ms  & 14\,ms \\
+Keyword search                                       & 16\,ms & 38\,ms \\
+Keyword search with a misspelling                    & 13\,ms & 18\,ms \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Memory in use, per container}} \\
+Worker (both models loaded)                          & \multicolumn{2}{r}{872\,MB} \\
+API                                                  & \multicolumn{2}{r}{142\,MB} \\
+Frontend (Next.js server)                            & \multicolumn{2}{r}{105\,MB} \\
+PostgreSQL                                           & \multicolumn{2}{r}{56\,MB} \\
+Redis                                                & \multicolumn{2}{r}{7\,MB} \\
+\textbf{Total}                                       & \multicolumn{2}{r}{\textbf{1\,182\,MB}} \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{Container images on disk}} \\
+Worker / API / frontend                              & \multicolumn{2}{r}{1.94\,GB / 416\,MB / 313\,MB} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Three conclusions follow. The worker spends about \emph{six-tenths of a
+second} embedding and matching a report, so suggestions are effectively
+immediate. Every API call measured answers in under 40\,ms at the 95th
+percentile, because none of them runs a model. And the whole platform needs
+about 1.2\,GB of memory, almost three-quarters of it the worker's two models:
+this single figure is what sizes the server in Chapter~\ref{ch:finance}. It
+rules out the 512\,MB free tiers of platform-as-a-service providers, and fits
+with room to spare on a 4\,GB virtual machine.
+
+\subsection{Limits of the evaluation}
+
+The measurements above are honest but narrow, and four limits should be stated
+plainly.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{The corpus is small and built by the team.} Fifty-six reports
+        cannot estimate precision or recall in the field, and reports written
+        to exercise the system are cleaner than the public's.
+  \item \textbf{No Arabic report exists in the corpus.} The cross-lingual
+        capability is established by the controlled experiment of
+        Section~\ref{sec:eval-crosslingual}, not by live data.
+  \item \textbf{Notifications are written in English.} Match explanations are
+        translated on the client, but the title and body of a notification are
+        still generated in English by the worker; storing them as codes, like
+        the explanations, is the planned fix.
+  \item \textbf{No real payment has been processed.} The purchase flow was
+        exercised end to end with the simulated provider. The Chargily adapter
+        is written against the gateway's documented v2 interface and covered by
+        tests of its signature check, but it has not yet exchanged a payment
+        with Chargily: that requires a merchant account, which in turn requires
+        the registered activity described in Chapter~\ref{ch:finance}.
+\end{itemize}
+
+The measurement that matters most --- how many objects are returned to their
+owners --- can only come from a pilot with real users, and the system records
+everything that pilot will need: suggestions, owner verdicts, claims and
+recoveries.
 
 \section{Deployment and packaging}
 
-The whole system runs from a single \code{docker compose up}. Five services are
-defined --- \code{postgres} (with \code{pgvector}), \code{redis}, \code{api},
-\code{worker} and \code{frontend} --- with named volumes for database files,
-Redis persistence, uploaded media, and the Hugging Face model cache. Caching the
-model weights in a volume matters more than it appears to: without it, every
-container rebuild re-downloads several hundred megabytes of weights before the
-worker can start.
+\paragraph{Development.} The whole system runs from a single
+\code{docker compose up}. Five services are defined --- \code{postgres} (with
+\code{pgvector}), \code{redis}, \code{api}, \code{worker} and \code{frontend}
+--- with named volumes for database files, Redis persistence, uploaded media,
+and the model cache. Caching the model weights in a volume matters more than it
+appears to: without it, every container rebuild re-downloads several hundred
+megabytes of weights before the worker can start. The API and the worker are
+built from the same Dockerfile but install different dependency sets: the API
+never imports PyTorch, and PyTorch is installed from the CPU wheel index,
+because the default distribution bundles NVIDIA libraries this deployment
+cannot use.
 
-The API and the worker are built from the same Dockerfile but install different
-dependency sets. The API never imports PyTorch, so the ML requirements are
-confined to the worker stage; and PyTorch is installed from the CPU wheel index,
-because the default distribution bundles CUDA and pulls roughly 2.5\,GB of NVIDIA
-libraries that this deployment cannot use, against roughly 200\,MB for the CPU
-build.
+\paragraph{Production.} A separate deployment kit (\code{deploy/}) turns the
+same images into a public service on any Linux virtual machine. It adds a Caddy
+reverse proxy that obtains and renews HTTPS certificates automatically, keeps
+PostgreSQL and Redis off the public network, restarts every service after a
+failure or a reboot, rotates logs, and runs the platform in a \emph{staging}
+mode in which payments use the simulated provider until a merchant account
+exists. When no domain name has been bought, the server's address is turned
+into a working hostname through a wildcard DNS service such as
+\code{sslip.io}, so a certificate can still be issued. Two scripts move the
+demonstration data across: one exports the database and the photographs from
+the development machine, the other restores them on the server.
 
-Two configuration choices keep low-cost hosting viable. Setting
-\code{REDIS\_URL} to an empty string runs the API queue-free, with readiness
-reporting Redis as skipped rather than failing --- enough to deploy the browsing
-and reporting surface as a single service on a free tier. And the
-\code{StorageBackend} abstraction means moving from local disk to S3-compatible
-object storage is a configuration change, not a code change.
+\paragraph{Rehearsal.} The production configuration was rehearsed end to end on
+the development machine: the data import reproduced identical row counts, and a
+cross-check report submitted through HTTPS was embedded and matched to its
+counterpart at 94\,\% confidence. Because the free server targeted for the
+demonstration uses ARM processors (Chapter~\ref{ch:finance}), the worker image
+was also built for ARM64; this required pinning a different PyTorch build per
+architecture, since the CPU-only wheel index serves x86 only.
 
 \section{Conclusion}
 
-This chapter has described the prototype as it stands: a modular-monolith
-backend with all inference isolated on a background worker, a PostgreSQL
-database doing relational filtering, full-text search and vector similarity in
-one engine, and a trilingual Next.js interface covering the full cycle from
-report to recovery.
+This chapter has described the prototype as it stands and measured it: a
+modular-monolith backend with all inference isolated on a background worker, a
+PostgreSQL database doing relational filtering, full-text search and vector
+similarity in one engine, a trilingual Next.js interface covering the full cycle
+from report to recovery, a paid matching tier built on an auditable credit
+ledger, and an administration console whose every action is recorded.
 
-The engineering that distinguishes the result is concentrated in the matching
-engine, and specifically in the parts that keep it honest --- calibrating a raw
-CLIP cosine that was silently inflating every score, redistributing fusion
-weights so that a missing photograph is not read as a dissimilar one, blending a
-lexical term so that \dq{iPhone 14} and \dq{iPhone 13} stop being
-indistinguishable, retracting suggestions the evidence no longer supports, and
-keeping contact details behind a verification handshake that a similarity score
-alone can never open. Every scoring constant remains in configuration, and every
-confirmed or rejected suggestion is persisted as a labelled example, so the
-hand-tuned policy described here is positioned to be replaced by a learned and
-calibrated one without disturbing anything around it.
+The measurements support the two central technical choices. The multilingual
+encoder matched every one of 72 cross-language queries where an English-only
+model failed almost all of those involving Arabic; and the calibration of the
+image channel, motivated by the measured distribution of CLIP similarities,
+keeps the typical unrelated photograph from counting as evidence. They also put
+a number on what the platform costs to run: about 1.2\,GB of memory and no GPU,
+which is the starting point of the financial plan that follows. What they cannot
+show --- recovery rates with real users --- is the purpose of the pilot.

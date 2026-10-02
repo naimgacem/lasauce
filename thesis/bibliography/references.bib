@@ -232,9 +232,9 @@
 }
 
 % ============================ Context and statistics =========================
-%  Sources backing the market figures in Chapter 3 and the cost model in
+%  Sources backing the market figures in Chapter 3 and the financing schemes in
 %  Chapter 6. Re-check the figures before the defence: telecom and population
-%  statistics are revised quarterly, and cloud prices change.
+%  statistics are revised quarterly.
 
 @misc{arpce2025,
   author       = {{Autorit\'e de R\'egulation de la Poste et des Communications
@@ -306,38 +306,171 @@
                   10 million DZD},
 }
 
-@misc{selfhost2026,
-  author       = {{SelfHost.dev}},
-  title        = {{AWS} {RDS} vs {Hetzner} Cloud Cost Analysis},
+% ============================ Costs, prices and regulation ===================
+%  Sources for the operating costs, prices and legal obligations used in
+%  Chapters 4 and 6. All were consulted in late September and early October
+%  2026. Prices and exchange rates move: re-check them before the defence.
+
+@misc{oraclefree2026,
+  author       = {{Oracle}},
+  title        = {Always Free Resources --- {Oracle} Cloud Infrastructure
+                  Documentation},
   howpublished = {Available at:
-                  \url{https://selfhost.dev/blog/aws-rds-vs-hetzner-cloud-cost/}},
+                  \url{https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm}},
   year         = {2026},
-  note         = {Hetzner CCX23 (2 vCPU, 16 GB RAM, 160 GB NVMe) at
-                  approximately 31 EUR per month},
+  note         = {Ampere A1 compute, block storage and outbound traffic
+                  included free of charge; idle instances may be reclaimed},
 }
 
-@misc{worldsalaries2025,
-  author       = {{WorldSalaries}},
-  title        = {Average Software Developer Salary in Algeria},
+@misc{terminalbytes2026,
+  author       = {{TerminalBytes}},
+  title        = {Oracle Cloud Free Tier Changes in 2026},
   howpublished = {Available at:
-                  \url{https://worldsalaries.com/average-software-developer-salary-in-algeria/}},
-  year         = {2025},
-  note         = {Reported range 1\,224\,800--3\,432\,600 DZD per year;
-                  average 2\,281\,800 DZD},
+                  \url{https://terminalbytes.com/oracle-cloud-free-tier-changes-2026/}},
+  year         = {2026},
+  note         = {Ampere A1 allowance reduced to 1\,500 OCPU-hours and
+                  9\,000 GB-hours per month, i.e.\ 2 OCPUs and 12 GB of memory;
+                  200 GB of storage unchanged},
 }
 
-@misc{railway2026,
-  author       = {{Railway}},
-  title        = {Railway Pricing and Managed {PostgreSQL}},
-  howpublished = {Available at: \url{https://railway.com}},
+@misc{hetzner2026,
+  author       = {{Hetzner Online}},
+  title        = {Price Adjustment, 15 June 2026},
+  howpublished = {Available at:
+                  \url{https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/}},
+  year         = {2026},
+  note         = {Monthly prices excluding VAT, Germany and Finland: CX23
+                  5.49 EUR, CAX11 5.99 EUR, CX33 8.49 EUR, CAX21 10.49 EUR},
+}
+
+@misc{hetznerspecs2026,
+  author       = {{Hetzner Online}},
+  title        = {Cloud Servers --- Cost-Optimized Plans},
+  howpublished = {Available at: \url{https://www.hetzner.com/cloud/cost-optimized/}},
+  year         = {2026},
+  note         = {CX23: 2 vCPU, 4 GB RAM, 40 GB NVMe; CX33: 4 vCPU, 8 GB RAM,
+                  80 GB NVMe; 20 TB traffic included},
+}
+
+@misc{cloudtally2026,
+  author       = {{CloudTally}},
+  title        = {Hetzner Billing Surprises: What {AWS}, {Azure}, and {GCP}
+                  Habits Get Wrong},
+  howpublished = {Available at: \url{https://cloudtally.eu/blog/hetzner-billing-gotchas}},
+  year         = {2026},
+  note         = {Automated backups add 20\,\% to the server price; a primary
+                  IPv4 address costs about 0.50 EUR per month},
+}
+
+@misc{azurestudents2026,
+  author       = {{Microsoft}},
+  title        = {Azure for Students},
+  howpublished = {Available at: \url{https://azure.microsoft.com/en-in/free/students}},
+  year         = {2026},
+  note         = {100 USD of credit for twelve months, no credit card required},
+}
+
+@misc{render2026,
+  author       = {{srvrlss.io}},
+  title        = {Render --- Provider Profile and Free Tier Limits},
+  howpublished = {Available at: \url{https://srvrlss.io/provider/render/}},
+  year         = {2026},
+  note         = {Free web services have 512 MB of memory and are suspended
+                  after 15 minutes without traffic},
+}
+
+@misc{caddy2026,
+  author       = {{Caddy}},
+  title        = {Automatic {HTTPS}},
+  howpublished = {Available at: \url{https://caddyserver.com/docs/automatic-https}},
   year         = {2026},
 }
 
-@misc{xe2026,
-  author       = {{Exchange-Rates.org}},
-  title        = {{US} Dollar to Algerian Dinar Exchange Rate History, 2026},
-  howpublished = {Available at:
-                  \url{https://www.exchange-rates.org/exchange-rate-history/usd-dzd-2026}},
+@misc{brevo2026,
+  author       = {{Brevo}},
+  title        = {Brevo Help Center --- Free Plan Sending Limits},
+  howpublished = {Available at: \url{https://help.brevo.com}},
   year         = {2026},
-  note         = {2026 average: 1 USD = 129.79 DZD},
+  note         = {Free plan: 300 e-mails per day},
+}
+
+@misc{hostarts2026,
+  author       = {{Hostarts}},
+  title        = {Nom de domaine .dz},
+  howpublished = {Available at: \url{https://hostarts.dz/nom-de-domaine}},
+  year         = {2026},
+  note         = {.dz registration from 1\,500 DA per year},
+}
+
+@misc{chargily2026,
+  author       = {{Chargily}},
+  title        = {Chargily Pay --- Pricing},
+  howpublished = {Available at: \url{https://chargily.com/business/pay/pricing}},
+  year         = {2026},
+  note         = {Starter: free for the first 300 transactions or
+                  300\,000 DZD; Comfort: 1.5\,\% per transaction (minimum
+                  15 DZD, maximum 1\,500 DZD), one free payout per month;
+                  refunds 2\,\%},
+}
+
+@misc{algerie360fx2026,
+  author       = {{Alg\'erie 360}},
+  title        = {Taux de change euro/dinar du 24 septembre 2026},
+  howpublished = {Available at:
+                  \url{https://www.algerie360.com/taux-change-euro-dinar-24-septembre-2026/}},
+  year         = {2026},
+  note         = {Banque d'Alg\'erie: 1 EUR = 152.39 DA; parallel market:
+                  274 DA buying, 276 DA selling},
+}
+
+@misc{autoentrepreneur2026,
+  author       = {{UpGrowth}},
+  title        = {Auto-entrepreneur en {Alg\'erie} : imp\^ots et cotisations
+                  2026},
+  howpublished = {Available at: \url{https://upgrowth.dz/auto-entrepreneur-impots}},
+  year         = {2026},
+  note         = {IFU at 0.5\,\% of turnover, minimum 10\,000 DZD per year;
+                  CASNOS flat contribution of 24\,000 DZD per year (executive
+                  decree 26-257 of 15 July 2026); turnover ceiling
+                  5\,000\,000 DZD; annual SNMG 288\,000 DZD},
+}
+
+@misc{startuplabel2026,
+  author       = {{UpGrowth}},
+  title        = {Startup Label in {Algeria}: Eligibility and Benefits},
+  howpublished = {Available at: \url{https://upgrowth.dz/en/startup-label-algeria}},
+  year         = {2026},
+  note         = {Companies only; exemption from IRG, IBS or IFU for four years
+                  (art.~69 LF 2020 as amended by art.~100 LF 2026), two more
+                  years on renewal},
+}
+
+@misc{creation2026,
+  author       = {{UpGrowth}},
+  title        = {Co\^ut de cr\'eation d'entreprise en {Alg\'erie} 2026},
+  howpublished = {Available at:
+                  \url{https://www.upgrowth.dz/cout-creation-entreprise-algerie}},
+  year         = {2026},
+  note         = {SARL with two partners: 283\,610 DZD including notary, CNRC,
+                  BOAL and twelve months of domiciliation, plus a capital of
+                  100\,000 DZD; accountant fees of 8\,000 to 30\,000 DZD per
+                  month},
+}
+
+@misc{tva2026,
+  author       = {{UpGrowth}},
+  title        = {{TVA} entreprise {Alg\'erie} 2026 : taux, assujettis,
+                  d\'eclaration},
+  howpublished = {Available at: \url{https://www.upgrowth.dz/tva-entreprise-algerie}},
+  year         = {2026},
+  note         = {Normal rate 19\,\%, reduced rate 9\,\%},
+}
+
+@misc{ctadz2026,
+  author       = {{CTA DZ}},
+  title        = {Salaire d'un d\'eveloppeur web en {Alg\'erie} en 2026},
+  howpublished = {Available at:
+                  \url{https://ctadz.org/salaire-developpeur-web-algerie-2026/}},
+  year         = {2026},
+  note         = {Junior developers: 45\,000 to 90\,000 DA per month},
 }
