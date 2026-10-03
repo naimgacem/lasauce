@@ -37,6 +37,12 @@ EMBEDDING_RELEVANT_FIELDS = frozenset(
     {"title", "description", "category_id", "color", "brand"}
 )
 
+#  Fields the matcher reads directly rather than through the embedding: the date
+#  bounds the candidate window and the wilaya feeds a confidence boost. Editing
+#  one leaves the vector valid but the suggestions stale, so it re-runs matching
+#  alone — re-embedding an unchanged description would be wasted work.
+MATCHING_RELEVANT_FIELDS = frozenset({"lost_or_found_at", "wilaya_code"})
+
 
 class ItemService:
     def __init__(self, session: AsyncSession, queue: JobQueue | None = None) -> None:
@@ -99,7 +105,10 @@ class ItemService:
             await self.items.update(item, **values)
             await self.session.commit()
             if EMBEDDING_RELEVANT_FIELDS & values.keys():
+                #  The embed job queues matching itself once the vector is fresh.
                 await self.queue.embed_item(item.id)
+            elif MATCHING_RELEVANT_FIELDS & values.keys():
+                await self.queue.run_matching(item.id)
         return await self._get_or_404(item.id)
 
     async def delete_item(self, user: User, item_id: uuid.UUID) -> None:

@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import uuid
 
+from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -45,6 +47,7 @@ class MatchingService:
             logger.info("matching_skipped_no_embedding", extra={"item_id": str(item_id)})
             return 0
 
+        await self._widen_ann_search()
         candidates = await self.matches.retrieve_candidates(
             item=item, embedding=item.text_embedding
         )
@@ -154,6 +157,33 @@ class MatchingService:
             },
         )
         return persisted
+
+    async def _widen_ann_search(self) -> None:
+        """Make "top-K under the filters" true once the planner uses HNSW.
+
+        pgvector's HNSW scan yields at most `hnsw.ef_search` rows (40 by
+        default) and applies the WHERE clause *after* the scan. Retrieval asks
+        for MATCH_TOPK (50) rows of the opposite type, still matchable, inside a
+        date window — so on a corpus large enough for the index to be chosen,
+        the funnel would silently return fewer candidates than it asks for, and
+        fewer still the more selective the filters. Widening the search to K and
+        letting pgvector (>= 0.8) keep scanning until enough rows pass closes
+        that gap. `relaxed_order` is enough: every candidate is re-scored here,
+        so the order the index hands them over in does not matter.
+
+        SET LOCAL scopes both to this job's transaction.
+        """
+        ef_search = max(40, settings.MATCH_TOPK)
+        await self.session.execute(text(f"SET LOCAL hnsw.ef_search = {ef_search}"))
+        try:
+            async with self.session.begin_nested():
+                await self.session.execute(
+                    text("SET LOCAL hnsw.iterative_scan = relaxed_order")
+                )
+        except DBAPIError:
+            #  pgvector < 0.8 has no iterative scans. The wider ef_search still
+            #  helps, and a stale image must not stop matching altogether.
+            logger.warning("hnsw_iterative_scan_unavailable")
 
     @staticmethod
     def _orient(item: Item, other: Item) -> tuple[Item, Item]:

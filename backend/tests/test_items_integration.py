@@ -10,9 +10,12 @@ import uuid
 import pytest_asyncio
 from httpx import AsyncClient
 
+from app.api.deps import get_queue
 from app.core.security import create_access_token, hash_password
+from app.main import app
 from app.models.category import Category
 from app.models.user import User, UserRole
+from app.services.queue import JobQueue
 from tests.conftest import requires_db
 
 pytestmark = requires_db
@@ -118,6 +121,45 @@ async def test_ownership_rules_on_update(client, seeded):
     )
     assert admin_edit.status_code == 200
     assert admin_edit.json()["color"] == "black"
+
+
+class _RecordingRedis:
+    """Stands in for arq's pool and keeps the name of every job enqueued."""
+
+    def __init__(self) -> None:
+        self.jobs: list[str] = []
+
+    async def enqueue_job(self, name: str, *_args) -> None:
+        self.jobs.append(name)
+
+
+async def test_edits_schedule_the_right_pipeline_step(client, seeded):
+    owner = seeded["owner"]
+    redis = _RecordingRedis()
+    app.dependency_overrides[get_queue] = lambda: JobQueue(redis)
+    try:
+        item_id = (
+            await client.post("/api/v1/items", json=_payload(), headers=_auth(owner))
+        ).json()["id"]
+        assert redis.jobs == ["embed_item"]
+
+        async def edit(body: dict) -> list[str]:
+            redis.jobs.clear()
+            response = await client.patch(
+                f"/api/v1/items/{item_id}", json=body, headers=_auth(owner)
+            )
+            assert response.status_code == 200, response.text
+            return redis.jobs
+
+        #  What the item *is* changed: re-embed, which queues matching itself.
+        assert await edit({"description": "Brown leather wallet"}) == ["embed_item"]
+        #  The vector is still valid but the date window and wilaya boost moved.
+        assert await edit({"lost_or_found_at": "2026-06-20T12:00:00Z"}) == ["run_matching"]
+        assert await edit({"wilaya_code": 16}) == ["run_matching"]
+        #  Nothing the matcher reads.
+        assert await edit({"claim_questions": ["Which pocket has the zip?"]}) == []
+    finally:
+        app.dependency_overrides.pop(get_queue, None)
 
 
 async def test_delete_is_soft_close(client, seeded):
