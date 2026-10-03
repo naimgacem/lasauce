@@ -7,7 +7,7 @@
 
 The service addresses anyone who can lose a personal object and reach a web
 platform to say so. In Algeria that population is large and, more importantly,
-almost entirely connected.
+almost entirely connected (Table~\ref{tab:market-size}).
 
 \begin{table}[htbp]
 \centering
@@ -158,7 +158,8 @@ electronics, and impossible for anything of sentimental value.
 losses are never reported anywhere, because the perceived probability of
 recovery does not justify the effort. This is the behaviour the product must
 change, and it sets the standard the interface has to meet: reporting must take
-less effort than giving up.
+less effort than giving up. Table~\ref{tab:competitors} summarises the strengths
+and weaknesses of each alternative.
 
 \begin{table}[htbp]
 \centering
@@ -254,6 +255,7 @@ jury or an investor names them. The most consequential entry below is not a
 strength: it is the cold-start problem, which determines whether the platform
 works at all in its first year, and which the go-to-market of
 Section~\ref{sec:marketing} is built specifically to answer.
+Table~\ref{tab:swot} gives the complete matrix.
 
 \subsection{SWOT matrix}
 
@@ -365,14 +367,16 @@ The strategy follows from that, and from the cold-start weakness named above.
         every loss report against every discovery report, on text and images at
         once, and protects the handover behind a verification handshake.
 
-  \item \textbf{Price.} Reporting, searching and claiming are free, and finders
-        never pay: charging for a report would suppress precisely the reports
-        the engine needs, and the found side is the scarcer one. What is paid
-        is the unlocking of a match suggestion. The first unlock is free;
-        further ones cost 200~DZD each, or 167 and 120~DZD each in packs of 3
-        and 10. The price is set as an impulse purchase made at the moment a
-        result exists, not as a subscription --- see
-        Chapter~\ref{ch:finance}.
+  \item \textbf{Price.} Reporting, searching and claiming are free, and a finder
+        never needs to pay: publishing a found item, being matched against the
+        owner's report, and approving the owner's claim all cost nothing.
+        Charging for a report would suppress precisely the reports the engine
+        needs, and the found side is the scarcer one. What is paid is the
+        unlocking of a match suggestion, under the same rule for both owners of
+        a pair. The first unlock is free; further ones cost 200~DZD each, or 167
+        and 120~DZD each in packs of 3 and 10. The price is set as an impulse
+        purchase made at the moment a result exists, not as a subscription ---
+        see Chapter~\ref{ch:finance}.
 
   \item \textbf{Place.} The web, reachable from any smartphone browser without
         installation; and physically, the partner institutions where objects are
@@ -387,8 +391,8 @@ The strategy follows from that, and from the cold-start weakness named above.
         people, not by the algorithm.
 
   \item \textbf{Process.} Report, automatic matching, notification, verified
-        claim, approved handover, closure. Each step is instrumented, and the
-        outcome of each claim feeds the learning loop.
+        claim, approved handover, closure. Each step is recorded, and every
+        verdict an owner gives on a suggestion feeds the learning loop.
 
   \item \textbf{Physical evidence.} The interface itself; notifications;
         published recovery statistics; and the visible presence of the service

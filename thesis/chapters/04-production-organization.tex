@@ -35,8 +35,8 @@ Figure~\ref{fig:service-process} shows how the three actors converge.
     {\textbf{The reporter} reviews the answers and approves or rejects};
 
   \node[boxnode, text width=12.6cm] (done) at (0,-3.6)
-    {Contact details exchanged $\rightarrow$ handover $\rightarrow$ both reports closed as \emph{recovered}\\
-     {\scriptsize the outcome is stored as labelled feedback for the matching engine}};
+    {Contact details exchanged $\rightarrow$ handover $\rightarrow$ each owner closes their report as \emph{recovered}\\
+     {\scriptsize owners' verdicts on suggestions are stored as labelled feedback for the matching engine}};
 
   \draw[flowarrow] (loser)  -- (rlost);
   \draw[flowarrow] (finder) -- (rfound);
@@ -68,7 +68,8 @@ and a human decision before any identity is disclosed.}
         questions set by the finder.
   \item On approval, receives the finder's contact details and arranges the
         handover.
-  \item Closes the report as recovered, which supplies the labelled feedback the
+  \item Closes the report as recovered. Confirming or rejecting the
+        suggestions along the way is what supplies the labelled feedback the
         matching engine learns from.
 \end{enumerate}
 
@@ -94,9 +95,10 @@ The platform answers that objection structurally rather than with reassurance:
   \item \textbf{The finder alone decides} who is genuine. A high confidence
         score is a suggestion to the finder, never an instruction, and never an
         authorisation to disclose anything.
-  \item \textbf{Claims cannot be used to harass.} Only one pending claim per
-        person per item is permitted, so a rejected claimant cannot flood the
-        finder with retries.
+  \item \textbf{Claims cannot pile up.} Only one pending claim per person per
+        item is permitted, so a claimant cannot flood the finder with parallel
+        attempts: a new claim is possible only once the previous one has been
+        decided.
 \end{itemize}
 
 A finder is therefore never more exposed than they choose to be, which is the
@@ -150,8 +152,9 @@ procured; the prices are justified in Chapter~\ref{ch:finance}.
 \textbf{Item} & \textbf{Why it is needed} & \textbf{Offer chosen} \\
 \midrule
 One virtual server
-  & Runs all five services: database, queue, API, worker and frontend. Sized
-    on the measured 1.2\,GB of memory; no GPU needed
+  & Runs the five application services --- database, queue, API, worker and
+    frontend --- and the Caddy reverse proxy. Sized on the measured 1.2\,GB of
+    memory; no GPU needed
   & Oracle Always Free for the demonstration; Hetzner CX23, 5.49\,EUR a
     month, for the pilot~\cite{hetzner2026} \\
 \addlinespace
@@ -169,7 +172,9 @@ HTTPS certificates
   & Let's Encrypt through Caddy, free~\cite{caddy2026} \\
 \addlinespace
 Transactional e-mail
-  & Account and password e-mails as the user base grows
+  & Password-reset and address-verification e-mails. The prototype composes
+    them but only writes them to its log; an SMTP back end must be added
+    before the pilot
   & Brevo free plan, 300 e-mails a day~\cite{brevo2026} \\
 \addlinespace
 Payment gateway
@@ -193,7 +198,8 @@ The team required is small, because the product's marginal cost is
 computational rather than human. What does scale with volume is moderation:
 every disputed claim is arbitrated by a person, and claim volume grows with
 reports. The administration console of Chapter~\ref{ch:prototype} lets the
-founders do that work themselves during the pilot.
+founders do that work themselves during the pilot. Table~\ref{tab:headcount}
+shows who does what in each phase.
 
 \begin{table}[htbp]
 \centering

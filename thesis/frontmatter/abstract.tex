@@ -14,8 +14,8 @@ comparing them.
 
 This thesis presents \projectname, a web platform that makes that comparison
 automatic. Users report a lost or a found item through a single guided form ---
-title, free-text description, category, colour, brand, wilaya, date, and up to
-five photographs --- and the platform searches the opposite pool on their
+title, free-text description, category, colour, brand, wilaya, place, date, and
+up to five photographs --- and the platform searches the opposite pool on their
 behalf. Matching is \emph{multimodal}. Each report is encoded into a
 384-dimensional multilingual sentence embedding, so that a description written
 in Arabic, French or English is comparable with one written in either of the
@@ -23,8 +23,8 @@ other two; each photograph is encoded into a 512-dimensional CLIP vector, so
 that two people photographing the same object from different angles produce
 neighbouring points in vector space. Both vectors are stored in PostgreSQL
 through the \code{pgvector} extension, which allows approximate nearest
-neighbour retrieval and relational filtering --- opposite report type, open
-status, plausible date window --- to be expressed in a single query. Retrieved
+neighbour retrieval and relational filtering --- opposite report type, a report
+not yet settled, plausible date window --- to be expressed in a single query. Retrieved
 candidates are then scored by a fusion function that blends the semantic text
 similarity with a lexical full-text score, calibrates the raw image similarity,
 redistributes weight over whichever modalities are actually present, and adds
@@ -41,9 +41,9 @@ right-to-left Arabic). Contact details are never exposed by a match alone: a
 separate claim workflow requires the claimant to answer verification questions
 chosen by the reporter, and identities are exchanged only after the reporter
 approves. The prototype covers the complete cycle --- registration,
-reporting, embedding, matching, notification, claim, and recovery --- and the
-labelled outcome of every confirmed or rejected suggestion is persisted as
-training signal for a future calibrated ranking model.
+reporting, embedding, matching, notification, claim, and recovery --- and every
+verdict an owner gives on a suggestion they have seen is persisted as a labelled
+example for a future calibrated ranking model.
 
 Around this engine, the prototype provides a paid matching tier --- reporting,
 searching and claiming stay free, while unlocking a suggestion beyond the first

@@ -17,7 +17,7 @@ chargé de les comparer.
 Ce mémoire présente \projectname, une plateforme web qui automatise cette
 comparaison. L'utilisateur déclare un objet perdu ou trouvé au moyen d'un
 formulaire unique --- intitulé, description libre, catégorie, couleur, marque,
-wilaya, date et jusqu'à cinq photographies --- et la plateforme interroge pour
+wilaya, lieu, date et jusqu'à cinq photographies --- et la plateforme interroge pour
 lui l'ensemble opposé. L'appariement est \emph{multimodal}. Chaque déclaration
 est encodée en un vecteur de phrase multilingue de dimension~384, de sorte
 qu'une description rédigée en arabe, en français ou en anglais reste comparable
@@ -27,8 +27,8 @@ personnes photographiant le même objet sous des angles différents produisent
 des points voisins dans l'espace vectoriel. Les deux vecteurs sont stockés dans
 PostgreSQL via l'extension \code{pgvector}, ce qui permet d'exprimer dans une
 seule requête la recherche approximative des plus proches voisins et le
-filtrage relationnel --- type de déclaration opposé, statut ouvert, fenêtre
-temporelle plausible. Les candidats retenus sont ensuite évalués par une
+filtrage relationnel --- type de déclaration opposé, déclaration non encore
+réglée, fenêtre temporelle plausible. Les candidats retenus sont ensuite évalués par une
 fonction de fusion qui combine la similarité sémantique textuelle et un score
 lexical plein texte, calibre la similarité visuelle brute, redistribue les
 poids sur les seules modalités effectivement présentes, et ajoute de faibles
@@ -47,9 +47,9 @@ un simple appariement: une procédure de réclamation distincte impose au
 demandeur de répondre à des questions de vérification définies par le
 déclarant, et l'échange d'identités n'intervient qu'après approbation. Le
 prototype couvre le cycle complet --- inscription, déclaration, encodage,
-appariement, notification, réclamation et restitution --- et le résultat
-étiqueté de chaque suggestion confirmée ou rejetée est conservé comme signal
-d'apprentissage en vue d'un futur modèle de classement calibré.
+appariement, notification, réclamation et restitution --- et chaque verdict
+qu'un propriétaire rend sur une suggestion qu'il a consultée est conservé comme
+exemple étiqueté en vue d'un futur modèle de classement calibré.
 
 Autour de ce moteur, le prototype propose un appariement payant --- la
 déclaration, la recherche et la réclamation restent gratuites, tandis que le

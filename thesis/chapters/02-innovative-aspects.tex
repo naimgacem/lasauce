@@ -62,10 +62,12 @@ channels people use today.
         the machine-generated match explanations are localised in English,
         French and Arabic, with a mirrored right-to-left layout.
 
-  \item \textbf{A learning loop provisioned from the start.} Every confirmation
-        and rejection is stored as a labelled example alongside the scores that
-        produced the suggestion, so the platform accumulates the exact dataset
-        needed to improve its own ranking.
+  \item \textbf{A learning loop provisioned from the start.} Every confirmation,
+        and every rejection of a suggestion its owner has actually seen, is
+        stored as a labelled example alongside the scores that produced the
+        suggestion, so the platform accumulates the exact dataset needed to
+        improve its own ranking. Dismissing a suggestion without opening it
+        records no label: it expresses no opinion about the match.
 \end{itemize}
 
 \subsection{A new model of service}
@@ -83,7 +85,8 @@ other desk.
 searched pool}. The object stays physically wherever it is; what becomes shared
 is the \emph{information} about it. One report enters one national pool, and the
 comparison against every counterpart report is performed by the system, over and
-over, for as long as the report remains open.
+over, for as long as the report remains open. Table~\ref{tab:model-shift}
+summarises the shift.
 
 \begin{table}[htbp]
 \centering
