@@ -52,7 +52,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lf_pass}
       POSTGRES_DB: ${POSTGRES_DB:-lostfound}
     ports:
-      - "5432:5432"
+      # Host-side only — the api and worker reach this over the compose network
+      # as `postgres:5432` regardless. Override POSTGRES_PORT when a Postgres is
+      # already installed natively (a Windows `postgresql-x64-*` service claims
+      # 5432 automatically at boot), otherwise the bind fails and the whole
+      # stack refuses to start.
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro

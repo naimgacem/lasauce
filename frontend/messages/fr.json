@@ -73,7 +73,19 @@
     "seeAll": "Tout voir",
     "aiBadge": "Correspondance assistée par IA",
     "wilayaFilterLabel": "Filtrer par wilaya",
-    "privacyNote": "Vos coordonnées restent privées jusqu'à ce que vous approuviez une réclamation."
+    "privacyNote": "Vos coordonnées restent privées jusqu'à ce que vous approuviez une réclamation.",
+    "video": {
+      "eyebrow": "Découvrez Sabtou",
+      "title": "Voyez comment Sabtou réunit les gens avec leurs affaires",
+      "body": "Un court film qui suit un objet perdu, du moment où il disparaît jusqu'à son retour chez son propriétaire — et montre ce que fait Sabtou entre les deux.",
+      "narration": "Narration en français",
+      "durationLabel": "Durée",
+      "play": "Regarder la vidéo",
+      "videoLabel": "Vidéo de présentation de Sabtou",
+      "loading": "Chargement de la vidéo…",
+      "error": "La vidéo n'a pas pu être chargée.",
+      "unsupported": "Votre navigateur ne peut pas lire cette vidéo — téléchargez-la plutôt."
+    }
   },
   "browse": {
     "lostTitle": "Objets perdus",
@@ -490,6 +502,7 @@
       "same_color": "Même couleur — {color}",
       "same_brand": "Même marque — {brand}",
       "same_wilaya": "Même wilaya — {wilaya}",
+      "same_location": "Même lieu — {location}",
       "time_close": "{days, plural, =0 {Signalés le même jour} one {Signalés à 1 jour d'écart} other {Signalés à {days} jours d'écart}}",
       "stands_out": "Se démarque des autres candidats"
     },

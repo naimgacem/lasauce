@@ -136,6 +136,24 @@ export function formatPrice(
   }).format(amount);
 }
 
+/**
+ * 85.76 → "1:25" — a media length as a clock, the form every video player uses.
+ * Floored rather than rounded so it agrees with the browser's own controls.
+ * No locale: the clock reads the same in all three, Arabic included (Latin
+ * digits, as everywhere else in the app).
+ */
+export function formatDuration(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/** 85.76 → "PT1M25S" — the same length as ISO 8601, for `<time dateTime>`. */
+export function isoDuration(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(s / 60);
+  return `PT${minutes ? `${minutes}M` : ""}${s % 60}S`;
+}
+
 export function titleCase(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }

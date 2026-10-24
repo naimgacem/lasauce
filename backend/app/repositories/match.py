@@ -8,7 +8,7 @@ import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from sqlalchemy import func, select, text
+from sqlalchemy import case, func, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -24,8 +24,11 @@ settings = get_settings()
 #  owner already considers done.
 MATCHABLE_STATUSES = (ItemStatus.open.value, ItemStatus.matched.value)
 
-#  Tokens shorter than this are noise ("de", "la", "a") and blow up the OR-query
-#  for no recall gain.
+#  Short *alphabetic* tokens are noise ("de", "la", "a") and blow up the
+#  OR-query for no recall gain. Short tokens containing a digit are the exact
+#  opposite — "7", "14", "S23", "A52" are the single most identifying thing in
+#  "Pixel 7" or "iPhone 14", and the whole reason a lexical signal exists beside
+#  the embedding, which cannot tell a Pixel 7 from a Pixel 8.
 MIN_TOKEN_LENGTH = 3
 MAX_QUERY_TOKENS = 24
 
@@ -66,11 +69,22 @@ def build_tsquery(*texts: str | None) -> str | None:
         if not value:
             continue
         for token in _TOKEN_RE.findall(value.lower()):
-            if len(token) >= MIN_TOKEN_LENGTH and token not in seen:
-                seen.append(token)
-                if len(seen) >= MAX_QUERY_TOKENS:
-                    break
+            if not _is_useful_token(token) or token in seen:
+                continue
+            seen.append(token)
+            if len(seen) >= MAX_QUERY_TOKENS:
+                break
     return " | ".join(seen) if seen else None
+
+
+def _is_useful_token(token: str) -> bool:
+    """Keep a token as a search term. Digits survive the length cut.
+
+    A model number is short by nature and decisive by nature: dropping "7" from
+    "Pixel 7" throws away the one term that separates it from every other Pixel,
+    and leaves the query asking only for the word both reports share anyway.
+    """
+    return len(token) >= MIN_TOKEN_LENGTH or any(c.isdigit() for c in token)
 
 
 class MatchRepository(BaseRepository[Match]):
@@ -87,11 +101,14 @@ class MatchRepository(BaseRepository[Match]):
     ) -> list[Candidate]:
         """Two-stage funnel: relational pre-filter, then vector ANN.
 
-        Category is filtered *softly* — a candidate with no category is kept
-        rather than excluded. Roughly a fifth of reports carry no category, and
-        they are exactly the sparse ones most in need of matching; excluding
-        them would make them permanently invisible to the engine. Exact category
-        agreement is rewarded later, in `scoring.score_pair`, where it belongs.
+        Category is **not** filtered on at all. It used to be a soft filter
+        (keep candidates whose category is null or equal), but "soft" still
+        deleted every candidate filed under a *different* category — and the
+        seeded taxonomy has "Phones" sitting next to "Electronics", so one
+        person filing a lost phone under one and the finder filing it under the
+        other produced zero candidates and no way to tell why. Category
+        agreement and disagreement are both handled in `scoring.score_pair`,
+        where they can nudge a rank instead of silently erasing a match.
         """
         return await self._score(
             item=item,
@@ -133,7 +150,7 @@ class MatchRepository(BaseRepository[Match]):
     ) -> list[Candidate]:
         """Shared projection + pre-filter. `tail` selects ANN or a fixed id set."""
         opposite = ItemType.found if item.type == ItemType.lost else ItemType.lost
-        slack = dt.timedelta(days=settings.MATCH_DATE_SLACK_DAYS)
+        window = dt.timedelta(days=settings.MATCH_DATE_WINDOW_DAYS)
 
         sql = text(
             f"""
@@ -152,15 +169,6 @@ class MatchRepository(BaseRepository[Match]):
               AND i.status = ANY(:statuses)
               AND i.id <> :item_id
               AND i.text_embedding IS NOT NULL
-              -- CAST(), not `::uuid`: SQLAlchemy will not substitute a bind
-              -- parameter that is immediately followed by a colon, so
-              -- `:category_id::uuid` reaches Postgres as literal text and fails
-              -- to parse.
-              AND (
-                    CAST(:category_id AS uuid) IS NULL
-                 OR i.category_id IS NULL
-                 OR i.category_id = CAST(:category_id AS uuid)
-              )
               AND i.lost_or_found_at BETWEEN :date_lo AND :date_hi
             {tail}
             """
@@ -174,9 +182,8 @@ class MatchRepository(BaseRepository[Match]):
                 "opposite": opposite.value,
                 "statuses": list(MATCHABLE_STATUSES),
                 "item_id": item.id,
-                "category_id": item.category_id,
-                "date_lo": item.lost_or_found_at - slack,
-                "date_hi": item.lost_or_found_at + slack,
+                "date_lo": item.lost_or_found_at - window,
+                "date_hi": item.lost_or_found_at + window,
                 **extra_params,
             },
         )
@@ -211,7 +218,7 @@ class MatchRepository(BaseRepository[Match]):
             return set()
 
         opposite = ItemType.found if item.type == ItemType.lost else ItemType.lost
-        slack = dt.timedelta(days=settings.MATCH_DATE_SLACK_DAYS)
+        window = dt.timedelta(days=settings.MATCH_DATE_WINDOW_DAYS)
         per_image = max(1, (limit or settings.MATCH_TOPK) // len(embeddings))
 
         #  The nearest-neighbour ordering has to happen inside a subquery: with
@@ -248,8 +255,8 @@ class MatchRepository(BaseRepository[Match]):
                     "opposite": opposite.value,
                     "statuses": list(MATCHABLE_STATUSES),
                     "item_id": item.id,
-                    "date_lo": item.lost_or_found_at - slack,
-                    "date_hi": item.lost_or_found_at + slack,
+                    "date_lo": item.lost_or_found_at - window,
+                    "date_hi": item.lost_or_found_at + window,
                     "k": per_image,
                 },
             )
@@ -295,12 +302,20 @@ class MatchRepository(BaseRepository[Match]):
         confidence: float,
         explanation: list[dict],
     ) -> None:
-        """Insert or re-score one suggestion.
+        """Insert or re-score one suggestion, reviving it if it had expired.
 
         Settled rows are left untouched: a user who already said "not mine" must
         not have that suggestion revived — with a slightly different score — by
         the next re-match. The `WHERE` on the conflict target is what enforces
         it at the database rather than in a read-then-write race.
+
+        `expired` is *not* settled, and the status has to be restored explicitly:
+        updating only the scores left the row invisible forever, because
+        `list_for_item` filters `expired` out. That is a one-way door on a pair
+        the engine now believes in — and it closes easily, since matching re-runs
+        on every photo upload and any pass that scores a pair below the persist
+        threshold expires it. A photo landing a second after the text pass could
+        retire a correct match permanently.
         """
         stmt = insert(Match).values(
             lost_item_id=lost_item_id,
@@ -320,6 +335,15 @@ class MatchRepository(BaseRepository[Match]):
                     "combined_score": stmt.excluded.combined_score,
                     "confidence": stmt.excluded.confidence,
                     "explanation": stmt.excluded.explanation,
+                    #  Only `expired` is revived. `pending` (the reserved review
+                    #  queue) and `suggested` keep whatever they already are.
+                    "status": case(
+                        (
+                            Match.status == MatchStatus.expired.value,
+                            MatchStatus.suggested.value,
+                        ),
+                        else_=Match.status,
+                    ),
                     "updated_at": text("now()"),
                 },
                 where=Match.status.notin_(SETTLED_MATCH_STATUSES),
@@ -348,13 +372,15 @@ class MatchRepository(BaseRepository[Match]):
         result = await self.session.execute(
             select(Match).where(
                 (Match.lost_item_id == item_id) | (Match.found_item_id == item_id),
-                Match.status.notin_((*SETTLED_MATCH_STATUSES, "expired")),
+                Match.status.notin_(
+                    (*SETTLED_MATCH_STATUSES, MatchStatus.expired.value)
+                ),
             )
         )
         expired = 0
         for match in result.scalars().all():
             if (match.lost_item_id, match.found_item_id) not in keep:
-                match.status = "expired"
+                match.status = MatchStatus.expired.value
                 expired += 1
         return expired
 

@@ -55,6 +55,9 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 # `standalone` contains server.js + the minimal traced dependency set.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Like .next/static, public/ is left out of `standalone` and has to be copied
+# beside server.js by hand — without it the landing page's videos 404.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 EXPOSE 3000

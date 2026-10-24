@@ -105,9 +105,15 @@ class Settings(BaseSettings):
     #  Candidates pulled per modality before scoring. The funnel is a pre-filter
     #  (opposite type, open, date window) then ANN, so this bounds scoring work.
     MATCH_TOPK: int = 50
+    #  Hard retrieval cutoff. Deliberately much wider than the scoring slack
+    #  below: this filter *deletes* candidates, and a date is the least reliable
+    #  field on the form — people report a loss weeks after it happened and pick
+    #  whatever date the picker opened on. A tight hard window silently returns
+    #  zero candidates for a pair that is otherwise a perfect match.
+    MATCH_DATE_WINDOW_DAYS: int = 180
+    #  Scoring-only: the range over which timing still counts as corroboration.
     #  A found report can precede the lost report (someone picks it up before the
-    #  owner notices) or trail it by weeks, so the window is deliberately wide
-    #  and symmetric.
+    #  owner notices) or trail it by weeks, so it is symmetric.
     MATCH_DATE_SLACK_DAYS: int = 30
 
     # --- Matching: fusion weights ---
@@ -121,11 +127,24 @@ class Settings(BaseSettings):
     #  Rescaling from this floor to 1.0 restores the discrimination: 0.69 -> 0.11,
     #  0.96 -> 0.89. Raise it if unrelated photos still surface.
     MATCH_IMAGE_SIM_FLOOR: float = 0.65
+    #  Most a disagreeing photo may subtract from the text score. The evidence is
+    #  asymmetric: two photos that look alike are strong proof of one object,
+    #  while two photos that do NOT is weak proof of two — the same phone shot in
+    #  a different room, at a different angle, with the case off, lands well
+    #  below the "same object" range. Without this cap a 50/50 average lets one
+    #  bad camera angle veto a description that matches word for word.
+    MATCH_IMAGE_MAX_PENALTY: float = 0.10
     #  Blended into the text score. Embeddings capture meaning but blur exact
     #  tokens: "iPhone 14 Pro" and "iPhone 13 Pro" are near-identical vectors.
     #  Postgres FTS (migration 0005) knows they differ, so a lexical term rescues
     #  the model numbers, brands and serials that matter most for identification.
     MATCH_W_LEXICAL: float = 0.25
+    #  `ts_rank_cd` with the rank/(rank+1) normaliser is NOT a 0..1 similarity:
+    #  real matching pairs land around 0.1-0.3, so averaging it against a ~0.9
+    #  cosine deflates every text score by roughly a quarter. Rescaling by the
+    #  value that counts as "full lexical agreement" puts the two signals on one
+    #  scale before they are combined.
+    MATCH_LEXICAL_SATURATION: float = 0.30
 
     # --- Matching: confidence boosts ---
     #  Corroboration from independent metadata. Small on purpose: they nudge
@@ -137,7 +156,16 @@ class Settings(BaseSettings):
     #  coordinates (the form never asks), while most carry a wilaya. The
     #  `earthdistance` radius stays unused until coordinates actually exist.
     MATCH_BOOST_WILAYA: float = 0.05
+    #  Free-text place agreement ("Bab Ezzouar metro" ↔ "métro de Bab Ezzouar"),
+    #  scaled by how much of the shorter description the two share. Finer than
+    #  the wilaya — a wilaya holds millions of people, a named street does not.
+    MATCH_BOOST_LOCATION: float = 0.05
     MATCH_BOOST_TIME: float = 0.04
+    #  Subtracted when both sides declare a category and they differ. A penalty,
+    #  not a retrieval filter: the taxonomy has overlapping buckets (a phone is
+    #  reasonably "Phones" *or* "Electronics"), so disagreement is a mild doubt
+    #  about one report's filing, never proof the objects differ.
+    MATCH_PENALTY_CATEGORY: float = 0.05
     #  Rewards a candidate that stands clear of the pack: a top score well above
     #  the runner-up is more trustworthy than the same score in a tie.
     MATCH_BOOST_MARGIN: float = 0.05

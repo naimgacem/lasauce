@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { HeroSearch } from "@/features/items/components/hero-search";
 import { RecentItemsStrip } from "@/features/items/components/recent-items-strip";
+import { IntroVideoSection } from "@/features/landing/components/intro-video-section";
 import { Link } from "@/i18n/navigation";
 import { asLocale } from "@/i18n/routing";
 import { loginWithNext, ROUTES } from "@/lib/routes";
@@ -11,9 +12,11 @@ const STEPS = [1, 2, 3] as const;
 
 /**
  * Landing. Two jobs, in order: let someone search right now, and show that the
- * registry is alive. Everything above the fold is server-rendered and static —
- * no entrance animation on the headline, so it paints with the HTML instead of
- * waiting for JavaScript.
+ * registry is alive. Between the two sits the introduction film, for the
+ * first-time visitor who wants to see what Sabtou is before doing either.
+ * Everything above the fold is server-rendered and static — no entrance
+ * animation on the headline, so it paints with the HTML instead of waiting
+ * for JavaScript.
  */
 export default async function LandingPage({
   params,
@@ -112,6 +115,8 @@ export default async function LandingPage({
           </aside>
         </div>
       </section>
+
+      <IntroVideoSection locale={locale} />
 
       <RecentItemsStrip />
     </>
